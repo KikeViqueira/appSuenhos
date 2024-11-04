@@ -23,6 +23,10 @@ const icons = {
   logout: require("../assets/icons/logout.png"),
   eyeHide: require("../assets/icons/eye-hide.png"),
   eye: require("../assets/icons/eye.png"),
+  barChart: require("../assets/icons/bar-chart-icon.png"),
+  alarm: require("../assets/icons/alarm.png"),
+  chat: require("../assets/icons/chat.png"),
+  tips: require("../assets/icons/tips.png"),
 };
 
 export default icons;

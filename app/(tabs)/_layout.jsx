@@ -27,11 +27,11 @@ const Tabslayout = () => {
             //Ocultamos los nombres de los tabs que vienen por defecto
             tabBarShowLabel: false,
             //Establecemos los colores de las distintas personalizaciones de los tabs
-            tabBarActiveTintColor: '#464be5',
+            tabBarActiveTintColor: '#6366FF',
             tabBarInactiveTintColor: '#CDCDE0',
             //Establecemos ahora los colores de fondo de la caja que agrupa a los tabs
             tabBarStyle: {
-                backgroundColor: '#0e172a',
+                backgroundColor: '#323d4f',
                 borderTopCWidth: 1,
                 borderTopColor: '#1e2a47',
                 height: 84,
@@ -45,7 +45,7 @@ const Tabslayout = () => {
                     //headerShown: false,
                     tabBarIcon: ({color, focused}) => (
                         <TabIcon
-                            icon={icons.home}
+                            icon={icons.barChart}
                             color={color}
                             name='Estadísticas'
                             focused={focused}
@@ -62,7 +62,7 @@ const Tabslayout = () => {
                     headerShown: false,
                     tabBarIcon: ({color, focused}) => (
                         <TabIcon
-                            icon={icons.home}
+                            icon={icons.alarm}
                             color={color}
                             name='Alarm'
                             focused={focused}
@@ -79,7 +79,7 @@ const Tabslayout = () => {
                     headerShown: false,
                     tabBarIcon: ({color, focused}) => (
                         <TabIcon
-                            icon={icons.home}
+                            icon={icons.chat}
                             color={color}
                             name='Chat'
                             focused={focused}
@@ -96,7 +96,7 @@ const Tabslayout = () => {
                     headerShown: false,
                     tabBarIcon: ({color, focused}) => (
                         <TabIcon
-                            icon={icons.home}
+                            icon={icons.tips}
                             color={color}
                             name='Tips'
                             focused={focused}
