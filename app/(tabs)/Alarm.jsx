@@ -6,23 +6,17 @@ import AlarmItem from '../../components/AlarmItem'
 
 const Alarm = () => {
 
-  //Creamos el estado de la alarma
-  const [isEnabled, setIsEnabled] = useState(false);
-
-  //Definimos ahora la función que activará o desactivará la alarma
-  const toggleEnabled = () => setIsEnabled(!isEnabled);
-
   //Creamos un objeto alarma que se lo pasaremos a AlarmItem
   const alarm = {
     id: 1,
-    time: "07:30",
+    time: "19:29",
     days: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
     label: "Work",
   };
 
   return (
     <SafeAreaView className="h-full bg-primary">
-      <AlarmItem alarm={alarm} enabled={isEnabled} onToggle={toggleEnabled}></AlarmItem>
+      <AlarmItem alarm={alarm}></AlarmItem>
     </SafeAreaView>
   )
 }
