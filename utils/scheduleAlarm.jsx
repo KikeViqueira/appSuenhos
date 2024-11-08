@@ -1,6 +1,5 @@
 import { View, Text } from "react-native";
 import React from "react";
-import { playAlarmSound } from "./playAlarmSound";
 import { Audio } from "expo-av";
 import * as Notifications from "expo-notifications";
 
@@ -28,34 +27,14 @@ export const scheduleAlarm = async (hour, minute, sound, setSoundObject) => {
   const triggerInSeconds = (alarmTime.getTime() - now.getTime()) / 1000;
 
   //Esperamos a que se programe la notificación
-  await Notifications.scheduleNotificationAsync({
+  const notification = await Notifications.scheduleNotificationAsync({
     content: {
       title: "Alarma",
       body: "Es hora de despertar !",
-      sound: "default",
+      sound: sound,
     },
     trigger: { seconds: triggerInSeconds },
   });
 
-  console.log("Acabo aqui");
-
-  /*Nos tenemos que subscribir para saber si la notificación ha sido enviada o no, una vez se ha enviado ejecutamos el sonido de la alarma
-   en bucle y guardamos dicho objeto sonido en el estado correspondiente de la alarma, la cual se encarga de que cuando se apague el switch
-    la alarma se desactivará y dejará de sonar */
-
-  const subscription = Notifications.addNotificationResponseReceivedListener(
-    async () => {
-      //Reproducimos el sonido de la alarma y recuperamos el objeto de sonido
-      const soundObject = await playAlarmSound(sound);
-      if (soundObject) {
-        //Comprobamos que el objeto recuperado es válido
-        soundObject.setIsLoopingAsync(true); //Configuramos el sonido en bucle
-        setSoundObject(soundObject); //Guardamos el objeto de sonido en el estado de la alarma
-      }
-    }
-  );
-
-  /*Devolvemos implicitamente la función de cancelar la subscripción en soundObject,
-    así desde el componente alarma cuando la desactivemos podemos parar el objeto del sonido*/
-  return () => subscription.remove();
+  if (notification) return notification;
 };

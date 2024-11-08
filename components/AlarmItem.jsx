@@ -2,7 +2,10 @@ import { Text, View } from "react-native";
 import React, { Component, useState } from "react";
 import { Switch } from "react-native";
 import { scheduleAlarm } from "../utils/scheduleAlarm"; //Importamos la función que se encargará de enviar una notificación a la hora programada de la alarma
-import { Audio } from "expo-av";
+import { useEffect } from "react";
+import * as Notifications from "expo-notifications";
+import { playAlarmSound } from "../utils/playAlarmSound";
+import notifee from "@notifee/react-native";
 
 //Creamos nuestro componente que representará a cada alarma, que recibe el objeto alarma, si está habilitada o no y la función para activar o desactivar la alarma
 const AlarmItem = ({ alarm }) => {
@@ -10,17 +13,75 @@ const AlarmItem = ({ alarm }) => {
   const [isEnabled, setIsEnabled] = useState(false);
 
   const [soundObject, setSoundObject] = useState(null); //Declaramos un estado para guardar el objeto de sonido de la alarma
+  const [isAudioPlaying, setIsAudioPlaying] = useState(null);
 
-  const [unsubscribeFunction, setUnsubscribeFunction] = useState(null); //Declaramos un estado para guardar la función de cancelar la subscripción de la notificación
+  //Cuando cambia el objeto sonido se ejecuta su useEffect
+  /*useEffect(() => {
+    /*Nos tenemos que subscribir para saber si la notificación ha sido enviada o no, una vez se ha enviado ejecutamos el sonido de la alarma
+   en bucle y guardamos dicho objeto sonido en el estado correspondiente de la alarma, la cual se encarga de que cuando se apague el switch
+    la alarma se desactivará y dejará de sonar */
+  //const handleNotifications = async () => {
+  /*if (isEnabled) {
+        const subscription = Notifications.addNotificationReceivedListener(
+          async () => {
+            console.log(
+              "Notificación recibida, intentando reproducir sonido..."
+            );
+            console.log(alarm.sound);
+            //Reproducimos el sonido de la alarma y recuperamos el objeto de sonido
+            if (!soundObject) {
+              const soundObjectLocal = await playAlarmSound(alarm.sound);
+              if (soundObjectLocal && !isAudioPlaying) {
+                console.log("Sonido cargado y configurado en bucle.");
+                //Comprobamos que el objeto recuperado es válido
+                soundObjectLocal.setIsLoopingAsync(true); //Configuramos el sonido en bucle
+                setSoundObject(soundObjectLocal); //Guardamos el objeto de sonido en el estado de la alarma
+                setIsAudioPlaying(true);
+              }
+            }
+          }
+        );s
+      } else {
+        console.log("La hemos liado");
+        await Notifications.cancelAllScheduledNotificationsAsync();
+        console.log(
+          "Hay sonido, desactivando alarma",
+          soundObject,
+          isAudioPlaying
+        );
+        if (soundObject) {
+          try {
+            console.log(
+              "Hay sonido, desactivando alarma",
+              soundObject,
+              isAudioPlaying
+            );
+            await soundObject.stopAsync();
+            await soundObject.unloadAsync();
+            setSoundObject(null);
+            setIsAudioPlaying(false);
+          } catch (error) {
+            console.error("Error al detener el sonido anterior:", error);
+          }
+        }
+      }
+    //};
+
+    //handleNotifications();
+
+    /*Devolvemos implicitamente la función de cancelar la subscripción en soundObject,
+    así desde el componente alarma cuando la desactivemos podemos parar el objeto del sonido*/
+  //}, [isEnabled]);
 
   console.log(alarm);
 
   //Definimos ahora la función que activará o desactivará la alarma
   const toggleEnabled = async () => {
     setIsEnabled(!isEnabled);
+    console.log("Cambiando enable a ", !isEnabled);
     //Cuando se llama a set el valor de isEnabled no se actualiza hasta que se acabe la función de TOGGLEENABLED
     //Si la alarma esta activada la programamos
-    if (!isEnabled) {
+    /*if (!isEnabled) {
       //Nos aseguramos que la hora de la alarma sea un string
       const formattedTime =
         alarm.time instanceof Date
@@ -34,27 +95,29 @@ const AlarmItem = ({ alarm }) => {
       están a la izquierda de los dos puntos y los minutos a la derecha. A mayores le pasamos el sonido que ha seleccionado el usuario y la función
       que se encargará de cambiar el estado del objeto de sonido de la alarma
       */
-      const unsubscribe = await scheduleAlarm(
+    /*const notification = await scheduleAlarm(
         formattedTime.split(":")[0],
         formattedTime.split(":")[1],
         alarm.sound,
         setSoundObject
       );
 
-      setUnsubscribeFunction(unsubscribe); //Guardamos la referencia a la función de cancelar la subscripción, en schedule devolvemos () => subscription.remove()
-    } else {
-      // Desactiva la alarma, cancela notificaciones, detiene el sonido y quitamos la subscripción
-      await Notifications.cancelAllScheduledNotificationsAsync();
-      if (soundObject) {
-        try {
-          await soundObject.stopAsync();
-          await soundObject.unloadAsync();
-        } catch (error) {
-          console.error("Error al detener el sonido anterior:", error);
-        }
-      }
-      if (unsubscribeFunction) unsubscribeFunction();
-    }
+      console.log("Notificacion programada ", notification);
+    }*/
+    await notifee.requestPermission();
+
+    const chanelId = await notifee.createChannel({
+      id: "default",
+      name: "canalNotiAndroid",
+    });
+
+    await notifee.displayNotification({
+      title: "Noti",
+      body: "Despierta boludo !",
+      ios: {
+        sound: "../assets/sounds/toilet.mp3",
+      },
+    });
   };
   //Creamos una vista que almacena a toda la alarma
   //Primero hacemos la estructura de la parte de la izquierda de la propia alarma donde tenemos la hora, días y etiqueta de la misma
