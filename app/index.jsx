@@ -33,8 +33,9 @@ export default function App() {
     <SafeAreaView className="flex items-center justify-center w-full h-full bg-primary">
       <Text className="text-3xl">Hello World</Text>
       <StatusBar style="auto" />
-      <Link href="/Stats" className="text-red-500">
-        Go to Stats
+      {/*Con esta ruta hacemos que rootLayout tenga el control del fujo de navegación*/}
+      <Link href="./(Onboarding)/Onboarding" className="text-red-500">
+        Go to Questions
       </Link>
     </SafeAreaView>
   );
