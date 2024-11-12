@@ -45,6 +45,7 @@ const RootLayout = () => {
   return (
     //Contenedor donde podemos organizar las distintas pantallas de la aplicación
     <Stack>
+      <Stack.Screen name="index" options={{ headerShown: false }} />
       {!hasCompletedOnboarding ? (
         <Stack.Screen
           name="(Onboarding)/Onboarding"

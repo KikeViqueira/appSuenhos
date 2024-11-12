@@ -1,8 +1,24 @@
-import { Text, TouchableOpacity, SafeAreaView, FlatList } from "react-native";
-import React, { useState } from "react";
+import {
+  Text,
+  TouchableOpacity,
+  SafeAreaView,
+  FlatList,
+  View,
+} from "react-native";
+import { useNavigation } from "@react-navigation/native";
+import React, { useEffect, useState } from "react";
+import Icon from "react-native-vector-icons/FontAwesome";
 
 //Recibimos la función para modificar el objeto de respuestas
 export default function Question1({ updateResponse, nextQuestion }) {
+  //usamos el hook navigation para poder ocultar el header
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    // Configura el header como oculto al montar el componente
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
+
   //Definimos ahora las distintas respuestas a esta pregunta
   const options = [
     //Cada respuesta esta definida por un id y un texto
@@ -31,43 +47,66 @@ export default function Question1({ updateResponse, nextQuestion }) {
   };
 
   return (
-    <SafeAreaView>
-      <Text>¿Cuántas horas sueles dormir?</Text>
-      <FlatList
-        contentContainerStyle={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: 8,
+    <SafeAreaView className="flex items-center justify-center w-full h-full bg-primary">
+      <View
+        className="flex flex-col w-[90%] justify-center items-center gap-8"
+        style={{
+          height: "auto",
         }}
-        data={options}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            /*Al presionar un botón se selecciona la respuesta y se guarda en el estado el id de ella.
-                Tenemos que llamar así a la función para que se ejecute al presionar el botón y no al renderizar el componente*/
-            onPress={() => setSelected(item.id)}
-          >
-            {
-              //la opción que se haya seleccionado se muestra en color morado para que el usuario sepa visualmente que opción tiene seleccionada
-              selected === item.id ? (
-                <Text className="color-purple-500">{item.option}</Text>
-              ) : (
-                <Text>{item.option}</Text>
-              )
-            }
-          </TouchableOpacity>
-        )}
-      />
-
-      {/* Botón de Continuar */}
-      <TouchableOpacity
-        onPress={handleSelection}
-        //Si no hay una opción seleccionada el botón se muestra deshabilitado
-        disabled={!selected}
       >
-        <Text>Continuar</Text>
-      </TouchableOpacity>
+        <Text className="font-bold color-[#6366ff]" style={{ fontSize: 24 }}>
+          ¿Cuántas horas sueles dormir?
+        </Text>
+        <FlatList
+          contentContainerStyle={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            gap: 8,
+          }}
+          style={{ width: "100%" }}
+          data={options}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              /*Al presionar un botón se selecciona la respuesta y se guarda en el estado el id de ella.
+                Tenemos que llamar así a la función para que se ejecute al presionar el botón y no al renderizar el componente*/
+              onPress={() => setSelected(item.id)}
+              className="flex flex-row items-center w-full gap-4 px-8 py-4 rounded-2xl"
+              style={{
+                backgroundColor: selected === item.id ? "#162030" : "#1a2c46",
+              }}
+            >
+              {
+                //la opción que se haya seleccionado se muestra en color morado para que el usuario sepa visualmente que opción tiene seleccionada
+                selected === item.id ? (
+                  <Text className="text-lg text-center color-[#6366ff] w-full">
+                    {item.option}
+                  </Text>
+                ) : (
+                  <Text className="w-full text-lg text-center color-white">
+                    {item.option}
+                  </Text>
+                )
+              }
+            </TouchableOpacity>
+          )}
+        />
+
+        {/* Botón de Continuar */}
+        <TouchableOpacity
+          onPress={handleSelection}
+          //Si no hay una opción seleccionada el botón se muestra deshabilitado
+          disabled={!selected}
+          className="flex flex-row items-center gap-4 px-8 py-4 bg-[#323d4f] rounded-3xl"
+          style={{
+            opacity: selected ? 1 : 0.3,
+          }}
+        >
+          <Text className="text-lg text-center color-white">Continuar</Text>
+          <Icon name="arrow-right" size={24} color="white" />
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }

@@ -45,8 +45,8 @@ const Tabslayout = () => {
         <Tabs.Screen
           name="Stats"
           options={{
+            headerShown: false,
             title: "Estadísticas de Sueño",
-            //headerShown: false,
             tabBarIcon: ({ color, focused }) => (
               <TabIcon
                 icon={icons.barChart}
