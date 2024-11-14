@@ -25,7 +25,7 @@ const WakeUpQuestion2 = ({ setQuestion }) => {
         className="text-center font-bold color-[#6366ff]"
         style={{ fontSize: 24 }}
       >
-        ¿Cómo ha sido la calidad de tu sueño?
+        ¿Cómo te sientes de descansado?
       </Text>
       <View className="w-full gap-2">
         {options.map((item) => (

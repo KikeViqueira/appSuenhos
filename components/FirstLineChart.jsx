@@ -18,6 +18,7 @@ const FirstLineChart = () => {
         height={220}
         bezier // Curva de la línea
         yAxisLabel="h"
+        fromZero={true} // Empezar en 0
         yAxisInterval={1} //Intervalo de horas en el eje Y
         chartConfig={{
           backgroundGradientFrom: "#1e2a47",
