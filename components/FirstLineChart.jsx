@@ -1,35 +1,104 @@
-import { View, Dimensions } from "react-native";
-import React from "react";
+import { View, Dimensions, Modal, Text, TouchableOpacity } from "react-native";
+import React, { useState } from "react";
 import { LineChart } from "react-native-chart-kit";
+import Icon from "react-native-vector-icons/FontAwesome";
 
 const FirstLineChart = () => {
+  // Estado para controlar la visibilidad del popup y la información seleccionada
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedPoint, setSelectedPoint] = useState(null);
+
+  // Datos de ejemplo con horas y minutos
+  const sleepData = [
+    { day: "L", hours: 6, minutes: 30 },
+    { day: "M", hours: 7, minutes: 15 },
+    { day: "M", hours: 6, minutes: 45 },
+    { day: "J", hours: 8, minutes: 0 },
+    { day: "V", hours: 7, minutes: 30 },
+    { day: "S", hours: 9, minutes: 0 },
+    { day: "D", hours: 8, minutes: 30 },
+  ];
+
+  const handleDataPointClick = ({ value, index }) => {
+    setSelectedPoint(sleepData[index]);
+    setModalVisible(true);
+  };
+
   return (
     <View>
       <LineChart
         data={{
-          labels: ["L", "M", "M", "J", "V", "S", "D"],
+          labels: sleepData.map((data) => data.day),
           datasets: [
             {
-              data: [6, 7, 6.5, 8, 7.5, 9, 8.5], // Horas de sueño por día de la semana
+              data: sleepData.map((data) => data.hours + data.minutes / 60),
             },
           ],
         }}
-        width={Dimensions.get("window").width - 60} // Ancho de la gráfica
+        width={Dimensions.get("window").width - 20} //Reducimos el padding lateral
         height={220}
-        bezier // Curva de la línea
-        yAxisLabel="h"
-        fromZero={true} // Empezar en 0
-        yAxisInterval={1} //Intervalo de horas en el eje Y
+        bezier
+        yAxisLabel=""
+        fromZero
+        yAxisInterval={2} // Intervalo de 2 horas para mostrar valores enteros
+        yAxisSuffix=""
+        onDataPointClick={handleDataPointClick}
         chartConfig={{
           backgroundGradientFrom: "#1e2a47",
           backgroundGradientTo: "#1e2a47",
-          //En las dos siguientes propiedades usamos backticks para poder meter el valor de la opacidad median una expresión. Además nos permite escribir en varias líneas si queremos
-          color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`, // Color de la línea
-          labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`, // Color de las etiquetas
-          strokeWidth: 2, // Grosor de la línea
-          useShadowColorFromDataset: false, // Sombra de la línea
+          color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`,
+          labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+          strokeWidth: 2,
+          useShadowColorFromDataset: false,
+          decimalPlaces: 0, // Solo mostrar números enteros en el eje Y
+          count: 5, // Mostrar aproximadamente 5 valores en el eje Y
+          // Personalizar los valores del eje Y para mostrar rangos enteros
+          formatYLabel: (value) => Math.round(value).toString(),
+          propsForDots: {
+            r: "6",
+            strokeWidth: "1",
+            stroke: "#ffffff",
+          },
         }}
       />
+
+      {/* Modal para mostrar información detallada */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <TouchableOpacity
+          className="flex-1 justify-center items-center bg-black/50"
+          activeOpacity={1}
+          onPress={() => setModalVisible(false)}
+        >
+          <View className="bg-[#1e2a47] p-6 rounded-xl w-[80%] max-w-[300px]">
+            {selectedPoint && (
+              <>
+                <View className="flex-row justify-between items-center mb-4">
+                  <Text className="text-lg font-bold color-[#6366ff]">
+                    Detalles del sueño
+                  </Text>
+                  <TouchableOpacity onPress={() => setModalVisible(false)}>
+                    <Icon name="times" size={20} color="#fff" />
+                  </TouchableOpacity>
+                </View>
+                <View className="gap-2">
+                  <Text className="text-base color-white">
+                    Día: {selectedPoint.day}
+                  </Text>
+                  <Text className="text-base color-white">
+                    Tiempo dormido: {selectedPoint.hours}h{" "}
+                    {selectedPoint.minutes}min
+                  </Text>
+                </View>
+              </>
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 };

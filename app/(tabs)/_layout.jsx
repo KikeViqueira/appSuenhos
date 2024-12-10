@@ -6,7 +6,7 @@ import icons from "../../constants/icons";
 const TabIcon = ({ icon, color, name, focused }) => {
   return (
     //Damos estilo a nuestros iconos del tab junto a sus correspondientes nombres
-    <View className="flex items-center justify-center gap-1">
+    <View className="flex items-center justify-center gap-1 mt-6">
       <Image
         source={icon}
         resizeMode="contain"

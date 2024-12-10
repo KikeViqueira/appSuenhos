@@ -32,10 +32,10 @@ if (Platform.OS === "ios") {
 export default function App() {
   return (
     <SafeAreaView className="flex items-center bg-primary">
-      <View className="flex items-center justify-center w-full h-full gap-12">
+      <View className="flex gap-12 justify-center items-center w-full h-full">
         <View className="w-[90%] items-center">
           <Text className="text-4xl color-[#6366ff] font-extrabold">
-            Bienvenido a AppSueños
+            Bienvenido a ZzzTime
           </Text>
         </View>
         <View className="w-[80%]">
@@ -46,7 +46,7 @@ export default function App() {
         <StatusBar style="auto" />
         {/*Con esta ruta hacemos que rootLayout tenga el control del fujo de navegación*/}
         <TouchableOpacity
-          onPress={() => router.push("./(Auth)/sign-in")}
+          onPress={() => router.push("./(tabs)/Stats")}
           className="flex flex-row items-center gap-4 px-8 py-4 bg-[#323d4f] rounded-3xl"
         >
           <Icon name="envelope" size={24} color="white" />
