@@ -6,7 +6,7 @@ import icons from "../../constants/icons";
 const TabIcon = ({ icon, color, name, focused }) => {
   return (
     //Damos estilo a nuestros iconos del tab junto a sus correspondientes nombres
-    <View className="flex items-center justify-center gap-1 mt-6">
+    <View className="flex gap-1 justify-center items-center mt-6">
       <Image
         source={icon}
         resizeMode="contain"
@@ -45,7 +45,12 @@ const Tabslayout = () => {
         <Tabs.Screen
           name="Stats"
           options={{
-            headerShown: false,
+            headerStyle: {
+              backgroundColor: "#323d4f",
+            },
+            headerTitleStyle: {
+              color: "#fff",
+            },
             title: "Estadísticas de Sueño",
             tabBarIcon: ({ color, focused }) => (
               <TabIcon
