@@ -48,8 +48,8 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
     //Por lo tanto si queremos que lo que este dentro del modal se vea correctamente tenemos que poner dentro de este componente un SafeAreaView
     <View>
       <Modal visible={isVisible} animationType="slide">
-        <SafeAreaView className="flex flex-col w-full h-full gap-8 bg-primary">
-          <View className="flex flex-row items-center justify-between px-3">
+        <SafeAreaView className="flex flex-col gap-8 w-full h-full bg-primary">
+          <View className="flex flex-row justify-between items-center px-3">
             <Button title="Back" onPress={onClose}></Button>
             <Text
               className="font-bold text-center color-white"
@@ -92,7 +92,7 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
                 mode="time"
                 is24Hour={true}
                 display="spinner"
-                className="bg-black"
+                textColor="white"
                 //Cada vez que cambiamos la hora se guarda en el estado de tiempo
                 onChange={(event, selectedTime) => {
                   if (selectedTime) {
