@@ -5,6 +5,7 @@ import {
   SafeAreaView,
   Button,
   ScrollView,
+  Alert,
 } from "react-native";
 import React, { useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -17,7 +18,7 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
   const [question1, setQuestion1] = useState(null);
   const [question2, setQuestion2] = useState(null);
 
-  // Función que valida si todas las respuestas están completas
+  // Función que valida si todas las respuestas están completas (Si todas las respuestas son distintas de null)
   const isFormComplete = () => {
     return time !== null && question1 !== null && question2 !== null;
   };
@@ -25,17 +26,22 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
   //Función que se encarga de enviar los datos de la respuesta al componente padre y cerrar el modal
   const handleSave = () => {
     if (!isFormComplete()) {
-      alert("Por favor, rellena todas las preguntas");
+      Alert.alert(
+        "Formato Incorrecto",
+        "Por favor, rellena todas las preguntas"
+      );
       return;
     }
     //Ambas funciones se reciben del componente padre, en este caso WakeUpForm.jsx
     onSave({
       //Objeto newResponse que se recibe en la función de añadir del componente padre
+      /*NOTA:
+        - Cuando se hace el form ya se guarda la hora en la que el user se ha despertado, por eso no hace falta hacer una variable que guarde específicamente esto en el componente padre
+      */
       time,
       question1,
       question2,
     });
-
     //Una vez guardamos la respuesta, tenemos que poner los estados a null para que la próxima vez que se abra el formulario estén vacíos
     setQuestion1(null);
     setQuestion2(null);
