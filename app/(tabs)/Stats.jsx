@@ -19,8 +19,12 @@ const Estadisticas = () => {
   const calculateSleepStart = () => {
     //Si el user no estaba durmiendo, le damos la hora actual
     if (!isSleeping) {
-      setSleepStart(new Date());
+      const now = new Date();
+
+      setSleepStart(now);
       setIsSleeping(true);
+      //Si ponemos sleepStart nos va a dar null ya que las funciones que actualizan el estado son asincronas
+      console.log("Hora en la que el user se ha ido a dormir: ", now);
     } else {
       Alert.alert(
         "Reiniciar el registro",
@@ -41,8 +45,9 @@ const Estadisticas = () => {
 
   //Función para guardar las horas que el user ha dormido y calcular la duración de sueño
   const calculateSleepDuration = (wakeUpTime) => {
-    const wakeUpDate = new Date(wakeUpTime);
-    const duration = wakeUpDate - sleepStart;
+    const sleepStartTime = new Date(sleepStart);
+    const wakeUpTimeDate = new Date(wakeUpTime);
+    const duration = wakeUpTimeDate.getTime() - sleepStartTime.getTime(); //Hacemos la diferencia en milisegundos
 
     if (duration < 0) {
       Alert.alert(
@@ -54,6 +59,7 @@ const Estadisticas = () => {
 
     const hours = Math.floor(duration / 3600000);
     setSleepDuration(hours);
+    console.log("Duración del sueño (horas):", hours);
     return true;
   };
 
@@ -75,7 +81,6 @@ const Estadisticas = () => {
     if (calculateSleepDuration(newResponse.time)) {
       console.log("Nueva respuesta:", newResponse);
       console.log("Hora en la que el user se ha despertado:", newResponse.time);
-      console.log("Duración del sueño (horas):", sleepDuration);
 
       //Guardamos directamente la respuesta en vez de hacer un array de respuestas, ya que al contestar al form se guarda la respuesta en la base de datos
       setResponse(newResponse);
