@@ -56,7 +56,7 @@ const Tabslayout = () => {
               <TabIcon
                 icon={icons.barChart}
                 color={color}
-                name="Estadísticas"
+                name="Stats"
                 focused={focused}
               />
             ),
