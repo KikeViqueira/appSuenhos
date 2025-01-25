@@ -4,6 +4,9 @@ import {
   FlatList,
   TextInput,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard, //para cerrar el teclado despues de enviar un mensaje tenemos que usar la API de Keyboard
 } from "react-native";
 import React, { useState } from "react";
 import { Menu } from "lucide-react-native";
@@ -46,8 +49,9 @@ const Chat = () => {
           sender: "user",
         },
       ]);
-      //Reinicializamos el estado del mensaje
+      //Reinicializamos el estado del mensaje y cerramos el teclado
       setNewMessage("");
+      Keyboard.dismiss();
     }
   };
 
@@ -71,57 +75,62 @@ const Chat = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-primary">
-      <View className="flex flex-row gap-4 justify-start items-center p-4">
-        <TouchableOpacity
-          //Cuando pinchemos en el menú hamburguesa se abre el modal
-          onPress={toggleModal}
-        >
-          <Menu size={32} color="#6366ff" />
-        </TouchableOpacity>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        className="flex-1"
+      >
+        <View className="flex flex-row gap-4 justify-start items-center p-4">
+          <TouchableOpacity
+            //Cuando pinchemos en el menú hamburguesa se abre el modal
+            onPress={toggleModal}
+          >
+            <Menu size={32} color="#6366ff" />
+          </TouchableOpacity>
 
-        <Text
-          className="text-center font-bold text-[#6366ff] py-4"
-          style={{ fontSize: 24 }}
-        >
-          Diario de Sueños y Análisis AI
-        </Text>
-      </View>
+          <Text
+            className="text-center font-bold text-[#6366ff] py-4"
+            style={{ fontSize: 24 }}
+          >
+            Diario de Sueños y Análisis AI
+          </Text>
+        </View>
 
-      {/*Modal para la selección de los chats*/}
-      <ChatsModal isVisible={showModal} onClose={toggleModal} />
+        {/*Modal para la selección de los chats*/}
+        <ChatsModal isVisible={showModal} onClose={toggleModal} />
 
-      <FlatList
-        className="flex-1 px-4"
-        data={messages}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={renderMessage}
-        contentContainerStyle={{
-          paddingVertical: 16,
-        }}
-      />
-
-      <View className="flex-row items-center p-4 border-gray-700 pb-0border-t">
-        <TextInput
-          className="flex-1 bg-[#323d4f] text-white p-3 rounded-xl mr-2"
-          value={newMessage}
-          onChangeText={setNewMessage}
-          placeholder="Escribe tus inquietudes a ZzzTime AI"
-          placeholderTextColor="#9ca3af"
-          multiline={true}
-          textAlignVertical="top"
-          scrollEnabled={true}
-          style={{
-            maxHeight: 100,
+        <FlatList
+          className="flex-1 px-4"
+          data={messages}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={renderMessage}
+          contentContainerStyle={{
+            paddingVertical: 16,
           }}
         />
 
-        <TouchableOpacity
-          className="bg-[#6366ff] p-3 rounded-xl"
-          onPress={handleSendMessage}
-        >
-          <Text className="font-semibold text-white">Enviar</Text>
-        </TouchableOpacity>
-      </View>
+        <View className="flex-row items-center p-4 border-gray-700 pb-0border-t">
+          <TextInput
+            className="flex-1 bg-[#323d4f] text-white p-3 rounded-xl mr-2"
+            value={newMessage}
+            onChangeText={setNewMessage}
+            placeholder="Escribe tus inquietudes a ZzzTime AI"
+            placeholderTextColor="#9ca3af"
+            multiline={true}
+            textAlignVertical="top"
+            scrollEnabled={true}
+            style={{
+              maxHeight: 100,
+            }}
+          />
+
+          <TouchableOpacity
+            className="bg-[#6366ff] p-3 rounded-xl"
+            onPress={handleSendMessage}
+          >
+            <Text className="font-semibold text-white">Enviar</Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };

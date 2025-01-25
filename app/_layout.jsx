@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 import React, { useEffect, useState } from "react";
 import { SplashScreen, Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import "../global.css";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -43,19 +44,23 @@ const RootLayout = () => {
   if (!fontsLoaded && !error) return null;
 
   return (
-    //Contenedor donde podemos organizar las distintas pantallas de la aplicación
-    <Stack>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      {!hasCompletedOnboarding ? (
-        <Stack.Screen
-          name="(Onboarding)/Onboarding"
-          options={{ headerShown: false }}
-        />
-      ) : (
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      )}
-      <Stack.Screen name="(Auth)" options={{ headerShown: false }} />
-    </Stack>
+    <>
+      {/*Ponemos el status bar en modo claro para que esta se vea mejor debido al contraste*/}
+      <StatusBar style="light" />
+      {/*Contenedor donde podemos organizar las distintas pantallas de la aplicación*/}
+      <Stack>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        {!hasCompletedOnboarding ? (
+          <Stack.Screen
+            name="(Onboarding)/Onboarding"
+            options={{ headerShown: false }}
+          />
+        ) : (
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        )}
+        <Stack.Screen name="(Auth)" options={{ headerShown: false }} />
+      </Stack>
+    </>
   );
 };
 

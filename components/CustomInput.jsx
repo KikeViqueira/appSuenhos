@@ -26,7 +26,7 @@ const CustomInput = ({ name, inputType, handleChangeText, placeholder }) => {
         />
 
         {/*Si estamos en el input del form que es una contraseña ponemos un botón que simula un ojo para ver la contraseña o taparla*/}
-        {name === "Contraseña" && (
+        {(name === "Contraseña" || name === "Confirmar Contraseña") && (
           <TouchableOpacity
             onPress={() => setShowPassword(!showPassword)}
             className="absolute right-4"

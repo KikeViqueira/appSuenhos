@@ -46,7 +46,7 @@ export default function App() {
         <StatusBar style="auto" />
         {/*Con esta ruta hacemos que rootLayout tenga el control del fujo de navegación*/}
         <TouchableOpacity
-          onPress={() => router.push("./(tabs)/Stats")}
+          onPress={() => router.push("./(Auth)/sign-in")}
           className="flex flex-row items-center gap-4 px-8 py-4 bg-[#323d4f] rounded-3xl"
         >
           <Icon name="envelope" size={24} color="white" />

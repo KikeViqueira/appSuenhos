@@ -7,7 +7,6 @@ import {
   FlatList,
 } from "react-native";
 import React, { useState } from "react";
-import { StatusBar } from "expo-status-bar";
 import { X } from "lucide-react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
@@ -35,8 +34,6 @@ const ChatsModal = ({ isVisible, onClose }) => {
 
   return (
     <View>
-      <StatusBar style="light" />
-      {/*Ponemos el status bar en modo claro para que esta se vea mejor debido al contraste*/}
       <Modal visible={isVisible}>
         <SafeAreaView className="flex-1 w-full bg-primary">
           <View className="flex flex-row gap-4 justify-start items-center p-4">
