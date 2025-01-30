@@ -74,7 +74,7 @@ const Chat = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-primary">
+    <SafeAreaView className="flex-1 w-full h-full bg-primary">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
@@ -108,7 +108,7 @@ const Chat = () => {
           }}
         />
 
-        <View className="flex-row items-center p-4 border-gray-700 pb-0border-t">
+        <View className="flex-row items-center p-4 pb-0 border-t border-gray-700">
           <TextInput
             className="flex-1 bg-[#323d4f] text-white p-3 rounded-xl mr-2"
             value={newMessage}

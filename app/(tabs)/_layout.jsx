@@ -1,5 +1,6 @@
 import { View, Text, Image } from "react-native";
 import { Tabs, Redirect } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 
 import icons from "../../constants/icons";
 
@@ -26,6 +27,8 @@ const TabIcon = ({ icon, color, name, focused }) => {
 const Tabslayout = () => {
   return (
     <>
+      <StatusBar style="auto" />
+
       <Tabs
         screenOptions={{
           //Ocultamos los nombres de los tabs que vienen por defecto

@@ -10,17 +10,19 @@ const FirstLineChart = () => {
 
   // Datos de ejemplo con horas y minutos
   const sleepData = [
-    { day: "L", hours: 6, minutes: 30 },
-    { day: "M", hours: 7, minutes: 15 },
-    { day: "M", hours: 6, minutes: 45 },
-    { day: "J", hours: 8, minutes: 0 },
-    { day: "V", hours: 7, minutes: 30 },
-    { day: "S", hours: 9, minutes: 0 },
-    { day: "D", hours: 8, minutes: 30 },
+    { day: "L", hours: 6, minutes: 30, entireDay: "Lunes" },
+    { day: "M", hours: 7, minutes: 15, entireDay: "Martes" },
+    { day: "M", hours: 6, minutes: 45, entireDay: "Miercoles" },
+    { day: "J", hours: 8, minutes: 0, entireDay: "Jueves" },
+    { day: "V", hours: 7, minutes: 30, entireDay: "Viernes" },
+    { day: "S", hours: 9, minutes: 0, entireDay: "Sabado" },
+    { day: "D", hours: 8, minutes: 30, entireDay: "Domingo" },
   ];
 
-  const handleDataPointClick = ({ value, index }) => {
+  const handleDataPointClick = ({ index }) => {
+    //Recuperamos la entrada del array con la info del día selecccionado para poder usar su info en el modal de una manera centralizada
     setSelectedPoint(sleepData[index]);
+    //Enseñamos el modal al user
     setModalVisible(true);
   };
 
@@ -87,7 +89,7 @@ const FirstLineChart = () => {
                 </View>
                 <View className="gap-2">
                   <Text className="text-base color-white">
-                    Día: {selectedPoint.day}
+                    Día: {selectedPoint.entireDay}
                   </Text>
                   <Text className="text-base color-white">
                     Tiempo dormido: {selectedPoint.hours}h{" "}

@@ -1,7 +1,6 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, StatusBar } from "react-native";
 import React, { useEffect, useState } from "react";
 import { SplashScreen, Stack } from "expo-router";
-import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import "../global.css";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -36,7 +35,11 @@ const RootLayout = () => {
 
     //Aseguramos que la pantalla de carga inicial se oculte cuando las fuentes estén cargadas y no haya errores
     if (error) throw error;
-    if (fontsLoaded) SplashScreen.hideAsync();
+    if (fontsLoaded) {
+      SplashScreen.hideAsync();
+      //ponemos el color de status bar a claro
+      StatusBar.setBarStyle("light-content");
+    }
   }, [fontsLoaded, error]);
   //Se llama cada vez que las fuentes cargadas cambian o hay un error
 
@@ -45,9 +48,6 @@ const RootLayout = () => {
 
   return (
     <>
-      {/*Ponemos el status bar en modo claro para que esta se vea mejor debido al contraste*/}
-      <StatusBar style="light" />
-      {/*Contenedor donde podemos organizar las distintas pantallas de la aplicación*/}
       <Stack>
         <Stack.Screen name="index" options={{ headerShown: false }} />
         {!hasCompletedOnboarding ? (
