@@ -15,8 +15,8 @@ import CustomInput from "../../components/CustomInput";
 const signIn = () => {
   //Creamos un objeto de las ceredenciales de un user cualquiera de ejemplo para ver si el funcionamiento de la app es el corresto
   const user = {
-    email: "a@a.a",
-    password: "123",
+    email: "a",
+    password: "1",
   };
 
   //Definimos un estado para saber los valores que el usuario introduce en los campos del formulario

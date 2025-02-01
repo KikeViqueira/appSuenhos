@@ -27,8 +27,6 @@ const TabIcon = ({ icon, color, name, focused }) => {
 const Tabslayout = () => {
   return (
     <>
-      <StatusBar style="auto" />
-
       <Tabs
         screenOptions={{
           //Ocultamos los nombres de los tabs que vienen por defecto

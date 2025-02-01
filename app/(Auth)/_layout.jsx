@@ -20,8 +20,6 @@ const _layout = () => {
           }}
         />
       </Stack>
-
-      <StatusBar />
     </>
   );
 };
