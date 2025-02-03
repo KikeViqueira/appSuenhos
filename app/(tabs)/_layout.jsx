@@ -65,15 +65,15 @@ const Tabslayout = () => {
         />
 
         <Tabs.Screen
-          name="Alarm"
+          name="Music"
           options={{
-            title: "Alarm",
+            title: "Sonidos",
             headerShown: false,
             tabBarIcon: ({ color, focused }) => (
               <TabIcon
-                icon={icons.alarm}
+                icon={icons.play}
                 color={color}
-                name="Alarm"
+                name="Music"
                 focused={focused}
               />
             ),
