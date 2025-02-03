@@ -1,31 +1,54 @@
 import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Icon from "react-native-vector-icons/FontAwesome";
 import FirstLineChart from "../../components/FirstLineChart";
 import WakeUpForm from "../../components/WakeUpForm";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Notifications from "expo-notifications";
+
+/*FIXME: Los problemas con Reanimated suelen ocurrir cuando intentas actualizar el estado (setState)
+     dentro de un callback de animación o de un evento asíncrono
+     sin asegurarte de que está en el hilo principal de React Native.*/
 
 const Estadisticas = () => {
   //Definimos un estado para saber si el modal de preguntas sobre la calidad del sueño está abierto o cerrado, y otro para guardar las respuestas a este
   const [showModal, setShowModal] = useState(false);
   const [response, setResponse] = useState(null);
-  //Establecemos las variables que se encargarán de calcular las horas de sueño del usuario al día
-  const [sleepStart, setSleepStart] = useState(null);
-  const [sleepDuration, setSleepDuration] = useState(null);
-  //Variable para saber si el usuario esta durmiendo o no
-  const [isSleeping, setIsSleeping] = useState(false);
+  const [isSleeping, setIsSleeping] = useState(false); //Estado para saber si el user esta durmiendo o no
+  const [sleepDuration, setSleepDuration] = useState(0);
 
-  //Función que se encarga de calcular la hora de sueño inicial
-  const calculateSleepStart = () => {
-    //Si el user no estaba durmiendo, le damos la hora actual
+  //Función para guardar la hora en la que el user se va a dormir
+  const calculateSleepStart = async () => {
+    //Si el usuario no estaba durmiendo, le damos la hora actual
     if (!isSleeping) {
+      console.log("Valor de isSleeping en el if: ", isSleeping);
       const now = new Date();
+      try {
+        //Guardamos la hora en la que el user se ha dormido en el storage del dispositivo
+        await AsyncStorage.setItem("sleepStart", now.toISOString()); //tenemos que pasarlo a string
 
-      setSleepStart(now);
-      setIsSleeping(true);
-      //Si ponemos sleepStart nos va a dar null ya que las funciones que actualizan el estado son asincronas
-      console.log("Hora en la que el user se ha ido a dormir: ", now);
+        //Programamos una notificación para que cuando hayan pasado 8 horas avisar al user de que debe resgistrar la hora en la que ha despertado
+        const notification = await Notifications.scheduleNotificationAsync({
+          content: {
+            title: "¿Pilas recargadas?",
+            body: "No olvides registrar tu hora de despertar para calcular tu sueño.",
+          },
+          trigger: {
+            seconds: 8 * 60 * 60,
+          },
+        });
+
+        //Actualizamos el estado después de que se haya guardado la hora en el storage, asi no da error de Reanimated
+        //Cambiamos el estado asegurandonos que no de Reanimated mediante el uso de timeout
+        setTimeout(() => setIsSleeping(true), 0);
+        console.log("Hora en la que el user se ha ido a dormir: ", now);
+        return notification;
+      } catch (error) {
+        console.error("Error al guardar la hora de inicio de sueño: ", error);
+      }
     } else {
+      console.log("Valor de isSleeping en el else: ", isSleeping);
       Alert.alert(
         "Reiniciar el registro",
         "¿Estás seguro de querer reiniciar el registro de horas de sueño?",
@@ -34,34 +57,80 @@ const Estadisticas = () => {
           {
             text: "Reiniciar",
             onPress: () => {
-              setIsSleeping(false);
-              setSleepStart(null);
+              setTimeout(() => setIsSleeping(false), 0);
             },
           },
         ]
       );
+      console.log("Valor de isSleeping despues de la alerta: ", isSleeping);
     }
   };
 
-  //Función para guardar las horas que el user ha dormido y calcular la duración de sueño
-  const calculateSleepDuration = (wakeUpTime) => {
-    const sleepStartTime = new Date(sleepStart);
-    const wakeUpTimeDate = new Date(wakeUpTime);
-    const duration = wakeUpTimeDate.getTime() - sleepStartTime.getTime(); //Hacemos la diferencia en milisegundos
+  //Función para finalizar el registro de horas de sueño y calcular la duración de sueño
+  const calculateSleepDuration = async (wakeUpTime) => {
+    try {
+      //recuperamos la hora de sueño en la que el user se fue a dormir
+      const recoveredSleepStart = await AsyncStorage.getItem("sleepStart");
+      if (!recoveredSleepStart) {
+        console.warn("No se encontró una hora de inicio de sueño registrada.");
+        return false;
+      }
 
-    if (duration < 0) {
-      Alert.alert(
-        "Tiempo inválido",
-        "La hora de despertar debe ser posterior a la hora en que te fuiste a dormir"
-      );
-      return false;
+      //Hemos recuperado la fecha en formato String y tenemos que pasarlo a Date
+      const sleepStartTime = new Date(recoveredSleepStart);
+      const wakeUpTimeDate = new Date(wakeUpTime);
+      const duration = wakeUpTimeDate.getTime() - sleepStartTime.getTime(); //Hacemos la diferencia en milisegundos
+
+      if (duration < 0) {
+        Alert.alert(
+          "Tiempo inválido",
+          "La hora de despertar debe ser posterior a la hora en que te fuiste a dormir"
+        );
+        return false;
+      }
+
+      const hours = Math.floor(duration / 3600000);
+
+      //Limpiamos los estados, almacenamiento y notificaciones
+      await AsyncStorage.removeItem("sleepStart");
+      setTimeout(() => setIsSleeping(false), 0);
+      Notifications.cancelAllScheduledNotificationsAsync();
+      setTimeout(() => setSleepDuration(hours), 0);
+    } catch (error) {
+      console.error("Error al calcular la duración de sueño: ", error);
     }
-
-    const hours = Math.floor(duration / 3600000);
-    setSleepDuration(hours);
-    console.log("Duración del sueño (horas):", hours);
-    return true;
   };
+
+  //Definición de la función asíncrona
+  const loadSleepData = async () => {
+    try {
+      const recoveredSleepStart = await AsyncStorage.getItem("sleepStart");
+      if (recoveredSleepStart) {
+        const sleepStartTime = new Date(recoveredSleepStart);
+        console.log(
+          "Hora en la que el user se ha ido a dormir: ",
+          sleepStartTime
+        );
+        const now = new Date();
+
+        //Comprobamos si la hora en la que se ha ido a dormir lleva más de 24 horas almacenada en el storage
+        if (now.getTime() - sleepStartTime.getTime() <= 24 * 60 * 60 * 1000) {
+          setTimeout(() => setIsSleeping(true), 0);
+        } else {
+          //En este caso borramos la hora ya que al pasar tanto tiempo las medidas no serán consistentes y realistas para la hora de representarlas en la app
+          await AsyncStorage.removeItem("sleepStart");
+        }
+      }
+    } catch (error) {
+      console.error("Error al cargar la hora de inicio de sueño: ", error);
+    }
+  };
+
+  //Cargamos la hora en la que el user se ha ido a dormir cuando se inicializa el hook
+  useEffect(() => {
+    //llamamos a la función encargada de cargar la hora de inicio del sueño
+    loadSleepData();
+  }, []);
 
   const toggleModal = () => {
     //Si el usuario usurio tiene el botón de me voy a dormir activado le dejamos hacer el form
@@ -84,10 +153,8 @@ const Estadisticas = () => {
 
       //Guardamos directamente la respuesta en vez de hacer un array de respuestas, ya que al contestar al form se guarda la respuesta en la base de datos
       setResponse(newResponse);
-      setSleepStart(null);
-      setIsSleeping(false);
-      setSleepDuration(null);
-      //IMPORTANTE: Aquí se debería guardar la respuesta en la base de datos si la respuesta es válida
+      //TODO: Aquí se debería guardar la respuesta en la base de datos si la respuesta es válida
+      console.log("Respuesta del user al Cuestionario Matutino:", response);
     }
   };
 

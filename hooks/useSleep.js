@@ -19,6 +19,7 @@ export default function useSleep() {
   const calculateSleepStart = async () => {
     //Si el usuario no estaba durmiendo, le damos la hora actual
     if (!isSleeping) {
+      console.log("Valor de isSleeping en el if: ", isSleeping);
       const now = new Date();
       try {
         //Guardamos la hora en la que el user se ha dormido en el storage del dispositivo
@@ -28,22 +29,24 @@ export default function useSleep() {
         console.log("Hora en la que el user se ha ido a dormir: ", now);
 
         //Programamos una notificación para que cuando hayan pasado 8 horas avisar al user de que debe resgistrar la hora en la que ha despertado
-        const morningNotification =
-          await Notifications.scheduleNotificationAsync({
-            content: {
-              title: "¿Pilas recargadas?",
-              body: "No olvides registrar tu hora de despertar para calcular tu sueño.",
-            },
-            trigger: {
-              hour: 8,
-              minute: 0,
-            },
-          });
-        return morningNotification;
+
+        const notification = await Notifications.scheduleNotificationAsync({
+          content: {
+            title: "¿Pilas recargadas?",
+            body: "No olvides registrar tu hora de despertar para calcular tu sueño.",
+          },
+          trigger: {
+            hour: 8,
+            minute: 0,
+          },
+        });
+
+        return notification;
       } catch (error) {
         console.error("Error al guardar la hora de inicio de sueño: ", error);
       }
     } else {
+      console.log("Valor de isSleeping en el else: ", isSleeping);
       Alert.alert(
         "Reiniciar el registro",
         "¿Estás seguro de querer reiniciar el registro de horas de sueño?",
@@ -58,6 +61,7 @@ export default function useSleep() {
           },
         ]
       );
+      console.log("Valor de isSleeping despues de la alerta: ", isSleeping);
     }
   };
 
@@ -66,11 +70,15 @@ export default function useSleep() {
     try {
       //recuperamos la hora de sueño en la que el user se fue a dormir
       const recoveredSleepStart = await AsyncStorage.getItem("sleepStart");
-      if (recoveredSleepStart) {
-        //Hemos recuperado la fecha en formato String y tenemos que pasarlo a Date
-        const sleepStartTime = new Date(recoveredSleepStart);
-        const duration = wakeUpTimeDate.getTime() - sleepStartTime.getTime(); //Hacemos la diferencia en milisegundos
+      if (!recoveredSleepStart) {
+        console.warn("No se encontró una hora de inicio de sueño registrada.");
+        return false;
       }
+
+      //Hemos recuperado la fecha en formato String y tenemos que pasarlo a Date
+      const sleepStartTime = new Date(recoveredSleepStart);
+      const wakeUpTimeDate = new Date(wakeUpTime);
+      const duration = wakeUpTimeDate.getTime() - sleepStartTime.getTime(); //Hacemos la diferencia en milisegundos
 
       if (duration < 0) {
         Alert.alert(
@@ -89,7 +97,7 @@ export default function useSleep() {
         duration: hours,
       };
 
-      //Liampiamos los estados, almacenamiento y notificaciones
+      //Limpiamos los estados, almacenamiento y notificaciones
       await AsyncStorage.removeItem("sleepStart");
       setIsSleeping(false);
       setSleepTime(null);
@@ -110,6 +118,10 @@ export default function useSleep() {
         const recoveredSleepStart = await AsyncStorage.getItem("sleepStart");
         if (recoveredSleepStart) {
           const sleepStartTime = new Date(recoveredSleepStart);
+          console.log(
+            "Hora en la que el user se ha ido a dormir: ",
+            sleepStartTime
+          );
           const now = new Date();
 
           //Comprobamos si la hora en la que se ha ido a dormir lleva más de 24 horas almacenada en el storage
@@ -120,6 +132,9 @@ export default function useSleep() {
             //En este caso borramos la hora ya que al pasar tanto tiempo las medidas no serán consistentes y realistas para la hora de representarlas en la app
             await AsyncStorage.removeItem("sleepStart");
           }
+        } else {
+          console.log("No se encontró una hora de inicio de sueño registrada.");
+          return false;
         }
       } catch (error) {
         console.error("Error al cargar la hora de inicio de sueño: ", error);
@@ -130,12 +145,11 @@ export default function useSleep() {
     loadSleepData();
   }, []);
 
-  //Devolvemos las funciones mas la bandera de si el user esta durmiendo o no para saber si se puede desplegar el formulariopara registrar el sueño
+  //Devolvemos las funciones mas la bandera de si el user esta durmiendo o no para saber si se puede desplegar el formulario para registrar el sueño
   //Hay que recordar que el requesito para rellenarlo es que el user estuviese durmiendo (boton de me voy a dormir activado)
   return {
     calculateSleepStart,
     calculateSleepDuration,
-    sleepTime,
     isSleeping,
   };
 }
