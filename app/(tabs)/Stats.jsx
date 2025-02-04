@@ -7,6 +7,14 @@ import WakeUpForm from "../../components/WakeUpForm";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
+
 /*FIXME: Los problemas con Reanimated suelen ocurrir cuando intentas actualizar el estado (setState)
      dentro de un callback de animación o de un evento asíncrono
      sin asegurarte de que está en el hilo principal de React Native.*/
@@ -18,6 +26,23 @@ const Estadisticas = () => {
   const [isSleeping, setIsSleeping] = useState(false); //Estado para saber si el user esta durmiendo o no
   const [sleepDuration, setSleepDuration] = useState(0);
 
+  //Función para mandar una notificación cuando hayan pasado 8 horas desde que el user se haya ido a dormir
+  const sendNotificationWakeUp = async ({ now }) => {
+    const trigger = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+    try {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "¿Pilas recargadas?",
+          body: "No olvides registrar tu hora de despertar para calcular tu sueño.",
+        },
+        trigger,
+      });
+      console.log("Notification scheduled");
+    } catch (error) {
+      alert("La notificación no pudo ser programada");
+    }
+  };
+
   //Función para guardar la hora en la que el user se va a dormir
   const calculateSleepStart = async () => {
     //Si el usuario no estaba durmiendo, le damos la hora actual
@@ -28,22 +53,13 @@ const Estadisticas = () => {
         //Guardamos la hora en la que el user se ha dormido en el storage del dispositivo
         await AsyncStorage.setItem("sleepStart", now.toISOString()); //tenemos que pasarlo a string
 
-        //Programamos una notificación para que cuando hayan pasado 8 horas avisar al user de que debe resgistrar la hora en la que ha despertado
-        const notification = await Notifications.scheduleNotificationAsync({
-          content: {
-            title: "¿Pilas recargadas?",
-            body: "No olvides registrar tu hora de despertar para calcular tu sueño.",
-          },
-          trigger: {
-            seconds: 8 * 60 * 60,
-          },
-        });
+        //Mandamos la noti para recordar al user de hacer el form si aun no lo ha hecho
+        sendNotificationWakeUp({ now });
 
         //Actualizamos el estado después de que se haya guardado la hora en el storage, asi no da error de Reanimated
         //Cambiamos el estado asegurandonos que no de Reanimated mediante el uso de timeout
         setTimeout(() => setIsSleeping(true), 0);
         console.log("Hora en la que el user se ha ido a dormir: ", now);
-        return notification;
       } catch (error) {
         console.error("Error al guardar la hora de inicio de sueño: ", error);
       }
@@ -151,8 +167,8 @@ const Estadisticas = () => {
       console.log("Nueva respuesta:", newResponse);
       console.log("Hora en la que el user se ha despertado:", newResponse.time);
 
-      //Guardamos directamente la respuesta en vez de hacer un array de respuestas, ya que al contestar al form se guarda la respuesta en la base de datos
-      setResponse(newResponse);
+      //Guardamos directamente la respuesta en vez de hacer un array de respuestas, ya que al contestar al form se guarda la respuesta en la base de datos, tenemos que pasarlo entre {} al ser un objeto
+      setResponse({ newResponse });
       //TODO: Aquí se debería guardar la respuesta en la base de datos si la respuesta es válida
       console.log("Respuesta del user al Cuestionario Matutino:", response);
     }

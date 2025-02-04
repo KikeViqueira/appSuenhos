@@ -17,21 +17,33 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
   const [time, setTime] = useState(new Date());
   const [question1, setQuestion1] = useState(null);
   const [question2, setQuestion2] = useState(null);
+  //Estado para comprobar si la hora que se ha seleccionado es válida o no debido a que date no se puede poner a null
+  const [isValidTime, setIsValidTime] = useState(true);
 
-  // Función que valida si todas las respuestas están completas (Si todas las respuestas son distintas de null)
-  const isFormComplete = () => {
-    return time !== null && question1 !== null && question2 !== null;
+  //Función que se encarga de validar si se han respondido todas las preguntas
+  const hasQuestionsAnswered = () => {
+    return question1 !== null && question2 !== null;
   };
 
   //Función que se encarga de enviar los datos de la respuesta al componente padre y cerrar el modal
   const handleSave = () => {
-    if (!isFormComplete()) {
+    if (!hasQuestionsAnswered()) {
       Alert.alert(
         "Formato Incorrecto",
         "Por favor, rellena todas las preguntas"
       );
       return;
     }
+
+    //Si no se ejecuta la alarma anterior y llegamos a este if sabemos que las preguntas han sido respondidas y ahora solo nos queda comprobar si la hora ha sido registrada correctamente
+    if (!isValidTime) {
+      Alert.alert(
+        "Formato Incorrecto",
+        "Por favor, introduce una hora menor o igual a la actual para obetener medidas correctas"
+      );
+      return;
+    }
+
     //Ambas funciones se reciben del componente padre, en este caso WakeUpForm.jsx
     onSave({
       //Objeto newResponse que se recibe en la función de añadir del componente padre
@@ -63,11 +75,7 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
             >
               Cuestionario Matutino
             </Text>
-            <Button
-              title="Save"
-              onPress={handleSave}
-              disabled={!isFormComplete}
-            ></Button>
+            <Button title="Save" onPress={handleSave}></Button>
           </View>
 
           <ScrollView
@@ -101,8 +109,12 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
                 textColor="white"
                 //Cada vez que cambiamos la hora se guarda en el estado de tiempo
                 onChange={(event, selectedTime) => {
-                  if (selectedTime) {
+                  //tenemos que comprobar que la hora que ponga el user que se ha levantado sea menor o igual a la hora actual, si no podrían exister medidas érroneas
+                  if (selectedTime && selectedTime <= new Date()) {
                     setTime(selectedTime);
+                    setIsValidTime(true);
+                  } else {
+                    setIsValidTime(false);
                   }
                 }}
               />
