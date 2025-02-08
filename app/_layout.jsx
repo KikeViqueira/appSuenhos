@@ -48,7 +48,12 @@ const RootLayout = () => {
 
   return (
     <>
-      <Stack>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          animation: "fade", //Smooth transition between screens
+        }}
+      >
         <Stack.Screen name="index" options={{ headerShown: false }} />
         {!hasCompletedOnboarding ? (
           <Stack.Screen
@@ -56,9 +61,18 @@ const RootLayout = () => {
             options={{ headerShown: false }}
           />
         ) : (
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="(tabs)"
+            options={{
+              headerShown: false,
+              gestureEnabled: false, //Desactivamos el gesto de arrastre hacia atras (back gesture)
+            }}
+          />
         )}
-        <Stack.Screen name="(Auth)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="(Auth)"
+          options={{ headerShown: false, gestureEnabled: false }}
+        />
         <Stack.Screen name="TipDetail" options={{ headerShown: false }} />
       </Stack>
     </>

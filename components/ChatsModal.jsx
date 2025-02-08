@@ -64,10 +64,10 @@ const ChatsModal = ({ isVisible, onClose }) => {
             />
 
             <TouchableOpacity
-              className="bg-[#6366ff] p-[8.5px] rounded-xl w-full"
+              className="bg-[#6366ff] p-4 rounded-xl w-full"
               onPress={handleSearchByDate}
             >
-              <Text className="font-semibold text-center text-white">
+              <Text className="text-base font-semibold text-center text-white">
                 Buscar
               </Text>
             </TouchableOpacity>
