@@ -6,7 +6,11 @@ import { StatusBar } from "expo-status-bar";
 const _layout = () => {
   return (
     <>
-      <Stack>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+        }}
+      >
         <Stack.Screen
           name="sign-in"
           options={{
