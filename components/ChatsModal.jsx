@@ -5,6 +5,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
   FlatList,
+  Platform,
 } from "react-native";
 import React, { useState } from "react";
 import { X } from "lucide-react-native";
@@ -14,8 +15,8 @@ const ChatsModal = ({ isVisible, onClose }) => {
   //Lista de chats estáticos que usaremos de prueba
   const chats = [
     { id: "1", date: "2024-04-01", summary: "Sueño sobre volar" },
-    { id: "2", date: "2024-02-14", summary: "Regalo para novia" },
-    { id: "3", date: "2024-01-6", summary: "Celebración de Reyes" },
+    { id: "2", date: "2024-02-14", summary: "Estrés en el trabajo" },
+    { id: "3", date: "2024-01-6", summary: "Sueño premonitorio" },
   ];
   //Definimos los distintos estados que necesitamos para el model
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -30,6 +31,28 @@ const ChatsModal = ({ isVisible, onClose }) => {
     //De los chats que tenemos renderizamos el que tenga la fecha que el user ha seleccionado
     const filtered = chats.filter((chat) => chat.date === formattedDate);
     setFilteredChats(filtered);
+  };
+
+  const [showDatePicker, setShowDatePicker] = useState(false); //Estado para saber cuando estamos en android y asi manejar su comportamiento.
+
+  const handleDateChange = (event, date) => {
+    /*Una vez que se abre lo ponemos en false para no renderizar seguido el picker de android
+    si no estaremos en el caso de que el picker una vez abierto y elegido una fecha o intentar cerrarlo siempre se nos va a abrir continuamente*/
+    if (Platform.OS === "android") {
+      setShowDatePicker(false);
+    }
+
+    if (date) {
+      //gestionamos posible evento nulo de Android
+      const selectedDate = date || new Date();
+      setSelectedDate(selectedDate);
+    }
+  };
+
+  const openDatePicker = () => {
+    if (Platform.OS === "android") {
+      setShowDatePicker(true);
+    }
   };
 
   return (
@@ -54,14 +77,28 @@ const ChatsModal = ({ isVisible, onClose }) => {
               Selecciona la fecha del chat
             </Text>
 
-            <DateTimePicker
-              value={selectedDate}
-              mode="date"
-              display="default"
-              textColor="white"
-              //Cada vez que cambiamos la hora se guarda en el estado de tiempo
-              onChange={(event, date) => setSelectedDate(date || new Date())}
-            />
+            {Platform.OS === "android" && ( //Renderizamos el botón en caso de android, en caso de apple ya viene renderizado con el propio picker
+              <TouchableOpacity onPress={openDatePicker} className="w-full">
+                <View className="bg-[#1e273a] p-4 rounded-xl">
+                  <Text className="text-center text-white">
+                    {selectedDate.toLocaleDateString()}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            )}
+
+            {(Platform.OS === "ios" || showDatePicker) && ( //Si estamos en ios renderizamos su picker y showDatePicker esta en false
+              //En caso de que showDatePicker este en true y el SO sea android lo abrimos tambien y gestionamos
+              <DateTimePicker
+                value={selectedDate}
+                mode="date"
+                display="default"
+                textColor="white"
+                maximumDate={new Date()} //Máxima fecha a la que el user puede seleccionar para la búsqqueda de chats
+                //Cada vez que cambiamos la hora se guarda en el estado de tiempo
+                onChange={handleDateChange}
+              />
+            )}
 
             <TouchableOpacity
               className="bg-[#6366ff] p-4 rounded-xl w-full"

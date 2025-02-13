@@ -1,4 +1,10 @@
-import { Text, TouchableOpacity, SafeAreaView, View } from "react-native";
+import {
+  Text,
+  TouchableOpacity,
+  SafeAreaView,
+  View,
+  Platform,
+} from "react-native";
 import React, { useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import Icon from "react-native-vector-icons/FontAwesome";
@@ -11,7 +17,7 @@ export default function Question3({
 }) {
   //Definimos el estado para guardar la fecha de nacimiento que ha seleccionado el usuario, cuando el DatePicker esta visble y cuando hay un error o no
   const [date, setDate] = useState(new Date());
-  //const [showPicker, setShowPicker] = useState(true); NO HACE FALTA YA QUE NO QUEREMOS QUE EL PICKER SE NOS VAYA YA QUE ESTAMOS EN LA MISMA PANTALLA
+  const [showDatePicker, setShowDatePicker] = useState(false); //Para saber cuando estamos en android y asi manejar su comportamiento.
   const [error, setError] = useState(null);
 
   //Definimos ahora el estado para saber si se ha seleccionado una respuesta, en este caso la edad
@@ -42,8 +48,14 @@ export default function Question3({
     //llamamos a la función de calcular la edad en base a la fecha seleccionada
     const age = calculateAge(date);
     console.log("Edad: ", age);
+
+    updateResponse("question3", age.toString());
+    //Una vez guardamos la respuesta seleccionada, navegamos a la siguiente pregunta
+    nextQuestion();
+
     //El rango de edad tiene que ser un número entre 10 y 100 [Se han puesto estos valores por convención]
-    if (age >= 10 && age <= 100) {
+    //TODO: comprobacion para android desactivada temporalmente por faklta de retroceso en los años rápida
+    /*if (age >= 10 && age <= 100) {
       updateResponse("question3", age.toString());
       //Una vez guardamos la respuesta seleccionada, navegamos a la siguiente pregunta
       nextQuestion();
@@ -51,11 +63,25 @@ export default function Question3({
       setError(
         "Solo se puede usar la aplicación si tienes entre 10 y 100 años"
       );
-    }
+    }*/
+  };
+
+  //Función que tiene la lógica de manejar el evento del DateTimePicker
+  const handleDateChange = (event, selectedDate) => {
+    if (Platform.OS === "android") setShowDatePicker(false); //Ponemos en false para no renderizar seguido el picker de android
+
+    const currentDate = selectedDate || date;
+    setDate(currentDate);
+    setError(null); // Borra el mensaje de error si selecciona una fecha válida
+    setSelected(true);
+  };
+
+  const openDatePicker = () => {
+    if (Platform.OS === "android") setShowDatePicker(true);
   };
 
   return (
-    <SafeAreaView className="flex items-center justify-center w-full h-full bg-primary">
+    <SafeAreaView className="flex justify-center items-center w-full h-full bg-primary">
       <View
         className="flex flex-col w-[90%] justify-center items-center gap-8"
         style={{
@@ -69,20 +95,29 @@ export default function Question3({
           ¿Cuántos años tienes?
         </Text>
 
-        {/* Muestra el DateTimePicker si showPicker es true */}
+        {/*Muestra el botón para abrir el DateTimePicker si estamos en Android*/}
+        {Platform.OS === "android" && (
+          <TouchableOpacity onPress={openDatePicker} className="w-full">
+            <View className="bg-[#1e273a] p-4 rounded-xl">
+              <Text className="text-center text-white">
+                {date.toLocaleDateString()}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        )}
 
-        <DateTimePicker
-          value={date}
-          mode="date"
-          //El display default toma como referencia el mode para elegir el formato adecuado, pero nosotros usaremos el modo spinner
-          display="spinner"
-          onChange={(event, selectedDate) => {
-            const currentDate = selectedDate || date;
-            setDate(currentDate);
-            setError(null); // Borra el mensaje de error si selecciona una fecha válida
-            setSelected(true);
-          }}
-        />
+        {/* Muestra el DateTimePicker si showPicker*/}
+        {(Platform.OS === "ios" || showDatePicker) && (
+          <DateTimePicker
+            value={date}
+            mode="date"
+            //El display default toma como referencia el mode para elegir el formato adecuado, pero nosotros usaremos el modo spinner
+            display={Platform.OS === "ios" ? "spinner" : "default"}
+            textColor={Platform.OS === "ios" ? "white" : undefined}
+            accentColor="#6366ff" // Android specific color accent
+            onChange={handleDateChange}
+          />
+        )}
 
         {/*Mostramos la fecha que el usuario ha seleccionado*/}
         <Text className="w-full text-lg text-center color-white">

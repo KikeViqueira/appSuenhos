@@ -79,6 +79,10 @@ const Estadisticas = () => {
         ]
       );
       console.log("Valor de isSleeping despues de la alerta: ", isSleeping);
+      //TODO: Tenemos que borrar igualmente la hora de inicio de sueño si el user decide reiniciar el registro ya que el useEffect sigue podiendo cargarla
+      //TODO: Esto es debido por el hecho de que solo la eliminabamos si el user hacia el registro matutino pero hay que tener en cuenta el caso de que anule el registro y vuelva a entrar a la app
+      ////TODO:En este ultimo caso quedaba guardada y al entrar en la app de nuevo activaba el registro cuando no debia
+      await AsyncStorage.removeItem("sleepStart");
     }
   };
 
@@ -204,10 +208,8 @@ const Estadisticas = () => {
               //Cuando el user haga click en el botón, se calculará la hora de inicio de sueño
               onPress={calculateSleepStart}
               className={`flex flex-row items-center justify-start px-3 py-3 gap-4 ${
-                isSleeping
-                  ? "bg-[#ff4757] hover:bg-[#ff6b81]"
-                  : "bg-[#323d4f] hover:bg-[#3d4b63]"
-              } rounded-xl w-auto transition-colors duration-200 shadow-lg`}
+                isSleeping ? "bg-[#ff4757]" : "bg-[#323d4f]"
+              } rounded-xl w-auto`}
             >
               <Icon
                 name={isSleeping ? "refresh" : "moon-o"}

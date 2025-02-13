@@ -31,7 +31,7 @@ const signIn = () => {
     form.email = form.email.toLowerCase();
     //tenemos que comprobar que los datos que ha introducido el user son correctos, comparandolos en este caso con la info del objeto
     if (form.email === user.email && form.password === user.password) {
-      router.push("../(tabs)/Stats");
+      router.push("../(Onboarding)/Onboarding");
     } else {
       Alert.alert(
         "Error Inicio de Sesión",

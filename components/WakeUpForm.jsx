@@ -6,6 +6,8 @@ import {
   Button,
   ScrollView,
   Alert,
+  Platform,
+  TouchableOpacity,
 } from "react-native";
 import React, { useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
@@ -61,6 +63,27 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
     onClose();
   };
 
+  //Estado para saber cuando estamos controlando el comportamiento del timePicker en Android, inicialmente es falso
+  const [showTimePicker, setShowTimePicker] = useState(false);
+
+  //Función para guardar el valor que se ha seleccionado en el timePicker y poner la bandera a false para evitar su continua abertura en pantalla
+  const handleTimeChange = (event, selectedTime) => {
+    if (Platform.OS === "android") setShowTimePicker(false);
+
+    //tenemos que comprobar que la hora que ponga el user que se ha levantado sea menor o igual a la hora actual, si no podrían exister medidas érroneas
+    if (selectedTime && selectedTime <= new Date()) {
+      setTime(selectedTime);
+      setIsValidTime(true);
+    } else {
+      setIsValidTime(false);
+    }
+  };
+
+  //Función que se asigna al botón correspondiente paara abrir el timePicker en Android
+  const openTimePicker = () => {
+    if (Platform.OS === "android") setShowTimePicker(true);
+  };
+
   return (
     //Cuando renderizamos el modal, este se muestra en un nuevo contexto encima de la pantalla principal
     //Por lo tanto si queremos que lo que este dentro del modal se vea correctamente tenemos que poner dentro de este componente un SafeAreaView
@@ -100,24 +123,32 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
               >
                 ¿A que hora te has despertado?
               </Text>
+
+              {Platform.OS === "android" && ( //Renderizamos el botón en caso de android, en caso de apple ya viene renderizado con el propio picker
+                <TouchableOpacity onPress={openTimePicker} className="w-full">
+                  <View className="bg-[#1e273a] p-4 rounded-xl">
+                    <Text className="text-center text-white">
+                      {time.toLocaleTimeString()}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              )}
+
               {/* Contenedor que encierra la hora de la alarma*/}
-              <DateTimePicker
-                value={time}
-                mode="time"
-                is24Hour={true}
-                display="spinner"
-                textColor="white"
-                //Cada vez que cambiamos la hora se guarda en el estado de tiempo
-                onChange={(event, selectedTime) => {
-                  //tenemos que comprobar que la hora que ponga el user que se ha levantado sea menor o igual a la hora actual, si no podrían exister medidas érroneas
-                  if (selectedTime && selectedTime <= new Date()) {
-                    setTime(selectedTime);
-                    setIsValidTime(true);
-                  } else {
-                    setIsValidTime(false);
-                  }
-                }}
-              />
+              {(Platform.OS === "ios" || showTimePicker) && (
+                <DateTimePicker
+                  value={time}
+                  mode="time"
+                  is24Hour={true}
+                  //display="spinner"
+                  //textColor="white"
+                  display={Platform.OS === "ios" ? "spinner" : "default"}
+                  textColor={Platform.OS === "ios" ? "white" : undefined}
+                  accentColor="#6366ff" // Android specific color accent
+                  //Cada vez que cambiamos la hora se guarda en el estado de tiempo
+                  onChange={handleTimeChange}
+                />
+              )}
             </View>
 
             {/*llamamos a las distintas preguntas de seleccionar opción*/}

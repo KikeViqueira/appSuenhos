@@ -5,33 +5,37 @@ import { Play, Pause, Repeat } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Slider from "@react-native-community/slider";
 
+//Si queremos que al cambiar el emoticono del bucle solo se cambie en el audio que se esta reproduciendo, tenemos que guardar variable looping dentro de cada uno de ellos
 const relaxationSounds = [
   {
     id: "1",
     title: "Ocean Waves",
     source: require("../../assets/sounds/ocean-waves.mp3"),
+    isLooping: false,
   },
   {
     id: "2",
     title: "Forest Ambience",
     source: require("../../assets/sounds/forest-ambience.mp3"),
+    isLooping: false,
   },
   {
     id: "3",
     title: "Rain Sounds",
     source: require("../../assets/sounds/rain-sound.mp3"),
+    isLooping: false,
   },
   {
     id: "4",
     title: "Birds in Forest",
     source: require("../../assets/sounds/birds-in-forest.mp3"),
+    isLooping: false,
   },
 ];
 
 const Music = () => {
   const [currentSound, setCurrentSound] = useState(null); //Guardamos el sonido que está sonando actualmente
   const soundRef = useRef(null); //Una referencia a el
-  const [isLooping, setIsLooping] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -62,50 +66,75 @@ const Music = () => {
   }, [isPlaying]);
 
   const playSound = async (sound) => {
-    if (currentSound?.id === sound.id && !isPlaying && progress > 0) {
-      // Resume the paused sound
-      if (soundRef.current) {
-        await soundRef.current.playAsync();
-        setIsPlaying(true);
-        return;
+    try {
+      console.log("Antes de reproducir: ", {
+        sound,
+        currentSound,
+        isPlaying,
+        progress,
+      });
+      if (currentSound?.id === sound.id && !isPlaying && progress > 0) {
+        // Resume the paused sound
+        if (soundRef.current) {
+          await soundRef.current.setPositionAsync(progress);
+          await soundRef.current.playAsync();
+          setIsPlaying(true);
+          console.log("Reanudando sonido: ", sound.id);
+          return;
+        }
       }
-    }
 
-    if (soundRef.current) {
-      await soundRef.current.unloadAsync();
-    }
+      //Si cambiamos el sonido reseteamos el progreso
+      if (currentSound?.id !== sound.id) {
+        setProgress(0);
+      }
 
-    //Ejecutamos el nuevo sonido y actualizamos la referencia y el sonido actual
-    const { sound: newSound } = await Audio.Sound.createAsync(sound.source, {
-      shouldPlay: true,
-      //Que este en bucle o no ahora dependerá del user
-      isLooping: isLooping,
-    });
+      if (soundRef.current) {
+        await soundRef.current.unloadAsync();
+      }
 
-    //Configuramos el sonido para que cuando acabe se detenga
-    newSound.setOnPlaybackStatusUpdate((status) => {
-      setIsPlaying(status.isPlaying);
-      if (status.didJustFinish) {
-        if (!isLooping) {
+      //Ejecutamos el nuevo sonido y actualizamos la referencia y el sonido actual
+      const { sound: newSound } = await Audio.Sound.createAsync(sound.source, {
+        shouldPlay: true,
+        isLooping: sound.isLooping || false,
+      });
+
+      //Configuramos el sonido para que cuando acabe se detenga
+      newSound.setOnPlaybackStatusUpdate((status) => {
+        setIsPlaying(status.isPlaying);
+        if (status.didJustFinish && !status.isLooping) {
           //Si el audio termina y no esta en loop se detiene y se resetea el estado de las variables
           setIsPlaying(false);
           setCurrentSound(null);
           setProgress(0);
         }
-      }
-    });
-    soundRef.current = newSound;
-    setCurrentSound(sound);
-    setIsPlaying(true);
-    setProgress(0);
+      });
+      soundRef.current = newSound;
+      setCurrentSound({ ...sound, isLooping: sound.isLooping || false }); //En este caso usamos el estado directamente
+      setIsPlaying(true);
+      console.log("Reproduciendo sonido: ", sound.id);
+    } catch (error) {
+      console.error("Error reproduciendo sonido: ", error);
+    }
   };
 
   const stopSound = async () => {
     if (soundRef.current) {
       try {
-        // Pause the sound instead of stopping completely
-        await soundRef.current.pauseAsync();
-        setIsPlaying(false);
+        console.log("Antes de pausar: ", { currentSound, isPlaying, progress });
+
+        await soundRef.current.pauseAsync(); //Pausar sonido
+
+        const status = await soundRef.current.getStatusAsync(); //Obtener estado actualizado
+
+        setIsPlaying(false); //Asegurar que React detecta el cambio
+        setProgress(status.positionMillis); //Guardamos la posición actual
+
+        console.log("Después de pausar: ", {
+          currentSound,
+          isPlaying,
+          progress,
+        });
       } catch (error) {
         console.error("Error pausando sonido: ", error);
       }
@@ -113,10 +142,19 @@ const Music = () => {
   };
 
   const toggleLooping = async () => {
-    if (soundRef.current) {
-      //Indicamos que el audio debería de reproducirse en loop
-      await soundRef.current.setIsLoopingAsync(!isLooping);
-      setIsLooping(!isLooping); //Guardamos el estado actual
+    if (soundRef.current && currentSound) {
+      //Recuperamos el valor contrario al guardado en la variable isLooping del audio actual
+      const newIsLooping = !currentSound.isLooping;
+      try {
+        await soundRef.current.setIsLoopingAsync(newIsLooping);
+        //De esta manera nos aseguramos de estar trabajando con el último estado guardado del componente, lo cual es esencial en escenarios de múltiples actualizaciones
+        setCurrentSound((prevSound) => ({
+          ...prevSound,
+          isLooping: newIsLooping,
+        })); //Guardamos el nuevo estado dentro del sonido actual
+      } catch (error) {
+        console.error("Error cambiando el bucle del sonido: ", error);
+      }
     }
   };
 
@@ -146,13 +184,15 @@ const Music = () => {
               currentSound?.id === item.id ? toggleLooping() : null
             }
           >
-            {isLooping ? (
+            {currentSound?.id === item.id && currentSound?.isLooping ? (
               <Repeat color="white" size={24} />
             ) : (
-              //Si el sonido no se esta reproduciendo, ponemos el color del icono en azul si el audio es el que se esta reproduciendo, y en gris si no para mostrar al usuario como que la opción esta desactivada visualmente
+              //Si el sonido se esta reproduciendo, ponemos el color del icono en azul si el audio es el que se esta reproduciendo, y en gris si no para mostrar al usuario como que la opción esta desactivada visualmente
               <Repeat
                 color={`${
-                  currentSound?.id === item.id ? "#1e273a" : "#626364"
+                  currentSound?.id === item.id && currentSound?.isLooping
+                    ? "#1e273a"
+                    : "#626364"
                 }`}
                 size={24}
               />
@@ -162,7 +202,9 @@ const Music = () => {
           {/* Botón para pausar o reproducir el audio */}
           <TouchableOpacity
             onPress={() =>
-              currentSound?.id === item.id ? stopSound() : playSound(item)
+              currentSound?.id === item.id && isPlaying
+                ? stopSound()
+                : playSound(item)
             }
           >
             {currentSound?.id === item.id && isPlaying ? (
