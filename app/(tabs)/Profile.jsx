@@ -162,6 +162,14 @@ const Profile = () => {
           </View>
         </TouchableOpacity>
 
+        {/* Help Button */}
+        <TouchableOpacity
+          className="bg-[#1e2a47] p-4 rounded-xl items-start"
+          //TODO: Tenemos que hacer una panatlla donde el user pueda recibir ayuda en caso de problemas
+        >
+          <Text className="text-lg text-white font-psemibold">Ayuda</Text>
+        </TouchableOpacity>
+
         {/* Logout Button */}
         <TouchableOpacity
           className="bg-[#ff6b6b] py-4 rounded-xl items-center"
