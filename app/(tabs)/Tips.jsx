@@ -10,7 +10,7 @@ const Tips = () => {
   const handleTipPress = (tip) => {
     router.push({
       pathname: "../TipDetail",
-      params: { tipId: tip.id.toString() }, //Pasamos solo el id del tip para evitar problamas de serialización
+      params: { tipId: tip.id.toString() }, //Pasamos solo el id del tip para evitar problemas de serialización
     });
   };
 

@@ -1,10 +1,11 @@
 import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Camera, Edit2 } from "lucide-react-native";
+import { Camera, Edit2, BookmarkCheck } from "lucide-react-native";
 import placeholderImage from "../../assets/images/placeholder.png";
 import * as ImagePicker from "expo-image-picker";
 import PictureOptions from "../../components/PictureOptions";
+import { router } from "expo-router";
 
 const Profile = () => {
   //Hacemos states tanto para guardar la foto como para controlar que el modal de opciones de cámara este desplegado o no
@@ -90,7 +91,7 @@ const Profile = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-primary">
-      <View className="flex-1 px-4 py-6">
+      <View className="flex flex-col flex-1 gap-4 px-4 py-6">
         {/* Header */}
         <Text
           className="text-center font-bold text-[#6366ff] py-4 "
@@ -125,7 +126,7 @@ const Profile = () => {
         />
 
         {/* Personal Information */}
-        <View className="bg-[#1e2a47] rounded-xl p-4 mb-6">
+        <View className="bg-[#1e2a47] rounded-xl p-4">
           <View className="flex-row justify-between items-center mb-4">
             <Text className="text-white font-pmedium">Correo Electrónico</Text>
             <TouchableOpacity>
@@ -137,7 +138,7 @@ const Profile = () => {
           </Text>
         </View>
 
-        <View className="bg-[#1e2a47] rounded-xl p-4 mb-6">
+        <View className="bg-[#1e2a47] rounded-xl p-4">
           <View className="flex-row justify-between items-center mb-4">
             <Text className="text-white font-pmedium">Número de Teléfono</Text>
             <TouchableOpacity>
@@ -146,6 +147,20 @@ const Profile = () => {
           </View>
           <Text className="text-white font-pregular">+34 123 456 789</Text>
         </View>
+
+        {/* favsTips Button */}
+        <TouchableOpacity
+          className="bg-[#1e2a47] p-4 rounded-xl items-start"
+          //Cuando presionamos el botón tenemos que navegar a la pantalla de mis tips favoritos
+          onPress={() => router.push("../FavTips")}
+        >
+          <View className="flex-row gap-2 items-center">
+            <Text className="text-lg text-white font-psemibold">
+              Mis Tips Favoritos
+            </Text>
+            <BookmarkCheck color="white" />
+          </View>
+        </TouchableOpacity>
 
         {/* Logout Button */}
         <TouchableOpacity
