@@ -1,10 +1,17 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, Text, TouchableOpacity, FlatList, Alert } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  FlatList,
+  Alert,
+  ScrollView,
+} from "react-native";
 import { Audio } from "expo-av";
-import { router } from "expo-router";
-import { Play, Pause, Repeat, Upload } from "lucide-react-native";
+import { Play, Pause, Repeat, Upload, Trash2 } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Slider from "@react-native-community/slider";
+import * as DocumentPicker from "expo-document-picker";
 
 //Si queremos que al cambiar el emoticono del bucle solo se cambie en el audio que se esta reproduciendo, tenemos que guardar variable looping dentro de cada uno de ellos
 const relaxationSounds = [
@@ -13,24 +20,28 @@ const relaxationSounds = [
     title: "Ocean Waves",
     source: require("../../assets/sounds/ocean-waves.mp3"),
     isLooping: false,
+    isDefault: true,
   },
   {
     id: "2",
     title: "Forest Ambience",
     source: require("../../assets/sounds/forest-ambience.mp3"),
     isLooping: false,
+    isDefault: true,
   },
   {
     id: "3",
     title: "Rain Sounds",
     source: require("../../assets/sounds/rain-sound.mp3"),
     isLooping: false,
+    isDefault: true,
   },
   {
     id: "4",
     title: "Birds in Forest",
     source: require("../../assets/sounds/birds-in-forest.mp3"),
     isLooping: false,
+    isDefault: true,
   },
 ];
 
@@ -42,7 +53,7 @@ const Music = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   //Definimos los estados para controlar el número de audios que sube el user a la app
   const [userSounds, setUserSounds] = useState([]);
-  const maxSounds = 5;
+  const maxSounds = 6;
 
   useEffect(() => {
     //Actualizamos de una manera constante el progreso del sonido
@@ -180,8 +191,16 @@ const Music = () => {
       <View className="flex-row justify-between items-center">
         <Text className="text-base font-semibold text-white">{item.title}</Text>
         <View className="flex-row gap-5 items-center">
-          {/* Botón para repetir o no el audio */}
+          {/*Botón para eliminar sonidos si estos han sido subidos por el user*/}
+          {!item.isDefault && (
+            <TouchableOpacity
+            //TODO: TENEMOS QUE LLAMAR AL ENDPOINT PARAELIMINAR EL SONIDO DE LA BD
+            >
+              <Trash2 color="#ff6b6b" size={28} />
+            </TouchableOpacity>
+          )}
 
+          {/* Botón para repetir o no el audio */}
           <TouchableOpacity
             onPress={() =>
               //Solo permitimos activar el loop si el audio ya estaba sonando
@@ -248,30 +267,55 @@ const Music = () => {
 
   //Creamos la función para que el user pueda subir sus audios
   const uploadSound = async () => {
-    //Primero lo que tenemos que comprobar es si el user puede subir sonidos
-    if (userSounds.length >= maxSounds) {
-      Alert.alert(
-        "Límite alcanzado",
-        "Solo puedes subir 5 sonidos, para subir uno nuevo borra alguno que ya no te interese"
-      );
-      return;
-    }
+    try {
+      //Primero lo que tenemos que comprobar es si el user puede subir sonidos
+      if (userSounds.length >= maxSounds) {
+        Alert.alert(
+          "Límite alcanzado",
+          "Solo puedes subir 5 sonidos, para subir uno nuevo borra alguno que ya no te interese"
+        );
+        return;
+      }
 
-    //llamamos al document picker
-    const result = await DocumentPicker.getDocumentAsync({
-      type: "audio/*", // Solo permitir archivos de audio
-      copyToCacheDirectory: true, //Permitimos que expo lea el fichero nada más sea seleccionado
-    });
+      //llamamos al document picker
+      const result = await DocumentPicker.getDocumentAsync({
+        type: "audio/*" /*Solo permitir archivos de audio (* en el segundo parámetro indica que acepta cualquier tipo de extension)
+      audio/mpeg = MP3 files
+      audio/wav = WAV files
+      audio/ogg = OGG files
+      audio/* = ALL audio file types
+      */,
+        copyToCacheDirectory: true, //Permitimos que expo lea el fichero nada más sea seleccionado
+      });
 
-    if (result.type === "success") {
-      /*
-      if (result.type === 'success') {
-    // Validate file size (optional)
-        if (result.size > MAX_FILE_SIZE) {
-          Alert.alert("Archivo demasiado grande");
+      if (!result.canceled) {
+        //Comprobamos que el archivo del user no supere cierto tamaño
+        const maxFileSize = 10 * 1024 * 1024; //TODO: Ponemos el tamaño límite en 10 MB
+        if (result.size > maxFileSize) {
+          Alert.alert(
+            "Archivo demasiado grande",
+            "El archivo no puede superar los 10 MB"
+          );
           return;
         }
-      */
+
+        //Si el resultado ha sido exitoso y no supera el tamaño incluído, creamos un objeto sonido nuevo //TODO: Por ahora los guardamos de manera estática
+        const newSound = {
+          id: `user-${Date.now()}`,
+          title: result.assets[0].name,
+          source: { uri: result.assets[0].uri }, //URI para que la función createAsync funcione
+          isLooping: false,
+          isDefault: false, //TODO/ Campo en la BD que indica si el sonido es subido por un user o no
+        };
+
+        console.log(newSound.source);
+
+        //TODO:Guardar el audio en la BD, por ahora lo guardamos en el estado de userSounds
+        setUserSounds((prevSounds) => [...prevSounds, newSound]);
+        console.log(userSounds);
+      }
+    } catch (error) {
+      Alert.alert("Error", "No se pudo subir el sonido");
     }
   };
 
@@ -285,7 +329,7 @@ const Music = () => {
       </Text>
       <TouchableOpacity
         className="bg-[#6366ff] w-[95%] self-center flex p-6 gap-4 rounded-3xl border border-[#323d4f]"
-        onPress={() => router.push("/UserSounds")}
+        onPress={uploadSound}
       >
         <View className="flex-row justify-between items-center">
           <Text className="text-lg text-white font-psemibold">
@@ -294,18 +338,46 @@ const Music = () => {
           <Upload color="white" size={24} className="p-2" />
         </View>
       </TouchableOpacity>
-      <Text
-        className="py-4 ml-4 font-bold text-white text-start"
-        style={{ fontSize: 18 }}
+      <ScrollView
+        contentContainerStyle={{
+          flexGrow: 1, //Puede crecer y adaptarse al nuevo tamaño y scroll
+          paddingBottom: 20,
+        }}
+        showsVerticalScrollIndicator={false} //Ocultamos la barra de scroll
       >
-        Sonidos por defecto
-      </Text>
-      <FlatList
-        data={relaxationSounds}
-        renderItem={renderSoundItem}
-        keyExtractor={(item) => item.id}
-        contentContainerClassName="pb-4 gap-4"
-      />
+        {/*Comprobamos si el user tiene sonidos subidos, si es ese caso tenemos que renderizar la parte correspondiente en la app */}
+        {userSounds.length > 0 && (
+          <View>
+            <Text
+              className="py-4 ml-4 font-bold text-white text-start"
+              style={{ fontSize: 18 }}
+            >
+              Mis sonidos
+            </Text>
+            <FlatList
+              data={userSounds}
+              renderItem={renderSoundItem}
+              keyExtractor={(item) => item.id}
+              contentContainerClassName="pb-4 gap-4"
+              scrollEnabled={false}
+            />
+          </View>
+        )}
+
+        <Text
+          className="py-4 ml-4 font-bold text-white text-start"
+          style={{ fontSize: 18 }}
+        >
+          Sonidos por defecto
+        </Text>
+        <FlatList
+          data={relaxationSounds}
+          renderItem={renderSoundItem}
+          keyExtractor={(item) => item.id}
+          contentContainerClassName="pb-4 gap-4"
+          scrollEnabled={false} //Prevenimos el nested scrolling
+        />
+      </ScrollView>
     </SafeAreaView>
   );
 };

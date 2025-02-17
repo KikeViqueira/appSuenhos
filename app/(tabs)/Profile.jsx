@@ -6,11 +6,13 @@ import placeholderImage from "../../assets/images/placeholder.png";
 import * as ImagePicker from "expo-image-picker";
 import PictureOptions from "../../components/PictureOptions";
 import { router } from "expo-router";
+import LogOutModal from "../../components/LogOutModal";
 
 const Profile = () => {
   //Hacemos states tanto para guardar la foto como para controlar que el modal de opciones de cámara este desplegado o no
   const [imagen, setImage] = useState(placeholderImage);
   const [showModal, setshowModal] = useState(false);
+  const [showModalLogOut, setshowModalLogOut] = useState(false);
 
   //hacemos función de guardar foto que incluye las opciones de sacar foto o elegir una de la galería, en base al parámetro que reciba
   const uploadPicture = async ({ mode }) => {
@@ -87,6 +89,13 @@ const Profile = () => {
         "Ha sucedido un error a la hora de guardar la foto, inténtalo de nuevo"
       );
     }
+  };
+
+  //Función para cerrar la sesión del user
+  const logOut = () => {
+    //TODO: TENDRIAMOS QUE LLAMAR AL ENDPOINT PARA CERRAR LA SESIÓN
+    setshowModalLogOut(false);
+    router.push("/sign-in");
   };
 
   return (
@@ -173,12 +182,20 @@ const Profile = () => {
         {/* Logout Button */}
         <TouchableOpacity
           className="bg-[#ff6b6b] py-4 rounded-xl items-center"
-          // onPress will be implemented later
+          //Cuando presionemos el botón enseñaremos al user un pop-up de confirmación
+          onPress={() => setshowModalLogOut(true)}
         >
           <Text className="text-lg text-white font-psemibold">
             Cerrar Sesión
           </Text>
         </TouchableOpacity>
+
+        {/* LogOut Modal */}
+        <LogOutModal
+          visible={showModalLogOut}
+          setModalVisible={setshowModalLogOut}
+          logOut={logOut}
+        />
       </View>
     </SafeAreaView>
   );
