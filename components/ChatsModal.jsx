@@ -8,7 +8,7 @@ import {
   Platform,
 } from "react-native";
 import React, { useState } from "react";
-import { X } from "lucide-react-native";
+import { X, Trash2 } from "lucide-react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 
 const ChatsModal = ({ isVisible, onClose }) => {
@@ -147,9 +147,16 @@ const ChatsModal = ({ isVisible, onClose }) => {
                   ItemSeparatorComponent={() => <View className="h-4" />}
                   renderItem={({ item }) => (
                     <View className="bg-[#1e273a] w-full flex flex-col justify-between p-6 rounded-lg">
-                      <Text className="mb-2 text-xl font-bold text-white">
-                        {item.summary}
-                      </Text>
+                      <View className="flex-row justify-between">
+                        <Text className="mb-2 text-xl font-bold text-white">
+                          {item.summary}
+                        </Text>
+                        <TouchableOpacity
+                        //TODO: Tenemos que llamar al endpoint de la api para borrar el chat que se ha seleccionado
+                        >
+                          <Trash2 color="#ff6b6b" size={28} />
+                        </TouchableOpacity>
+                      </View>
                       <Text className="text-[#6366ff]">{item.date}</Text>
                     </View>
                   )}

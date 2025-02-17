@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
-import { View, Text, TouchableOpacity, FlatList } from "react-native";
+import { View, Text, TouchableOpacity, FlatList, Alert } from "react-native";
 import { Audio } from "expo-av";
-import { Play, Pause, Repeat } from "lucide-react-native";
+import { router } from "expo-router";
+import { Play, Pause, Repeat, Upload } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Slider from "@react-native-community/slider";
 
@@ -39,6 +40,9 @@ const Music = () => {
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  //Definimos los estados para controlar el número de audios que sube el user a la app
+  const [userSounds, setUserSounds] = useState([]);
+  const maxSounds = 5;
 
   useEffect(() => {
     //Actualizamos de una manera constante el progreso del sonido
@@ -242,13 +246,59 @@ const Music = () => {
     return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
   };
 
+  //Creamos la función para que el user pueda subir sus audios
+  const uploadSound = async () => {
+    //Primero lo que tenemos que comprobar es si el user puede subir sonidos
+    if (userSounds.length >= maxSounds) {
+      Alert.alert(
+        "Límite alcanzado",
+        "Solo puedes subir 5 sonidos, para subir uno nuevo borra alguno que ya no te interese"
+      );
+      return;
+    }
+
+    //llamamos al document picker
+    const result = await DocumentPicker.getDocumentAsync({
+      type: "audio/*", // Solo permitir archivos de audio
+      copyToCacheDirectory: true, //Permitimos que expo lea el fichero nada más sea seleccionado
+    });
+
+    if (result.type === "success") {
+      /*
+      if (result.type === 'success') {
+    // Validate file size (optional)
+        if (result.size > MAX_FILE_SIZE) {
+          Alert.alert("Archivo demasiado grande");
+          return;
+        }
+      */
+    }
+  };
+
   return (
-    <SafeAreaView className="flex-1 bg-primary">
+    <SafeAreaView className="flex-1 gap-4 bg-primary">
       <Text
-        className="text-center font-bold text-[#6366ff] py-4"
+        className="text-center font-bold text-[#6366ff] py-4 mt-3"
         style={{ fontSize: 24 }}
       >
         Sonidos Relajantes
+      </Text>
+      <TouchableOpacity
+        className="bg-[#6366ff] w-[95%] self-center flex p-6 gap-4 rounded-3xl border border-[#323d4f]"
+        onPress={() => router.push("/UserSounds")}
+      >
+        <View className="flex-row justify-between items-center">
+          <Text className="text-lg text-white font-psemibold">
+            Sube sonidos propios
+          </Text>
+          <Upload color="white" size={24} className="p-2" />
+        </View>
+      </TouchableOpacity>
+      <Text
+        className="py-4 ml-4 font-bold text-white text-start"
+        style={{ fontSize: 18 }}
+      >
+        Sonidos por defecto
       </Text>
       <FlatList
         data={relaxationSounds}
