@@ -8,8 +8,11 @@ import {
   Platform,
 } from "react-native";
 import React, { useState } from "react";
-import { X, Trash2 } from "lucide-react-native";
+import { X, Trash2, Square, SquareCheckBig, Check } from "lucide-react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { xorBy } from "lodash";
+import ChatItem from "./ChatItem";
+import { router } from "expo-router";
 
 const ChatsModal = ({ isVisible, onClose }) => {
   //Lista de chats estáticos que usaremos de prueba
@@ -22,6 +25,47 @@ const ChatsModal = ({ isVisible, onClose }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [filteredChats, setFilteredChats] = useState([]); //Guardaremos el chat filtrado en base a la fecha seleccionada
   const [hasSearched, setHasSearched] = useState(false);
+  /*
+   *Creamos estado para guardar los chats que se seleccionan en la selección múltiple para ser eliminados
+   *
+   * También tenemos que crear un estado el cual funcionará como bandera para saber si estamos en el modo de selección múltiple o no
+   */
+  const [selectedChats, setSelectedChats] = useState([]);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+
+  const handleChatPress = (chat) => {
+    //Dependiendo del modo en el que estemos pulsar en un chat tendrá una acción asociada
+    if (isSelectionMode) {
+      setSelectedChats(xorBy(selectedChats, [chat], "id"));
+    } else {
+      //TODO: AQUI TENDREMOS QUE LLAMAR AL ENDPOINT DE LA API QUE SE ENCARGA DE CARGAR LAS CONVERSACIONES DEL CHAT EN EL QUE SE HA PINCHADO
+      console.log("Chat seleccionado: " + chat.summary);
+      router.push("/Chat");
+    }
+  };
+
+  //Función que se encargará de poner el modo de múltiple selección activado para su uso
+  const handleDeletePress = (chat) => {
+    setIsSelectionMode(true);
+    setSelectedChats(xorBy(selectedChats, [chat], "id"));
+  };
+
+  //Función que se encarga de cancelar la eliminación múltiple y volver al estado por default
+  const disableSelection = () => {
+    setIsSelectionMode(false);
+    setSelectedChats([]);
+  };
+
+  //Función para confirmar la eliminación de los chats que han sido seleccionados
+  const confirmDeletion = () => {
+    console.log(
+      "Eliminando lo siguientes chats: " +
+        selectedChats.map((chat) => chat.summary).join(", ") //Enseñamos los summary de los chats que han sido eliminados separados mediante comas
+    );
+    //TODO: AQUI TENDREMOS QUE LLAMAR EN EL FUTURO AL ENDPOINT DE LA API QUE SE ENCARGA DE ELIMINAR LOS TIPS SELECCIONADOS
+    setSelectedChats([]); //Limpiamos los tips seleccionados
+    setIsSelectionMode(false);
+  };
 
   //Obtenemos los chats en base a la fecha seleccionada por el user
   const handleSearchByDate = () => {
@@ -59,7 +103,7 @@ const ChatsModal = ({ isVisible, onClose }) => {
     <View>
       <Modal visible={isVisible}>
         <SafeAreaView className="flex-1 w-full bg-primary">
-          <View className="flex flex-row gap-4 justify-start items-center p-4">
+          <View className="flex flex-row items-center justify-start gap-4 p-4">
             <TouchableOpacity onPress={onClose}>
               <X size={32} color={"#6366ff"} />
             </TouchableOpacity>
@@ -125,7 +169,7 @@ const ChatsModal = ({ isVisible, onClose }) => {
                   </Text>
                 </View>
               ) : (
-                <View className="flex justify-center items-center py-4">
+                <View className="flex items-center justify-center py-4">
                   <Text className="text-base text-center text-white">
                     No se ha encontrado un chat correspondiente a este día
                   </Text>
@@ -138,32 +182,49 @@ const ChatsModal = ({ isVisible, onClose }) => {
           <View className="w-[90%] flex flex-col flex-1 gap-4 self-center mt-8">
             {chats.length > 0 ? (
               <>
-                <Text className="mb-2 text-xl font-bold text-white">
-                  Chats Recientes
-                </Text>
+                <View className="flex-row items-center justify-between mb-4">
+                  <Text className="mb-2 text-xl font-bold text-white">
+                    Chats Recientes
+                  </Text>
+                  {/*
+                   *Dependiendo de si está activada o no la bandera de isSelectionMode tenemos que rederizar un botón o el otro
+                   *Si está activada tenemos que cambiar el icono por uno de confirmar la eliminación
+                   *Si no lo está la papelera activará el modo de selección múltiple para eliminar tips
+                   */}
+                  {isSelectionMode ? (
+                    <View className="flex-row justify-between gap-5">
+                      <TouchableOpacity onPress={disableSelection}>
+                        <X color="white" size={28} />
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={confirmDeletion}>
+                        <Check color="#ff6b6b" size={28} />
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <TouchableOpacity onPress={handleDeletePress}>
+                      <Trash2 color="#ff6b6b" size={28} />
+                    </TouchableOpacity>
+                  )}
+                </View>
                 <FlatList
                   data={chats}
                   keyExtractor={(item) => item.id}
                   ItemSeparatorComponent={() => <View className="h-4" />}
                   renderItem={({ item }) => (
-                    <View className="bg-[#1e273a] w-full flex flex-col justify-between p-6 rounded-lg">
-                      <View className="flex-row justify-between">
-                        <Text className="mb-2 text-xl font-bold text-white">
-                          {item.summary}
-                        </Text>
-                        <TouchableOpacity
-                        //TODO: Tenemos que llamar al endpoint de la api para borrar el chat que se ha seleccionado
-                        >
-                          <Trash2 color="#ff6b6b" size={28} />
-                        </TouchableOpacity>
-                      </View>
-                      <Text className="text-[#6366ff]">{item.date}</Text>
-                    </View>
+                    <TouchableOpacity onPress={() => handleChatPress(item)}>
+                      <ChatItem
+                        item={item}
+                        isSelectionMode={isSelectionMode}
+                        isSelected={selectedChats.some(
+                          (chat) => chat.id === item.id
+                        )}
+                      />
+                    </TouchableOpacity>
                   )}
                 />
               </>
             ) : (
-              <View className="flex justify-center items-center py-8">
+              <View className="flex items-center justify-center py-8">
                 <Text className="text-lg text-center text-white">
                   No hay chats registrados en estos momentos
                 </Text>

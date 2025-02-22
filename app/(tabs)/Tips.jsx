@@ -45,7 +45,7 @@ const Tips = () => {
     setSelectedTips([]);
   };
 
-  //Función para confirmar la eliminación de los tips que han sido seleccionados
+  //Función para confirmar la eliminación de los tips que han sido seleccionados //TODO: TENEMOS QUE VER SI LOS TIPS QUE SE VAN A ELIMINAR SON MAYORES A CERO, Y ASI NO LLAMAR A LA API INUTILMENTE (SIZE O LENGTH)
   const confirmDeletion = () => {
     console.log(
       "Eliminando lo siguientes tips: " +

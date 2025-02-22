@@ -27,13 +27,13 @@ const TipItem = ({
         </View>
         {/*Si el selection mode esta en True renderizamos el icono de Square*/}
         {isSelectionMode && (
-          <TouchableOpacity>
+          <>
             {isSelected ? ( //DEPENDIENDO DE SI EL TIP ESTÁ SELECCIONADO O NO PONEMOS UN ICONO VISUAL DIFERENTE
               <SquareCheckBig color="#ff6b6b" size={28} />
             ) : (
               <Square color="white" size={28} />
             )}
-          </TouchableOpacity>
+          </>
         )}
       </View>
       <Text className="text-base text-white">{description}</Text>
