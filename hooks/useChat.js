@@ -24,7 +24,6 @@ const useChat = () => {
         text: message,
         sender: "user",
       };
-      setMessages([...messages, userMessage]);
 
       //Agregamos un mensaje temporal de la IA para simular que está escribiendo
       const tempAIMessageId = Date.now() + 1;
@@ -33,6 +32,9 @@ const useChat = () => {
         text: "...",
         sender: "AI",
       };
+
+      // Actualizamos el estado agregando ambos mensajes a la vez
+      setMessages((prev) => [...prev, userMessage, tempAIMessage]);
 
       //Hacemos la petición POST al endpoint
       const response = await axios.post(

@@ -13,6 +13,7 @@ import { Menu } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ChatsModal from "../../components/ChatsModal";
 import useChat from "../../hooks/useChat";
+import TypingIndicator from "../../components/TypingIndicator";
 
 const Chat = () => {
   //Creamos los mensajes de modo estático para la simulación de un chat y ver como queda visualmente
@@ -73,7 +74,12 @@ const Chat = () => {
             isUser ? "bg-[#6366ff]" : "bg-[#323d4f]"
           }`}
         >
-          <Text className="text-base text-white">{item.text}</Text>
+          {/*Comprobamos si se va a renderizar un mensaje o si la ia esta generando la respuesta*/}
+          {item.sender === "AI" && item.text === "..." ? (
+            <TypingIndicator />
+          ) : (
+            <Text className="text-base text-white">{item.text}</Text>
+          )}
         </View>
       </View>
     );
