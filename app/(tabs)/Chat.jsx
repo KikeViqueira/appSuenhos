@@ -37,7 +37,7 @@ const Chat = () => {
   const [newMessage, setNewMessage] = useState("");
   //Estado para saber si el modal en el que se eligen los chats está abierto o no
   const [showModal, setShowModal] = useState(false);
-  const endpoint = "http://192.168.18.3:8080/api/chats/1/null/messages"; //TODO: AL EJECUTAR DESDE EL MOVIL TENEMOS QUE PONER LA IP DEL DISPOSITIVO EN EL QUE SE ALOJA LA API
+  const endpoint = "http://172.20.10.2:8080/api/chats/1/null/messages"; //TODO: AL EJECUTAR DESDE EL MOVIL TENEMOS QUE PONER LA IP DEL DISPOSITIVO EN EL QUE SE ALOJA LA API
 
   const toggleModal = () => {
     setShowModal(!showModal);

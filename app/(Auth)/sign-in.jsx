@@ -42,26 +42,25 @@ const signIn = () => {
 
   return (
     <SafeAreaView className="flex items-center w-full h-full bg-primary">
-      <View className="flex justify-around items-center h-[90%] w-[85%]">
+      <View className="flex justify-start items-center h-[90%] w-[85%]">
         <Image
           //usamos require() para importar la imagen correctamente
           source={require("../../assets/images/Logo.png")}
           className="self-center w-40 h-40"
           resizeMode="contain"
         />
+        <Text
+          className="font-bold color-[#6366ff] mt-12 mb-12  self-start"
+          style={{ fontSize: 24 }}
+        >
+          Inicia sesión en Zzztime
+        </Text>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="flex-1"
+          className="min-h-[250px]"
         >
           {/*Cuerpo del formulario*/}
-          <View className="flex flex-col gap-12 justify-center w-full">
-            <Text
-              className="font-bold color-[#6366ff]"
-              style={{ fontSize: 24 }}
-            >
-              Inicia sesión en Zzztime
-            </Text>
-
+          <View className="flex flex-col items-start justify-center w-full gap-6">
             <CustomInput
               name="Email"
               inputType={form.email}
@@ -81,7 +80,7 @@ const signIn = () => {
         </KeyboardAvoidingView>
 
         {/*Boton para iniciar sesión o ir a la pantalla de registro*/}
-        <View className="flex flex-col gap-6 items-center w-full">
+        <View className="flex flex-col items-center w-full gap-6">
           <TouchableOpacity
             onPress={submit}
             className="flex w-full justify-center items-center flex-row  gap-4 px-8 py-4 bg-[#323d4f] rounded-3xl"

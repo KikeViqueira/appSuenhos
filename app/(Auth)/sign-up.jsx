@@ -6,6 +6,7 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
 } from "react-native";
 import React, { useState } from "react";
 import { router } from "expo-router";
@@ -15,6 +16,7 @@ const signUp = () => {
   //Definimos un estado para saber los valores que el usuario introduce en los campos del formulario
   const [form, setForm] = useState({
     email: "",
+    name: "",
     password: "",
     confirmPassword: "",
   });
@@ -33,55 +35,71 @@ const signUp = () => {
           className="self-center w-40 h-40"
           resizeMode="contain"
         />
-
+        <Text
+          className="font-bold color-[#6366ff] mb-6 self-start"
+          style={{ fontSize: 24 }}
+        >
+          Regístrate en Zzztime
+        </Text>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={50}
           style={{
             width: "100%",
             flexDirection: "column",
             justifyContent: "center",
           }}
         >
-          {/*Cuerpo del formulario*/}
-          <View className="flex flex-col gap-6 justify-center w-full">
-            <Text
-              className="font-bold color-[#6366ff]"
-              style={{ fontSize: 24 }}
-            >
-              Regístrate en Zzztime
-            </Text>
+          <ScrollView
+            contentContainerStyle={{
+              flexGrow: 1,
+              justifyContent: "center",
+            }}
+            showsVerticalScrollIndicator={false}
+          >
+            {/*Cuerpo del formulario*/}
+            <View className="flex flex-col justify-center w-full gap-6">
+              <CustomInput
+                name="Email"
+                inputType={form.email}
+                placeholder="Introduce tu email"
+                handleChangeText={(e) => setForm({ ...form, email: e })}
+              />
 
-            <CustomInput
-              name="Email"
-              inputType={form.email}
-              placeholder="Introduce tu email"
-              handleChangeText={(e) => setForm({ ...form, email: e })}
-            />
+              <CustomInput
+                name="Nombre"
+                inputType={form.name}
+                placeholder="Introduce tu nombre"
+                handleChangeText={(e) => setForm({ ...form, name: e })}
+              />
 
-            <CustomInput
-              name="Contraseña"
-              inputType={form.password}
-              placeholder="Introduce tu contraseña"
-              handleChangeText={(e) => setForm({ ...form, password: e })}
-            />
+              <CustomInput
+                name="Contraseña"
+                inputType={form.password}
+                placeholder="Introduce tu contraseña"
+                handleChangeText={(e) => setForm({ ...form, password: e })}
+              />
 
-            <CustomInput
-              name="Confirmar Contraseña"
-              inputType={form.confirmPassword}
-              placeholder="Confirma tu contraseña"
-              handleChangeText={(e) => setForm({ ...form, confirmPassword: e })}
-            />
+              <CustomInput
+                name="Confirmar Contraseña"
+                inputType={form.confirmPassword}
+                placeholder="Confirma tu contraseña"
+                handleChangeText={(e) =>
+                  setForm({ ...form, confirmPassword: e })
+                }
+              />
 
-            {/*Boton para iniciar sesión*/}
-            <TouchableOpacity
-              onPress={submit}
-              className="flex w-full justify-center items-center flex-row gap-4 px-8 py-4 bg-[#323d4f] rounded-3xl mt-2"
-            >
-              <Text className="text-lg font-semibold color-white">
-                Registrarse
-              </Text>
-            </TouchableOpacity>
-          </View>
+              {/*Boton para iniciar sesión*/}
+              <TouchableOpacity
+                onPress={submit}
+                className="flex w-full justify-center items-center flex-row gap-4 px-8 py-4 bg-[#323d4f] rounded-3xl mt-2"
+              >
+                <Text className="text-lg font-semibold color-white">
+                  Registrarse
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
         </KeyboardAvoidingView>
 
         {/*Info por si el usuario ya tiene una cuenta*/}
