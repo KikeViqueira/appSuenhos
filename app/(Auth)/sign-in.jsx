@@ -8,16 +8,14 @@ import {
   Platform,
   Alert,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { router } from "expo-router";
 import CustomInput from "../../components/CustomInput";
+import { useAuthContext } from "../../context/AuthContext";
 
 const signIn = () => {
-  //Creamos un objeto de las ceredenciales de un user cualquiera de ejemplo para ver si el funcionamiento de la app es el corresto
-  const user = {
-    email: "a",
-    password: "1",
-  };
+  //Recuperamos las dunciones y estados del hook de useAuth
+  const { token, loading, error, LoginRequest } = useAuthContext();
 
   //Definimos un estado para saber los valores que el usuario introduce en los campos del formulario
   const [form, setForm] = useState({
@@ -26,19 +24,32 @@ const signIn = () => {
   });
 
   //Definimos la función para mandar la respuesta a la base de datos
-  const submit = () => {
-    //antes de realizar la compración tenemos que hacer que lo que haya introducido el user en campo de email no sea qsensible a mayúsculas o minúsculas
+  const submit = async () => {
+    //antes de realizar la comparación tenemos que hacer que lo que haya introducido el user en campo de email no sea sensible a mayúsculas o minúsculas
     form.email = form.email.toLowerCase();
-    //tenemos que comprobar que los datos que ha introducido el user son correctos, comparandolos en este caso con la info del objeto
-    if (form.email === user.email && form.password === user.password) {
-      router.push("../(Onboarding)/Onboarding");
-    } else {
+
+    //llamamos al endpoint de nuestra api para hacer el login y en caso de que sea correcto obtener el token para autenticar al user en el resto de endpoints
+    //Esperamos a una respuesta de la función LoginRequest ya que es una función asíncrona y asi no pasamos a la siguiente línea de código hasta que no se haya resuelto la promesa
+    await LoginRequest(form.email, form.password);
+  };
+
+  useEffect(() => {
+    /*
+     * incluso con await, el estado token puede no actualizarse inmediatamente porque React agrupa las actualizaciones de estado.
+     * Por lo tanto, no podemos confiar en el valor de token inmediatamente después de llamar a LoginRequest.
+     * En su lugar, debemos usar el efecto de cambio de token para navegar a la siguiente pantalla.
+     *
+     * En caso de que se de un error el useEffect también se disparará y mostraremos un mensaje de error al usuario
+     */
+    if (error) {
       Alert.alert(
         "Error Inicio de Sesión",
         "El email o la contraseña son incorrectos"
       );
+    } else if (token) {
+      router.push("../(Onboarding)/Onboarding");
     }
-  };
+  }, [token, error]);
 
   return (
     <SafeAreaView className="flex items-center w-full h-full bg-primary">

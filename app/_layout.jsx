@@ -4,6 +4,7 @@ import { SplashScreen, Stack } from "expo-router";
 import { useFonts } from "expo-font";
 import "../global.css";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AuthProvider } from "../context/AuthContext";
 
 // Indicamos que la pantalla de carga inicial no se oculte automáticamente
 SplashScreen.preventAutoHideAsync();
@@ -47,35 +48,40 @@ const RootLayout = () => {
   if (!fontsLoaded && !error) return null;
 
   return (
-    <>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          animation: "fade", //Smooth transition between screens
-        }}
-      >
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        {!hasCompletedOnboarding ? (
+    /**
+     *
+     */
+    <AuthProvider>
+      <>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            animation: "fade", //Smooth transition between screens
+          }}
+        >
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          {!hasCompletedOnboarding ? (
+            <Stack.Screen
+              name="(Onboarding)/Onboarding"
+              options={{ headerShown: false }}
+            />
+          ) : (
+            <Stack.Screen
+              name="(tabs)"
+              options={{
+                headerShown: false,
+                gestureEnabled: false, //Desactivamos el gesto de arrastre hacia atras (back gesture)
+              }}
+            />
+          )}
           <Stack.Screen
-            name="(Onboarding)/Onboarding"
-            options={{ headerShown: false }}
+            name="(Auth)"
+            options={{ headerShown: false, gestureEnabled: false }}
           />
-        ) : (
-          <Stack.Screen
-            name="(tabs)"
-            options={{
-              headerShown: false,
-              gestureEnabled: false, //Desactivamos el gesto de arrastre hacia atras (back gesture)
-            }}
-          />
-        )}
-        <Stack.Screen
-          name="(Auth)"
-          options={{ headerShown: false, gestureEnabled: false }}
-        />
-        <Stack.Screen name="TipDetail" options={{ headerShown: false }} />
-      </Stack>
-    </>
+          <Stack.Screen name="TipDetail" options={{ headerShown: false }} />
+        </Stack>
+      </>
+    </AuthProvider>
   );
 };
 

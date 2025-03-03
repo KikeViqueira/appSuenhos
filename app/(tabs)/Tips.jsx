@@ -30,13 +30,8 @@ const Tips = () => {
   };
 
   //Función que se encarga de poner el modo de múltiple selección activado para su uso
-  const handleDeletePress = (tip) => {
+  const handleDeletePress = () => {
     setIsSelectionMode(true);
-    /**
-     * Si el tip con el mismo "id" ya está en la lista selectedTips, lo elimina (desmarca).
-     * Si el tip no está en la lista, lo agrega (marca).
-     */
-    setSelectedTips(xorBy(selectedTips, [tip], "id"));
   };
 
   //Función que se encarga de cancelar la eliminación múltiple y volver al estado por default
@@ -47,13 +42,15 @@ const Tips = () => {
 
   //Función para confirmar la eliminación de los tips que han sido seleccionados //TODO: TENEMOS QUE VER SI LOS TIPS QUE SE VAN A ELIMINAR SON MAYORES A CERO, Y ASI NO LLAMAR A LA API INUTILMENTE (SIZE O LENGTH)
   const confirmDeletion = () => {
-    console.log(
-      "Eliminando lo siguientes tips: " +
-        selectedTips.map((tip) => tip.title).join(", ") //Enseñamos los title de los tips que han sido eliminados separados mediante comas
-    );
-    //TODO: AQUI TENDREMOS QUE LLAMAR EN EL FUTURO AL ENDPOINT DE LA API QUE SE ENCARGA DE ELIMINAR LOS TIPS SELECCIONADOS
-    setSelectedTips([]); //Limpiamos los tips seleccionados
-    setIsSelectionMode(false);
+    if (selectedTips.length > 0) {
+      console.log(
+        "Eliminando lo siguientes tips: " +
+          selectedTips.map((tip) => tip.title).join(", ") //Enseñamos los title de los tips que han sido eliminados separados mediante comas
+      );
+      //TODO: AQUI TENDREMOS QUE LLAMAR EN EL FUTURO AL ENDPOINT DE LA API QUE SE ENCARGA DE ELIMINAR LOS TIPS SELECCIONADOS
+      setSelectedTips([]); //Limpiamos los tips seleccionados
+      setIsSelectionMode(false);
+    }
   };
 
   return (

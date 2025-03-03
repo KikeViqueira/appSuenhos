@@ -32,7 +32,7 @@ const Chat = () => {
   ]);*/
 
   //recuperamos las funcionalidades del hook de chat
-  const { messages, error, loading, postRequest } = useChat();
+  const { messages, postRequest } = useChat();
   //Input que guarda el mensaje que se quiere enviar
   const [newMessage, setNewMessage] = useState("");
   //Estado para saber si el modal en el que se eligen los chats está abierto o no

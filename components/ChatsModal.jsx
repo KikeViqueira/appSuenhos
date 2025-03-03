@@ -45,9 +45,8 @@ const ChatsModal = ({ isVisible, onClose }) => {
   };
 
   //Función que se encargará de poner el modo de múltiple selección activado para su uso
-  const handleDeletePress = (chat) => {
+  const handleDeletePress = () => {
     setIsSelectionMode(true);
-    setSelectedChats(xorBy(selectedChats, [chat], "id"));
   };
 
   //Función que se encarga de cancelar la eliminación múltiple y volver al estado por default
