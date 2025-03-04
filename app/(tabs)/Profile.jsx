@@ -1,18 +1,28 @@
 import { View, Text, Image, TouchableOpacity, Alert } from "react-native";
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Camera, Edit2, BookmarkCheck } from "lucide-react-native";
+import {
+  Camera,
+  Edit2,
+  BookmarkCheck,
+  HelpCircle,
+  LockKeyhole,
+} from "lucide-react-native";
 import placeholderImage from "../../assets/images/placeholder.png";
 import * as ImagePicker from "expo-image-picker";
 import PictureOptions from "../../components/PictureOptions";
 import { router } from "expo-router";
 import LogOutModal from "../../components/LogOutModal";
+import ChangePasswordModal from "../../components/ChangePasswordModal";
+import ChangeEmailModal from "../../components/ChangeEmailModal";
 
 const Profile = () => {
   //Hacemos states tanto para guardar la foto como para controlar que el modal de opciones de cámara este desplegado o no
   const [imagen, setImage] = useState(placeholderImage);
   const [showModal, setshowModal] = useState(false);
   const [showModalLogOut, setshowModalLogOut] = useState(false);
+  const [showModalChangePassword, setshowModalChangePassword] = useState(false);
+  const [showModalChangeEmail, setshowModalChangeEmail] = useState(false);
 
   //hacemos función de guardar foto que incluye las opciones de sacar foto o elegir una de la galería, en base al parámetro que reciba
   const uploadPicture = async ({ mode }) => {
@@ -136,9 +146,12 @@ const Profile = () => {
 
         {/* Personal Information */}
         <View className="bg-[#1e2a47] rounded-xl p-4">
-          <View className="flex-row justify-between items-center mb-4">
+          <View className="flex-row items-center justify-between mb-4">
             <Text className="text-white font-pmedium">Correo Electrónico</Text>
-            <TouchableOpacity>
+            <TouchableOpacity
+              //Cuando lo presionemos tenemos que poner visible el modal para cambiar el correo del user
+              onPress={() => setshowModalChangeEmail(true)}
+            >
               <Edit2 size={20} color="#6366FF" />
             </TouchableOpacity>
           </View>
@@ -147,15 +160,46 @@ const Profile = () => {
           </Text>
         </View>
 
-        <View className="bg-[#1e2a47] rounded-xl p-4">
-          <View className="flex-row justify-between items-center mb-4">
-            <Text className="text-white font-pmedium">Número de Teléfono</Text>
-            <TouchableOpacity>
-              <Edit2 size={20} color="#6366FF" />
-            </TouchableOpacity>
-          </View>
-          <Text className="text-white font-pregular">+34 123 456 789</Text>
+        {/* Change Email Modal */}
+        <ChangeEmailModal
+          visible={showModalChangeEmail}
+          setModalVisible={setshowModalChangeEmail}
+          //TODO: TENEMOS QUE LLAMAR A LA FUNCIÓN DE CAMBIAR ATRIBUTOS DEL USER PATCH QUE TENEMOS QUE METER EN EL USEAPI
+          //TODO: TENEMOS EN EL VALOR DEL CORREO ACTUAL DEL USER CUANDO ENTRAMOS EN LA PANTALLA DE PROFILE Y HACEMOS UN GET DE LA INFO DEL USER QUE ESTA AUTENTICADO
+          //currentEmail={}
+          //changeEmail={}
+          logOut={logOut}
+        />
+
+        <View className="bg-[#1e2a47] rounded-xl p-4 flex-col gap-4">
+          <Text className="text-white font-pmedium">Fecha de nacimiento</Text>
+          <Text className="text-white font-pregular">25 agosto 2002</Text>
         </View>
+
+        {/* Change Password Button */}
+        <TouchableOpacity
+          className="bg-[#1e2a47] p-4 rounded-xl items-start"
+          //Cuando pinchamos en el botón tenemos que enseñar el modal de cambiar la contraseña
+          onPress={() => setshowModalChangePassword(true)}
+        >
+          <View className="flex-row items-center gap-2">
+            <Text className="text-lg text-white font-psemibold">
+              Cambiar Contraseña
+            </Text>
+            <LockKeyhole color="white" />
+          </View>
+        </TouchableOpacity>
+
+        {/* Change Password Modal */}
+        <ChangePasswordModal
+          visible={showModalChangePassword}
+          setModalVisible={setshowModalChangePassword}
+          //TODO: TENEMOS QUE LLAMAR A LA FUNCIÓN DE CAMBIAR ATRIBUTOS DEL USER PATCH QUE TENEMOS QUE METER EN EL USEAPI, LO QUE NO SE ES COMO HACER LO DE LA CONTRASEÑA ACTUAL
+          //TODO: SI HACER UNA FUNCION EN LA API O TENER UN CONTEXT DE DONDE LA SAQUEMOS O EL KEYSTORAGE O ALGO ASI
+          //currentPassword={}
+          //changePassword={}
+          logOut={logOut}
+        />
 
         {/* favsTips Button */}
         <TouchableOpacity
@@ -163,7 +207,7 @@ const Profile = () => {
           //Cuando presionamos el botón tenemos que navegar a la pantalla de mis tips favoritos
           onPress={() => router.push("../FavTips")}
         >
-          <View className="flex-row gap-2 items-center">
+          <View className="flex-row items-center gap-2">
             <Text className="text-lg text-white font-psemibold">
               Mis Tips Favoritos
             </Text>
@@ -176,7 +220,10 @@ const Profile = () => {
           className="bg-[#1e2a47] p-4 rounded-xl items-start"
           //TODO: Tenemos que hacer una panatlla donde el user pueda recibir ayuda en caso de problemas
         >
-          <Text className="text-lg text-white font-psemibold">Ayuda</Text>
+          <View className="flex-row items-center gap-2">
+            <Text className="text-lg text-white font-psemibold">Ayuda</Text>
+            <HelpCircle color="white" />
+          </View>
         </TouchableOpacity>
 
         {/* Logout Button */}

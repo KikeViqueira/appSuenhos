@@ -28,9 +28,11 @@ const signIn = () => {
     //antes de realizar la comparación tenemos que hacer que lo que haya introducido el user en campo de email no sea sensible a mayúsculas o minúsculas
     form.email = form.email.toLowerCase();
 
+    router.push("../(Onboarding)/Onboarding");
+
     //llamamos al endpoint de nuestra api para hacer el login y en caso de que sea correcto obtener el token para autenticar al user en el resto de endpoints
     //Esperamos a una respuesta de la función LoginRequest ya que es una función asíncrona y asi no pasamos a la siguiente línea de código hasta que no se haya resuelto la promesa
-    await LoginRequest(form.email, form.password);
+    //await LoginRequest(form.email, form.password);
   };
 
   useEffect(() => {

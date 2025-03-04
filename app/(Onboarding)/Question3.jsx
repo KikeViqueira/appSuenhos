@@ -15,6 +15,20 @@ export default function Question3({
   nextQuestion,
   previousQuestion,
 }) {
+  //Definimos las fechas que se le van a pasar al DateTimePicker
+  const today = new Date();
+  //De esta manera solo podrá usar la app users que tengan entre 10 y 100 años
+  const minDate = new Date(
+    today.getFullYear() - 100,
+    today.getMonth(),
+    today.getDate()
+  );
+  const maxDate = new Date(
+    today.getFullYear() - 10,
+    today.getMonth(),
+    today.getDate()
+  );
+
   //Definimos el estado para guardar la fecha de nacimiento que ha seleccionado el usuario, cuando el DatePicker esta visble y cuando hay un error o no
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false); //Para saber cuando estamos en android y asi manejar su comportamiento.
@@ -55,6 +69,7 @@ export default function Question3({
 
     //El rango de edad tiene que ser un número entre 10 y 100 [Se han puesto estos valores por convención]
     //TODO: comprobacion para android desactivada temporalmente por faklta de retroceso en los años rápida
+    //TODO: YA NO NOS HACE FALLTA PORQUE HEMOS PUESTO UN RANGO DE FECHAS EN EL DATEPICKER, TENEN¡MOS QUE COMPROBAR QUE FUNCIONA EN ANDROID
     /*if (age >= 10 && age <= 100) {
       updateResponse("question3", age.toString());
       //Una vez guardamos la respuesta seleccionada, navegamos a la siguiente pregunta
@@ -81,7 +96,7 @@ export default function Question3({
   };
 
   return (
-    <SafeAreaView className="flex justify-center items-center w-full h-full bg-primary">
+    <SafeAreaView className="flex items-center justify-center w-full h-full bg-primary">
       <View
         className="flex flex-col w-[90%] justify-center items-center gap-8"
         style={{
@@ -116,6 +131,9 @@ export default function Question3({
             textColor={Platform.OS === "ios" ? "white" : undefined}
             accentColor="#6366ff" // Android specific color accent
             onChange={handleDateChange}
+            //Indicamos la fecha mínima y máxima que se puede seleccionar
+            minimumDate={minDate}
+            maximumDate={maxDate}
           />
         )}
 
