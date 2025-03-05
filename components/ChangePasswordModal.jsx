@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import React, { useState } from "react";
 import { X } from "lucide-react-native";
+import PasswordInputModal from "./PasswordInputModal";
 
 const ChangePasswordModal = ({
   visible, //Variable que viene del perfil para saber cuando el modal se tiene que ver o no
@@ -75,29 +76,22 @@ const ChangePasswordModal = ({
 
           {/*Tenemos que meter todos los campos del modal en el que se puedan escribir dentro de un KeyboardAvoidingView */}
           <KeyboardAvoidingView className="flex-col gap-4">
-            <TextInput
-              placeholder="Contraseña Antigua"
-              placeholderTextColor="#A0AEC0"
-              secureTextEntry
+            <PasswordInputModal
               value={oldPassword}
               onChangeText={setOldPassword}
-              className="bg-[#1e2a47] border border-gray-500 rounded-xl p-2 text-white"
+              placeholder="Contraseña Antigua"
             />
-            <TextInput
-              placeholder="Nueva Contraseña"
-              placeholderTextColor="#A0AEC0"
-              secureTextEntry
+
+            <PasswordInputModal
               value={newPassword}
               onChangeText={setNewPassword}
-              className="bg-[#1e2a47] border border-gray-500 rounded-xl p-2 text-white"
+              placeholder="Nueva Contraseña"
             />
-            <TextInput
-              placeholder="Confirmar Nueva Contraseña"
-              placeholderTextColor="#A0AEC0"
-              secureTextEntry
+
+            <PasswordInputModal
               value={confirmPassword}
               onChangeText={setConfirmPassword}
-              className="bg-[#1e2a47] border border-gray-500 rounded-xl p-2 text-white"
+              placeholder="Confirmar Nueva Contraseña"
             />
           </KeyboardAvoidingView>
 

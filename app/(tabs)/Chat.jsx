@@ -66,11 +66,21 @@ const Chat = () => {
   const renderMessage = ({ item }) => {
     //hacemos variable para saber si el sender es el usuario o no
     const isUser = item.sender === "user";
+
+    /*
+     * Definimos el padding para el caso en el que la IA está escribiendo el mensaje de respuesta al user:
+     * En caso de que así sea lo que tenemos que hacer es eliminarlo para que la caja que contiene el mensaje no sea muy grande
+     * Cuando el mensaje es en si la respuesta de manera completa ponemos el mismo estilo que los mensajes del user
+     */
+    const paddingClass =
+      item.sender === "AI" && item.text === "..." ? "p-0" : "p-3";
+
     return (
       <View className={`mb-4 ${isUser ? "items-end" : "items-start"} w-full`}>
         <View
           //Dependiendo de si el mensaje es del usuario o no le damos un estilo diferente
-          className={`p-3 rounded-2xl max-w-[80%] ${
+          //Usamos la clase de padding personalizada para que dependiendo del contexto se aplique uno o el otro
+          className={`${paddingClass} rounded-2xl max-w-[80%] ${
             isUser ? "bg-[#6366ff]" : "bg-[#323d4f]"
           }`}
         >
