@@ -1,9 +1,22 @@
 import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
 import React, { useState, useEffect, useCallback } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Icon from "react-native-vector-icons/FontAwesome";
+import {
+  Bed,
+  Boxes,
+  Apple,
+  Activity,
+  Wind,
+  RefreshCcw,
+  Moon,
+  Sun,
+} from "lucide-react-native";
 import FirstLineChart from "../../components/FirstLineChart";
 import WakeUpForm from "../../components/WakeUpForm";
+import SleepNutritionChart from "../../components/SleepNutritionChart";
+import SleepPieChart from "../../components/SleepPieChart";
+import HRVBarChart from "../../components/HRVBarChart";
+import BreathingBarChart from "../../components/BreathingBarChart ";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 
@@ -193,8 +206,8 @@ const Estadisticas = () => {
           que servirá para registrar las horas de sueño del usuario y abrir el modal de preguntas nada más despertarse en relación a su calidad de sueño */}
         <View className="flex w-[95%] gap-6 px-4 py-5 rounded-lg bg-[#1e2a47]">
           {/* Título de la sección */}
-          <View className="flex flex-row gap-4 justify-start">
-            <Icon name="bed" size={24} color="white" />
+          <View className="flex flex-row justify-start gap-4">
+            <Bed size={24} color="white" />
             <Text
               className="text-center font-bold color-[#6366ff]"
               style={{ fontSize: 24 }}
@@ -211,11 +224,13 @@ const Estadisticas = () => {
                 isSleeping ? "bg-[#ff4757]" : "bg-[#323d4f]"
               } rounded-xl w-auto`}
             >
-              <Icon
-                name={isSleeping ? "refresh" : "moon-o"}
-                size={20}
-                color="#fff"
-              />
+              {/*Dependiendo de si el user está durmiendo o no ponemos un icono u otro */}
+              {isSleeping ? (
+                <RefreshCcw size={20} color="#fff" />
+              ) : (
+                <Moon size={20} color="#fff" />
+              )}
+
               <Text className="text-base font-medium text-center color-white">
                 {isSleeping ? "Reiniciar registro" : "Me voy a dormir"}
               </Text>
@@ -224,7 +239,7 @@ const Estadisticas = () => {
               onPress={toggleModal}
               className="flex flex-row items-center justify-start px-3 py-3 gap-4 bg-[#323d4f] rounded-xl w-auto"
             >
-              <Icon name="sun-o" size={20} color="#fff" />
+              <Sun size={20} color="#fff" />
               <Text className="text-base text-center color-white">
                 Me acabo de despertar
               </Text>
@@ -240,8 +255,8 @@ const Estadisticas = () => {
         />
 
         <View className="flex justify-center w-[95%] gap-6 px-4 py-5 rounded-lg bg-[#1e2a47]">
-          <View className="flex flex-row gap-4 justify-start">
-            <Icon name="calendar" size={24} color="#fff" />
+          <View className="flex flex-row justify-start gap-4">
+            <Bed size={24} color="#fff" />
             <Text
               className="text-center font-bold color-[#6366ff]"
               style={{ fontSize: 24 }}
@@ -252,6 +267,63 @@ const Estadisticas = () => {
           <View className="flex items-center">
             {/* Segunda sección de la pestaña de estadísticas, que hace referencia a la gráfica que recoge las horas que el usario a dormido a lo largo de los días de la semana*/}
             <FirstLineChart />
+          </View>
+
+          {/*SEGUNDA GRÁFICA QUE MUESTRA EL PORCENTAJE EN LAS QUE HA ESTADO EL USER EN CADA UNA DE LAS POSIBLES FASES DEL SUEÑO */}
+          <View className="flex flex-row justify-start gap-4">
+            <Boxes size={24} color="#fff" />
+            <Text
+              className="text-center font-bold color-[#6366ff]"
+              style={{ fontSize: 24 }}
+            >
+              Fases del Sueño
+            </Text>
+          </View>
+          <View className="flex items-center">
+            <SleepPieChart />
+          </View>
+
+          {/*TERCERA GRÁFICA QUE MUESTRA LA CORRELACIÓN DE COMO INFLUYEN LAS CALORIAS CONSUMIDAS EN LAS HORAS QUE DUERME EL USER*/}
+          <View className="flex flex-row justify-start gap-4">
+            <Apple size={24} color="#fff" />
+            <Text
+              className="text-center font-bold color-[#6366ff]"
+              style={{ fontSize: 24 }}
+            >
+              Calorías vs Horas de Sueño
+            </Text>
+          </View>
+          <View className="flex items-center">
+            <SleepNutritionChart />
+          </View>
+
+          {/*CUARTA GRÁFICA QUE MUESTRA COMO HA VARIADO EL HRV A LO LARGO DE LA SEMANA*/}
+          <View className="flex flex-row justify-start gap-4">
+            <Activity size={24} color="#fff" />
+            <Text
+              className="text-center font-bold color-[#6366ff]"
+              style={{ fontSize: 24 }}
+            >
+              Variación del Ritmo Cardíaco
+            </Text>
+          </View>
+          <View className="flex items-center">
+            <HRVBarChart />
+          </View>
+
+          {/*QUINTA GRÁFICA QUE MUESTRA COMO HA VARIADO EL BREATHING RATE A LO LARGO DE LA SEMANA*/}
+
+          <View className="flex flex-row justify-start gap-4">
+            <Wind size={24} color="#fff" />
+            <Text
+              className="text-center font-bold color-[#6366ff]"
+              style={{ fontSize: 24 }}
+            >
+              Respiraciones por Minuto
+            </Text>
+          </View>
+          <View className="flex items-center">
+            <BreathingBarChart />
           </View>
         </View>
       </ScrollView>

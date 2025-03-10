@@ -10,13 +10,13 @@ const FirstLineChart = () => {
 
   // Datos de ejemplo con horas y minutos
   const sleepData = [
-    { day: "L", hours: 6, minutes: 30, entireDay: "Lunes" },
-    { day: "M", hours: 7, minutes: 15, entireDay: "Martes" },
-    { day: "M", hours: 6, minutes: 45, entireDay: "Miercoles" },
-    { day: "J", hours: 8, minutes: 0, entireDay: "Jueves" },
-    { day: "V", hours: 7, minutes: 30, entireDay: "Viernes" },
-    { day: "S", hours: 9, minutes: 0, entireDay: "Sabado" },
-    { day: "D", hours: 8, minutes: 30, entireDay: "Domingo" },
+    { day: "Lun", hours: 6, minutes: 30, entireDay: "Lunes" },
+    { day: "Mar", hours: 7, minutes: 15, entireDay: "Martes" },
+    { day: "Mié", hours: 6, minutes: 45, entireDay: "Miercoles" },
+    { day: "Jue", hours: 8, minutes: 0, entireDay: "Jueves" },
+    { day: "Vie", hours: 7, minutes: 30, entireDay: "Viernes" },
+    { day: "Sáb", hours: 9, minutes: 0, entireDay: "Sabado" },
+    { day: "Dom", hours: 8, minutes: 30, entireDay: "Domingo" },
   ];
 
   const handleDataPointClick = ({ index }) => {
@@ -72,14 +72,14 @@ const FirstLineChart = () => {
         onRequestClose={() => setModalVisible(false)}
       >
         <TouchableOpacity
-          className="flex-1 justify-center items-center bg-black/50"
+          className="items-center justify-center flex-1 bg-black/50"
           activeOpacity={1}
           onPress={() => setModalVisible(false)}
         >
           <View className="bg-[#1e2a47] p-6 rounded-xl w-[80%] max-w-[300px]">
             {selectedPoint && (
               <>
-                <View className="flex-row justify-between items-center mb-4">
+                <View className="flex-row items-center justify-between mb-4">
                   <Text className="text-lg font-bold color-[#6366ff]">
                     Detalles del sueño
                   </Text>
