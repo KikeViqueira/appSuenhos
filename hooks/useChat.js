@@ -1,5 +1,6 @@
 import { useEffect, useState, Alert } from "react";
 import axios from "axios";
+import * as SecureStore from "expo-secure-store";
 
 const useChat = () => {
   const [messages, setMessages] = useState([]); // Estado que guarda todos los mensajes
@@ -12,7 +13,7 @@ const useChat = () => {
   *La función recibe dos parámetros, la url del endpoint al que se va a hacer la petición 
   *y el mensaje que se quiere enviar que tiene que ser coherente con el modelo de datos que espera la API de Message
   */
-  const postRequest = async (url, message) => {
+  const postRequest = async (message) => {
     //Creamos una instancia de AbortController para poder cancelar la petición en caso de que sea necesario
     const controller = new AbortController();
     //Activamos el estado de que la petición está cargando
@@ -36,9 +37,12 @@ const useChat = () => {
       // Actualizamos el estado agregando ambos mensajes a la vez
       setMessages((prev) => [...prev, userMessage, tempAIMessage]);
 
+      //recuperamos el token del almacenamiento seguro del movil
+      const token = await SecureStore.getItemAsync("userToken");
+
       //Hacemos la petición POST al endpoint
       const response = await axios.post(
-        url,
+        `${API_BASE_URL}/chats/1/null/messages`,
         {
           /*
            *El payload se tiene que corresponder con lo que tenemos en el modelo de datos de Message, en este caso el atributo se llama "content"
@@ -47,9 +51,8 @@ const useChat = () => {
         },
         {
           signal: controller.signal,
-          auth: {
-            username: "admin",
-            password: "admin123",
+          headers: {
+            Authorization: `Bearer ${token}`,
           },
         }
       );

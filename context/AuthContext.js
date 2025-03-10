@@ -82,7 +82,7 @@ export const AuthProvider = ({ children }) => {
      *  que representa todo lo que se encuentre dentro del Provider.
      */
     <AuthContext.Provider
-      value={{ token, loading, error, LoginRequest, logout }}
+      value={{ token, loading, error, LoginRequest, logout, setError }}
     >
       {children}
     </AuthContext.Provider>

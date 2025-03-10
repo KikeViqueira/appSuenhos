@@ -10,6 +10,7 @@ import {
   RefreshCcw,
   Moon,
   Sun,
+  BadgeCheck,
 } from "lucide-react-native";
 import FirstLineChart from "../../components/FirstLineChart";
 import WakeUpForm from "../../components/WakeUpForm";
@@ -17,6 +18,7 @@ import SleepNutritionChart from "../../components/SleepNutritionChart";
 import SleepPieChart from "../../components/SleepPieChart";
 import HRVBarChart from "../../components/HRVBarChart";
 import BreathingBarChart from "../../components/BreathingBarChart ";
+import ChatContributionGraph from "../../components/ChatContributionGraph";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 
@@ -201,6 +203,8 @@ const Estadisticas = () => {
           gap: 2,
           width: "100%",
         }}
+        showsVerticalScrollIndicator={true}
+        indicatorStyle="white"
       >
         {/* Primera sección de la pestaña de estadísticas
           que servirá para registrar las horas de sueño del usuario y abrir el modal de preguntas nada más despertarse en relación a su calidad de sueño */}
@@ -324,6 +328,21 @@ const Estadisticas = () => {
           </View>
           <View className="flex items-center">
             <BreathingBarChart />
+          </View>
+
+          {/*SEXTA GRÁFICA QUE MUESTRA CUANTOS DÍAS DEL MES EL USER AHA INTERACCIONADO CON EL CHAT Y HA HABLADO SOBRE SUS SUEÑOS*/}
+
+          <View className="flex flex-row justify-start gap-4">
+            <BadgeCheck size={24} color="#fff" />
+            <Text
+              className="text-center font-bold color-[#6366ff]"
+              style={{ fontSize: 24 }}
+            >
+              Mapa de Contribución de Chats Diarios
+            </Text>
+          </View>
+          <View className="flex items-center">
+            <ChatContributionGraph />
           </View>
         </View>
       </ScrollView>

@@ -16,28 +16,12 @@ import useChat from "../../hooks/useChat";
 import TypingIndicator from "../../components/TypingIndicator";
 
 const Chat = () => {
-  //Creamos los mensajes de modo estático para la simulación de un chat y ver como queda visualmente
-  /*const [messages, setMessages] = useState([
-    { id: 1, text: "Hola como estas?", sender: "user" },
-    {
-      id: 2,
-      text: "Hola de nuevo user, me encuentro genial. Tu como estas? Cuéntame tu sueño de hoy",
-      sender: "AI",
-    },
-    {
-      id: 3,
-      text: "Soñé que podía volar pero después me caía de repente",
-      sender: "user",
-    },
-  ]);*/
-
   //recuperamos las funcionalidades del hook de chat
   const { messages, postRequest } = useChat();
   //Input que guarda el mensaje que se quiere enviar
   const [newMessage, setNewMessage] = useState("");
   //Estado para saber si el modal en el que se eligen los chats está abierto o no
   const [showModal, setShowModal] = useState(false);
-  const endpoint = "http://172.20.10.2:8080/api/chats/1/null/messages"; //TODO: AL EJECUTAR DESDE EL MOVIL TENEMOS QUE PONER LA IP DEL DISPOSITIVO EN EL QUE SE ALOJA LA API
 
   const toggleModal = () => {
     setShowModal(!showModal);
@@ -55,7 +39,7 @@ const Chat = () => {
         },
       ]);*/
       //TODO: UNA VEZ LE DAMOS A MANDAR EL MENSAJE, LLAMAMAOS A LA FUNCIÓN DE USECHAT QUE LLAMA AL ENDPOINT NECESARIO DE LA API
-      postRequest(endpoint, newMessage);
+      postRequest(newMessage);
       //Reinicializamos el estado del mensaje y cerramos el teclado
       setNewMessage("");
       Keyboard.dismiss();
