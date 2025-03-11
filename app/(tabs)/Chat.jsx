@@ -72,7 +72,10 @@ const Chat = () => {
           {item.sender === "AI" && item.text === "..." ? (
             <TypingIndicator />
           ) : (
-            <Text className="text-base text-white">{item.text}</Text>
+            //Con selectable true hacemos que el texto sea seleccionable y se pueda copiar por parte del user
+            <Text selectable={true} className="text-base text-white">
+              {item.text}
+            </Text>
           )}
         </View>
       </View>
