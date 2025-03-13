@@ -210,7 +210,7 @@ const Profile = () => {
               <BellRing color="white" />
             </View>
             <Switch
-              trackColor={{ false: "#82a71c", true: "#6366FF" }}
+              trackColor={{ false: "#FFFFFF", true: "#6366FF" }}
               thumbColor="#FFFFFF"
               ios_backgroundColor="#FFFFFF"
               //TODO: TENEMOS QUE IMPLEMENTAR LA LOGICA PARA DESACTIVAR O ACTIVAR LAS NOTIFICACIONES DEPENDIENDO DEL ESTADO DEL SWITCH

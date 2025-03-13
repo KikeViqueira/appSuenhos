@@ -6,24 +6,20 @@ import {
   View,
 } from "react-native";
 import React, { useState } from "react";
-import Icon from "react-native-vector-icons/FontAwesome";
 
-//Recibimos la función para modificar el objeto de respuestas
-export default function Question2({
+import { CircleArrowLeft, CircleArrowRight } from "lucide-react-native";
+
+const MultipleOptionOnboarding = ({
+  questionText,
+  options,
+  questionKey,
   updateResponse,
   nextQuestion,
   previousQuestion,
-}) {
-  //Definimos ahora las distintas respuestas a esta pregunta
-  const options = [
-    //Cada respuesta esta definida por un id y un texto
-    { id: 1, option: "Ninguno" },
-    { id: 2, option: "Entre 1 y 2 días" },
-    { id: 3, option: "Entre 3 y 4 días" },
-    { id: 4, option: "Entre 5 y 6 días" },
-    { id: 5, option: "Todos los días" },
-  ];
-
+  onFinish,
+  first = false,
+  final = false,
+}) => {
   //Definimos ahora el estado para saber si se ha seleccionado una respuesta
   const [selected, setSelected] = useState(null);
 
@@ -31,13 +27,13 @@ export default function Question2({
   const handleSelection = () => {
     if (selected) {
       /*Si hay una respuesta seleccionada la guardamos en el objeto respuestas que recibimos del componente padre,
-             para eso primmero tenemos que sacar la option en base al id que hay guardado en selected*/
+                 para eso primmero tenemos que sacar la option en base al id que hay guardado en selected*/
       const selectedOption = options.find(
         (option) => option.id === selected
       ).option;
-      updateResponse("question2", selectedOption);
-      //Una vez guardamos la respuesta seleccionada, navegamos a la siguiente pregunta
-      nextQuestion();
+      updateResponse(questionKey, selectedOption);
+      //Dependiendo de si es la última pregunta o no, finalizamos el cuestionario o pasamos a la siguiente pregunta
+      final ? onFinish() : nextQuestion();
     }
   };
 
@@ -53,7 +49,7 @@ export default function Question2({
           className="text-center font-bold color-[#6366ff]"
           style={{ fontSize: 24 }}
         >
-          ¿Cuántos días haces actividad física a la semana?
+          {questionText}
         </Text>
         <FlatList
           contentContainerStyle={{
@@ -68,7 +64,7 @@ export default function Question2({
           renderItem={({ item }) => (
             <TouchableOpacity
               /*Al presionar un botón se selecciona la respuesta y se guarda en el estado el id de ella.
-                Tenemos que llamar así a la función para que se ejecute al presionar el botón y no al renderizar el componente*/
+                      Tenemos que llamar así a la función para que se ejecute al presionar el botón y no al renderizar el componente*/
               onPress={() => setSelected(item.id)}
               className="flex flex-row items-center w-full gap-4 px-8 py-4 rounded-2xl"
               style={{
@@ -91,17 +87,10 @@ export default function Question2({
           )}
         />
 
-        <View className="flex flex-row justify-between w-full">
-          {/* Botón de Volver */}
-          <TouchableOpacity
-            //Cuando se presiona el botón tenemos que volver a la pregunta anterior, indicandole al componente padre puede volver a la pregunta anterior
-            onPress={previousQuestion}
-            className="flex flex-row items-center gap-4 px-8 py-4 bg-[#323d4f] rounded-3xl"
-          >
-            <Icon name="arrow-left" size={24} color="white" />
-            <Text className="text-lg text-center color-white">Volver</Text>
-          </TouchableOpacity>
-          {/* Botón de Continuar */}
+        {/* Dependiendo de si la pregunta es la primera o no tendremos que reenderizar un botón de solo continuar, o dos 
+        (uno para continuar y otro para retroceder) respectivamente */}
+        {first ? (
+          //Boton de Continuar unicamente
           <TouchableOpacity
             onPress={handleSelection}
             //Si no hay una opción seleccionada el botón se muestra deshabilitado
@@ -112,10 +101,46 @@ export default function Question2({
             }}
           >
             <Text className="text-lg text-center color-white">Continuar</Text>
-            <Icon name="arrow-right" size={24} color="white" />
+            <CircleArrowRight size={24} color="white" />
           </TouchableOpacity>
-        </View>
+        ) : (
+          <View className="flex flex-row justify-between w-full">
+            {/* Botón de Volver */}
+            <TouchableOpacity
+              //Cuando se presiona el botón tenemos que volver a la pregunta anterior, indicandole al componente padre puede volver a la pregunta anterior
+              onPress={previousQuestion}
+              className="flex flex-row items-center gap-4 px-8 py-4 bg-[#323d4f] rounded-3xl"
+            >
+              <CircleArrowLeft size={24} color="white" />
+              <Text className="text-lg text-center color-white">Volver</Text>
+            </TouchableOpacity>
+            {/* Botón de Continuar */}
+            <TouchableOpacity
+              onPress={handleSelection}
+              //Si no hay una opción seleccionada el botón se muestra deshabilitado
+              disabled={!selected}
+              className="flex flex-row items-center gap-4 px-8 py-4 bg-[#323d4f] rounded-3xl"
+              style={{
+                opacity: selected ? 1 : 0.3,
+              }}
+            >
+              {/*Dependiendo de si la pregunta es la de mitad de las que preguntamos o es la última, ponemos un texto u otro */}
+              {final ? (
+                <Text className="text-lg text-center color-white">
+                  Finalizar
+                </Text>
+              ) : (
+                <Text className="text-lg text-center color-white">
+                  Continuar
+                </Text>
+              )}
+              <CircleArrowRight size={24} color="white" />
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );
-}
+};
+
+export default MultipleOptionOnboarding;

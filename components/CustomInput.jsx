@@ -8,7 +8,7 @@ const CustomInput = ({ name, inputType, handleChangeText, placeholder }) => {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <View className="flex flex-col gap-2 items-start mb-4 w-full">
+    <View className="flex flex-col items-start w-full gap-2 mb-4">
       <Text className="text-lg text-center color-white">{name}</Text>
       <View className="w-full flex-row items-center bg-[#f5f5f5] rounded-xl px-4 py-3">
         <TextInput
@@ -18,11 +18,13 @@ const CustomInput = ({ name, inputType, handleChangeText, placeholder }) => {
           //Si el input es un password y el estado de enseñar la contraseña está en false, ocultamos el texto
           secureTextEntry={name === "Contraseña" && !showPassword}
           //Estilo del input dependiendo del tipo que sea
-          className={`flex-1 text-base color-[#323d4f] ${
-            name === "PasswoContraseñard" ? "pr-10" : ""
+          className={`flex-1 text-base text-[#323d4f] ${
+            name === "Contraseña" || name === "Confirmar Contraseña"
+              ? "pr-10"
+              : ""
           }`}
           placeholderTextColor="#9ca3af"
-          style={{ height: 24 }}
+          style={{ minHeight: 24 }} // Se recomienda usar minHeight en lugar de height fija
         />
 
         {/*Si estamos en el input del form que es una contraseña ponemos un botón que simula un ojo para ver la contraseña o taparla*/}

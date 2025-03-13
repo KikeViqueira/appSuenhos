@@ -29,8 +29,13 @@ export default function Question3({
     today.getDate()
   );
 
-  //Definimos el estado para guardar la fecha de nacimiento que ha seleccionado el usuario, cuando el DatePicker esta visble y cuando hay un error o no
-  const [date, setDate] = useState(new Date());
+  /*
+   * Definimos el estado para guardar la fecha de nacimiento que ha seleccionado el usuario, cuando el DatePicker esta visble y cuando hay un error o no
+   * 
+   * Ponemos como fecha inicial la máxima posible que el user puede seleccionar
+  
+  */
+  const [date, setDate] = useState(maxDate);
   const [showDatePicker, setShowDatePicker] = useState(false); //Para saber cuando estamos en android y asi manejar su comportamiento.
   const [error, setError] = useState(null);
 

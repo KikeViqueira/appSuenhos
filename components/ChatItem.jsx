@@ -1,6 +1,6 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text } from "react-native";
 import React from "react";
-import { X, Trash2, Square, SquareCheckBig } from "lucide-react-native";
+import { Square, SquareCheckBig } from "lucide-react-native";
 /*
  * Recibimos si el chat está seleccionado o no en el modo de selección múltiple y si este último está ativado o no
  */

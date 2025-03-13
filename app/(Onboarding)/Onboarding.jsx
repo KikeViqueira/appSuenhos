@@ -1,13 +1,12 @@
-import { View, Text } from "react-native";
+import { View } from "react-native";
 import React, { useEffect, useState } from "react";
-import Question1 from "./Question1";
-import Question2 from "./Question2";
-import Question3 from "./Question3";
-import Question4 from "./Question4";
-import Question5 from "./Question5";
+import MultipleOptionOnboarding from "../../components/MultipleOptionOnboarding";
+import AgeQuestion from "./AgeQuestion";
 //Importamos el almacenamiento asincrono de la aplicación donde siempre debemos guardar las cosas antes que en el almacenamiento local
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
+import OnboardingMultipleOptionsQuestions from "../../assets/OnboardingMultipleOptionsQuestions.json";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Onboarding() {
   //Función que se ejecuta al finalizar el cuestionario
@@ -57,45 +56,72 @@ export default function Onboarding() {
     console.log("Valor del objeto respuesta del usuario: ", responses);
   }, [responses]);
 
-  //IMPORTANTE: Aqui tenemos que definir la función que manda este objeto de respuestas al backend para que se almacene en la base de datos
+  //Definimoslas preguntas en variables extrayendolas del archivo JSON
+  const question1 = OnboardingMultipleOptionsQuestions.questions[0];
+  const question2 = OnboardingMultipleOptionsQuestions.questions[1];
+  const question4 = OnboardingMultipleOptionsQuestions.questions[2];
+  const question5 = OnboardingMultipleOptionsQuestions.questions[3];
 
   return (
-    //llamamos solo a la primera pregunta, ya que después cada una se encargará de llamar a la siguiente
-    <View>
+    /*
+     * llamamos solo a la primera pregunta, ya que después cada una se encargará de llamar a la siguiente
+     *
+     * Tenemos que hacer reenderizado condicional dependiendo de la pregunta en la que estemos
+     * */
+
+    <SafeAreaView className="w-full h-full bg-primary">
       {question === 1 && (
-        <Question1
+        <MultipleOptionOnboarding
+          questionText={question1.title}
+          options={question1.options}
+          questionKey={question1.id}
           updateResponse={updateResponse}
           nextQuestion={goToNextQuestion}
+          first={true}
         />
       )}
+
       {question === 2 && (
-        <Question2
+        <MultipleOptionOnboarding
+          questionText={question2.title}
+          options={question2.options}
+          questionKey={question2.id}
           updateResponse={updateResponse}
           nextQuestion={goToNextQuestion}
           previousQuestion={goToPreviousQuestion}
         />
       )}
+
       {question === 3 && (
-        <Question3
+        <AgeQuestion
           updateResponse={updateResponse}
           nextQuestion={goToNextQuestion}
           previousQuestion={goToPreviousQuestion}
         />
       )}
+
       {question === 4 && (
-        <Question4
+        <MultipleOptionOnboarding
+          questionText={question4.title}
+          options={question4.options}
+          questionKey={question4.id}
           updateResponse={updateResponse}
           nextQuestion={goToNextQuestion}
           previousQuestion={goToPreviousQuestion}
         />
       )}
+
       {question === 5 && (
-        <Question5
+        <MultipleOptionOnboarding
+          questionText={question5.title}
+          options={question5.options}
+          questionKey={question5.id}
           updateResponse={updateResponse}
-          previousQuestion={goToPreviousQuestion}
           onFinish={onFinish}
+          previousQuestion={goToPreviousQuestion}
+          final={true}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 }

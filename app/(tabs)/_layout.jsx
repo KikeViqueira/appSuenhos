@@ -1,19 +1,28 @@
 import { View, Text, Image } from "react-native";
 import { Tabs, Redirect } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-
+import {
+  ChartColumn,
+  CirclePlay,
+  MessageCircleMore,
+  Lightbulb,
+  ClipboardList,
+  UserRound,
+} from "lucide-react-native";
 import icons from "../../constants/icons";
 
-const TabIcon = ({ icon, color, name, focused }) => {
+import { ShieldQuestion } from "lucide-react-native";
+
+const TabIcon = ({
+  icon: IconParameter = ShieldQuestion,
+  color,
+  name,
+  focused,
+}) => {
   return (
     //Damos estilo a nuestros iconos del tab junto a sus correspondientes nombres
-    <View className="flex gap-1 justify-center items-center mt-6">
-      <Image
-        source={icon}
-        resizeMode="contain"
-        tintColor={color}
-        className="w-6 h-6"
-      />
+    <View className="flex items-center justify-center gap-1 mt-6">
+      <IconParameter color={color} size={24} />
       <Text
         className={`${focused ? "font-psemibold" : "font-pregular"} text-xs`}
         style={{ color: color }}
@@ -55,7 +64,7 @@ const Tabslayout = () => {
             title: "Estadísticas de Sueño",
             tabBarIcon: ({ color, focused }) => (
               <TabIcon
-                icon={icons.barChart}
+                icon={ChartColumn}
                 color={color}
                 name="Stats"
                 focused={focused}
@@ -71,7 +80,7 @@ const Tabslayout = () => {
             headerShown: false,
             tabBarIcon: ({ color, focused }) => (
               <TabIcon
-                icon={icons.play}
+                icon={CirclePlay}
                 color={color}
                 name="Music"
                 focused={focused}
@@ -87,7 +96,7 @@ const Tabslayout = () => {
             headerShown: false,
             tabBarIcon: ({ color, focused }) => (
               <TabIcon
-                icon={icons.chat}
+                icon={MessageCircleMore}
                 color={color}
                 name="Chat"
                 focused={focused}
@@ -103,7 +112,7 @@ const Tabslayout = () => {
             headerShown: false,
             tabBarIcon: ({ color, focused }) => (
               <TabIcon
-                icon={icons.tips}
+                icon={Lightbulb}
                 color={color}
                 name="Tips"
                 focused={focused}
@@ -119,7 +128,7 @@ const Tabslayout = () => {
             headerShown: false,
             tabBarIcon: ({ color, focused }) => (
               <TabIcon
-                icon={icons.profile}
+                icon={UserRound}
                 color={color}
                 name="Profile"
                 focused={focused}

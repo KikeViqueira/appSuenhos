@@ -1,0 +1,48 @@
+{
+  "questions": [
+    {
+      "id": "question1",
+      "title": "¿Cuántas horas sueles dormir?",
+      "options": [
+        { "id": 1, "option": "Menos de 5 horas" },
+        { "id": 2, "option": "Entre 5 y 6 horas" },
+        { "id": 3, "option": "Entre 6 y 7 horas" },
+        { "id": 4, "option": "Entre 7 y 8 horas" },
+        { "id": 5, "option": "Más de 8 horas" }
+      ]
+    },
+    {
+      "id": "question2",
+      "title": "¿Cuántos días haces actividad física a la semana?",
+      "options": [
+        { "id": 1, "option": "Ninguno" },
+        { "id": 2, "option": "Entre 1 y 2 días" },
+        { "id": 3, "option": "Entre 3 y 4 días" },
+        { "id": 4, "option": "Entre 5 y 6 días" },
+        { "id": 5, "option": "Todos los días" }
+      ]
+    },
+    {
+      "id": "question4",
+      "title": "¿Qué tipo de alimentación llevas?",
+      "options": [
+        { "id": 1, "option": "Omnívora" },
+        { "id": 2, "option": "Vegetariana" },
+        { "id": 3, "option": "Vegana" },
+        { "id": 4, "option": "Flexitariana" },
+        { "id": 5, "option": "Otro" }
+      ]
+    },
+    {
+      "id": "question5",
+      "title": "¿Cuál es tu nivel de estrés diario?",
+      "options": [
+        { "id": 1, "option": "Muy bajo" },
+        { "id": 2, "option": "Bajo" },
+        { "id": 3, "option": "Moderado" },
+        { "id": 4, "option": "Alto" },
+        { "id": 5, "option": "Muy alto" }
+      ]
+    }
+  ]
+}
