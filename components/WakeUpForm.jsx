@@ -9,7 +9,7 @@ import {
   Platform,
   TouchableOpacity,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import WakeUpQuestion1 from "./WakeUpQuestion1";
 import WakeUpQuestion2 from "./WakeUpQuestion2";
@@ -21,6 +21,12 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
   const [question2, setQuestion2] = useState(null);
   //Estado para comprobar si la hora que se ha seleccionado es válida o no debido a que date no se puede poner a null
   const [isValidTime, setIsValidTime] = useState(true);
+
+  //actualizamos la hora actual cada vez que abrimos el modal teniendo como referencia la bandera que nos indica si esta abierto o no
+  useEffect(() => {
+    if (isVisible) setTime(new Date());
+    console.log("hora actual al reenderizar el componente: ", time);
+  }, [isVisible]);
 
   //Función que se encarga de validar si se han respondido todas las preguntas
   const hasQuestionsAnswered = () => {
@@ -69,7 +75,6 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
   //Función para guardar el valor que se ha seleccionado en el timePicker y poner la bandera a false para evitar su continua abertura en pantalla
   const handleTimeChange = (event, selectedTime) => {
     if (Platform.OS === "android") setShowTimePicker(false);
-
     //tenemos que comprobar que la hora que ponga el user que se ha levantado sea menor o igual a la hora actual, si no podrían exister medidas érroneas
     if (selectedTime && selectedTime <= new Date()) {
       setTime(selectedTime);

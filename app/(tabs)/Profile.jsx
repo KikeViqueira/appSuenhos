@@ -16,6 +16,7 @@ import {
   HelpCircle,
   LockKeyhole,
   BellRing,
+  BadgeCheck,
 } from "lucide-react-native";
 import placeholderImage from "../../assets/images/placeholder.png";
 import * as ImagePicker from "expo-image-picker";
@@ -24,6 +25,7 @@ import { router } from "expo-router";
 import LogOutModal from "../../components/LogOutModal";
 import ChangePasswordModal from "../../components/ChangePasswordModal";
 import ChangeEmailModal from "../../components/ChangeEmailModal";
+import ChatContributionGraph from "../../components/ChatContributionGraph";
 
 const Profile = () => {
   //Hacemos states tanto para guardar la foto como para controlar que el modal de opciones de cámara este desplegado o no
@@ -167,9 +169,29 @@ const Profile = () => {
           }}
           showsVerticalScrollIndicator={false}
         >
+          {/*GRÁFICA QUE MUESTRA CUANTOS DÍAS DEL MES EL USER AHA INTERACCIONADO CON EL CHAT Y HA HABLADO SOBRE SUS SUEÑOS*/}
+          <View className="flex flex-col items-center bg-[#1e2a47] rounded-xl p-4 mb-4">
+            <View className="flex flex-row gap-2 items-center mb-2">
+              <BadgeCheck size={20} color="#fff" />
+              <Text
+                className="text-lg font-bold color-[#6366ff]"
+                style={{ fontSize: 18 }}
+              >
+                Mapa de Contribución de Chats Diarios
+              </Text>
+            </View>
+            <View className="flex items-center mr-4">
+              <ChatContributionGraph />
+            </View>
+            <Text className="text-sm text-center text-gray-400">
+              Visualiza tu interacción diaria con el chat y mejora tu
+              experiencia.
+            </Text>
+          </View>
+
           {/* Personal Information */}
           <View className="bg-[#1e2a47] rounded-xl p-4">
-            <View className="flex-row items-center justify-between mb-4">
+            <View className="flex-row justify-between items-center mb-4">
               <Text className="text-white font-pmedium">
                 Correo Electrónico
               </Text>
@@ -203,7 +225,7 @@ const Profile = () => {
 
           {/* Disable Notifications Switch */}
           <View className="bg-[#1e2a47] p-4 rounded-xl flex-row justify-between">
-            <View className="flex-row items-center gap-2">
+            <View className="flex-row gap-2 items-center">
               <Text className="text-lg text-white font-psemibold">
                 Notificaciones Activas
               </Text>
@@ -225,7 +247,7 @@ const Profile = () => {
             //Cuando pinchamos en el botón tenemos que enseñar el modal de cambiar la contraseña
             onPress={() => setshowModalChangePassword(true)}
           >
-            <View className="flex-row items-center gap-2">
+            <View className="flex-row gap-2 items-center">
               <Text className="text-lg text-white font-psemibold">
                 Cambiar Contraseña
               </Text>
@@ -250,7 +272,7 @@ const Profile = () => {
             //Cuando presionamos el botón tenemos que navegar a la pantalla de mis tips favoritos
             onPress={() => router.push("../FavTips")}
           >
-            <View className="flex-row items-center gap-2">
+            <View className="flex-row gap-2 items-center">
               <Text className="text-lg text-white font-psemibold">
                 Mis Tips Favoritos
               </Text>
@@ -263,7 +285,7 @@ const Profile = () => {
             className="bg-[#1e2a47] p-4 rounded-xl items-start"
             //TODO: Tenemos que hacer una panatlla donde el user pueda recibir ayuda en caso de problemas
           >
-            <View className="flex-row items-center gap-2">
+            <View className="flex-row gap-2 items-center">
               <Text className="text-lg text-white font-psemibold">Ayuda</Text>
               <HelpCircle color="white" />
             </View>

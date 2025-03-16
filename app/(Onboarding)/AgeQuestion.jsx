@@ -101,7 +101,7 @@ export default function Question3({
   };
 
   return (
-    <SafeAreaView className="flex items-center justify-center w-full h-full bg-primary">
+    <SafeAreaView className="flex justify-center items-center w-full h-full bg-primary">
       <View
         className="flex flex-col w-[90%] justify-center items-center gap-8"
         style={{
@@ -112,7 +112,7 @@ export default function Question3({
           className="text-center font-bold color-[#6366ff]"
           style={{ fontSize: 24 }}
         >
-          ¿Cuántos años tienes?
+          Fecha de nacimiento
         </Text>
 
         {/*Muestra el botón para abrir el DateTimePicker si estamos en Android*/}

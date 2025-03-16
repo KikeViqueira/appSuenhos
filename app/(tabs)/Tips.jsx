@@ -55,7 +55,7 @@ const Tips = () => {
 
   return (
     <SafeAreaView className="w-full h-full bg-primary">
-      <View className="flex flex-col items-center self-center justify-center w-full gap-8 mt-3">
+      <View className="flex flex-col gap-8 justify-center items-center self-center mt-3 w-full">
         {/*Header*/}
         <View className="flex-row items-center justify-between w-[90%] ">
           <Text
@@ -71,7 +71,7 @@ const Tips = () => {
            *Si no lo está la papelera activará el modo de selección múltiple para eliminar tips
            */}
           {isSelectionMode ? (
-            <View className="flex-row justify-between gap-5">
+            <View className="flex-row gap-5 justify-between">
               <TouchableOpacity onPress={disableSelection}>
                 <X color="white" size={28} />
               </TouchableOpacity>
@@ -90,9 +90,10 @@ const Tips = () => {
           contentContainerStyle={{
             flexGrow: 1, //Puede crecer y adaptarse al nuevo tamaño y scroll
             gap: 16,
-            width: "90%",
+            width: "92%",
           }}
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={true}
+          indicatorStyle="white"
         >
           {tips.map((tip, index) => (
             <TouchableOpacity

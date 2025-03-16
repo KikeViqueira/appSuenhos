@@ -1,26 +1,13 @@
 import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
 import React, { useState, useEffect, useCallback } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  Bed,
-  Boxes,
-  Apple,
-  Activity,
-  Wind,
-  RefreshCcw,
-  Moon,
-  Sun,
-  BadgeCheck,
-} from "lucide-react-native";
-import FirstLineChart from "../../components/FirstLineChart";
+import { Bed, RefreshCcw, Moon, Sun, BadgeCheck } from "lucide-react-native";
 import WakeUpForm from "../../components/WakeUpForm";
-import SleepNutritionChart from "../../components/SleepNutritionChart";
-import SleepPieChart from "../../components/SleepPieChart";
-import HRVBarChart from "../../components/HRVBarChart";
-import BreathingBarChart from "../../components/BreathingBarChart ";
-import ChatContributionGraph from "../../components/ChatContributionGraph";
+import SleepGraphs from "../../components/SleepGraphs";
+import FitbitUserGraphs from "../../components/FitbitUserGraphs";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
+import { LinearGradient } from "expo-linear-gradient";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -29,10 +16,6 @@ Notifications.setNotificationHandler({
     shouldSetBadge: true,
   }),
 });
-
-/*FIXME: Los problemas con Reanimated suelen ocurrir cuando intentas actualizar el estado (setState)
-     dentro de un callback de animación o de un evento asíncrono
-     sin asegurarte de que está en el hilo principal de React Native.*/
 
 const Estadisticas = () => {
   //Definimos un estado para saber si el modal de preguntas sobre la calidad del sueño está abierto o cerrado, y otro para guardar las respuestas a este
@@ -93,6 +76,7 @@ const Estadisticas = () => {
           },
         ]
       );
+      //TODO: TENEMOS QUE CANCELAR LA NOTIFICACIÓN QUE ESTABA PROGRAMADA.
       console.log("Valor de isSleeping despues de la alerta: ", isSleeping);
       //TODO: Tenemos que borrar igualmente la hora de inicio de sueño si el user decide reiniciar el registro ya que el useEffect sigue podiendo cargarla
       //TODO: Esto es debido por el hecho de que solo la eliminabamos si el user hacia el registro matutino pero hay que tener en cuenta el caso de que anule el registro y vuelva a entrar a la app
@@ -193,6 +177,24 @@ const Estadisticas = () => {
     }
   };
 
+  /*
+   * Definimos el estado que guardará en que sección del navbar nos encontramos
+   *
+   * Definimos la función para que dependiendo de en que sección nos encontremos del navbar de gráficas
+   * podamos reenderizar correctamente las que deseamos
+   */
+
+  const [activeSection, setActiveSection] = useState("sleepGraphs"); //Componente por defecto que se muestra
+
+  const renderComponent = () => {
+    switch (activeSection) {
+      case "sleepGraphs":
+        return <SleepGraphs />;
+      case "fitbitGraphs":
+        return <FitbitUserGraphs />;
+    }
+  };
+
   return (
     <SafeAreaView className="w-full h-full bg-primary">
       <ScrollView
@@ -203,14 +205,17 @@ const Estadisticas = () => {
           gap: 2,
           width: "100%",
         }}
+        bounces={true}
+        decelerationRate="normal" // O "fast" según el comportamiento deseado
         showsVerticalScrollIndicator={true}
         indicatorStyle="white"
       >
         {/* Primera sección de la pestaña de estadísticas
           que servirá para registrar las horas de sueño del usuario y abrir el modal de preguntas nada más despertarse en relación a su calidad de sueño */}
+
         <View className="flex w-[95%] gap-6 px-4 py-5 rounded-lg bg-[#1e2a47]">
           {/* Título de la sección */}
-          <View className="flex flex-row justify-start gap-4">
+          <View className="flex flex-row gap-4 justify-start">
             <Bed size={24} color="white" />
             <Text
               className="text-center font-bold color-[#6366ff]"
@@ -220,15 +225,13 @@ const Estadisticas = () => {
             </Text>
           </View>
           {/* Botones para registrar las horas de sueño y abrir el modal de preguntas */}
-          <View className="flex flex-row justify-between w-full">
+          <View className="flex flex-col gap-4 justify-between w-full">
             <TouchableOpacity
-              //Cuando el user haga click en el botón, se calculará la hora de inicio de sueño
               onPress={calculateSleepStart}
-              className={`flex flex-row items-center justify-start px-3 py-3 gap-4 ${
+              className={`flex flex-row items-center justify-start p-4 gap-4 ${
                 isSleeping ? "bg-[#ff4757]" : "bg-[#323d4f]"
               } rounded-xl w-auto`}
             >
-              {/*Dependiendo de si el user está durmiendo o no ponemos un icono u otro */}
               {isSleeping ? (
                 <RefreshCcw size={20} color="#fff" />
               ) : (
@@ -241,7 +244,7 @@ const Estadisticas = () => {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={toggleModal}
-              className="flex flex-row items-center justify-start px-3 py-3 gap-4 bg-[#323d4f] rounded-xl w-auto"
+              className="flex flex-row items-center justify-start p-4 gap-4 bg-[#323d4f] rounded-xl w-auto"
             >
               <Sun size={20} color="#fff" />
               <Text className="text-base text-center color-white">
@@ -251,6 +254,28 @@ const Estadisticas = () => {
           </View>
         </View>
 
+        {/* Nueva sección de navegación */}
+        <View className="flex flex-row justify-between w-[95%] px-4 py-5 rounded-lg bg-[#1e2a47]">
+          <TouchableOpacity
+            onPress={() => setActiveSection("sleepGraphs")}
+            className={`flex-1 mx-2 ${
+              activeSection === "sleepGraphs" ? "bg-[#6366ff]" : "bg-[#323d4f]"
+            } rounded-lg p-4 justify-center`}
+          >
+            <Text className="font-bold text-center color-white">Gráficas</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setActiveSection("fitbitGraphs")}
+            className={`flex-1 mx-2 ${
+              activeSection === "fitbitGraphs" ? "bg-[#6366ff]" : "bg-[#323d4f]"
+            } rounded-lg p-4 justify-center`}
+          >
+            <Text className="font-bold text-center color-white">
+              Gráficas reservadas de Fitbit
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         {/* Modal de preguntas sobre la calidad del sueño */}
         <WakeUpForm
           isVisible={showModal}
@@ -258,93 +283,8 @@ const Estadisticas = () => {
           onSave={saveResponse}
         />
 
-        <View className="flex justify-center w-[95%] gap-6 px-4 py-5 rounded-lg bg-[#1e2a47]">
-          <View className="flex flex-row justify-start gap-4">
-            <Bed size={24} color="#fff" />
-            <Text
-              className="text-center font-bold color-[#6366ff]"
-              style={{ fontSize: 24 }}
-            >
-              Horas de Sueño Semanal
-            </Text>
-          </View>
-          <View className="flex items-center">
-            {/* Segunda sección de la pestaña de estadísticas, que hace referencia a la gráfica que recoge las horas que el usario a dormido a lo largo de los días de la semana*/}
-            <FirstLineChart />
-          </View>
-
-          {/*SEGUNDA GRÁFICA QUE MUESTRA EL PORCENTAJE EN LAS QUE HA ESTADO EL USER EN CADA UNA DE LAS POSIBLES FASES DEL SUEÑO */}
-          <View className="flex flex-row justify-start gap-4">
-            <Boxes size={24} color="#fff" />
-            <Text
-              className="text-center font-bold color-[#6366ff]"
-              style={{ fontSize: 24 }}
-            >
-              Fases del Sueño
-            </Text>
-          </View>
-          <View className="flex items-center">
-            <SleepPieChart />
-          </View>
-
-          {/*TERCERA GRÁFICA QUE MUESTRA LA CORRELACIÓN DE COMO INFLUYEN LAS CALORIAS CONSUMIDAS EN LAS HORAS QUE DUERME EL USER*/}
-          <View className="flex flex-row justify-start gap-4">
-            <Apple size={24} color="#fff" />
-            <Text
-              className="text-center font-bold color-[#6366ff]"
-              style={{ fontSize: 24 }}
-            >
-              Calorías vs Horas de Sueño
-            </Text>
-          </View>
-          <View className="flex items-center">
-            <SleepNutritionChart />
-          </View>
-
-          {/*CUARTA GRÁFICA QUE MUESTRA COMO HA VARIADO EL HRV A LO LARGO DE LA SEMANA*/}
-          <View className="flex flex-row justify-start gap-4">
-            <Activity size={24} color="#fff" />
-            <Text
-              className="text-center font-bold color-[#6366ff]"
-              style={{ fontSize: 24 }}
-            >
-              Variación del Ritmo Cardíaco
-            </Text>
-          </View>
-          <View className="flex items-center">
-            <HRVBarChart />
-          </View>
-
-          {/*QUINTA GRÁFICA QUE MUESTRA COMO HA VARIADO EL BREATHING RATE A LO LARGO DE LA SEMANA*/}
-
-          <View className="flex flex-row justify-start gap-4">
-            <Wind size={24} color="#fff" />
-            <Text
-              className="text-center font-bold color-[#6366ff]"
-              style={{ fontSize: 24 }}
-            >
-              Respiraciones por Minuto
-            </Text>
-          </View>
-          <View className="flex items-center">
-            <BreathingBarChart />
-          </View>
-
-          {/*SEXTA GRÁFICA QUE MUESTRA CUANTOS DÍAS DEL MES EL USER AHA INTERACCIONADO CON EL CHAT Y HA HABLADO SOBRE SUS SUEÑOS*/}
-
-          <View className="flex flex-row justify-start gap-4">
-            <BadgeCheck size={24} color="#fff" />
-            <Text
-              className="text-center font-bold color-[#6366ff]"
-              style={{ fontSize: 24 }}
-            >
-              Mapa de Contribución de Chats Diarios
-            </Text>
-          </View>
-          <View className="flex items-center">
-            <ChatContributionGraph />
-          </View>
-        </View>
+        {/*llamamos a la función para que reenderice lo necesario dependiendo de lo que tenga seleccionado el user*/}
+        {renderComponent()}
       </ScrollView>
     </SafeAreaView>
   );

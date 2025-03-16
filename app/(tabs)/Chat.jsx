@@ -38,7 +38,9 @@ const Chat = () => {
           sender: "user",
         },
       ]);*/
-      //TODO: UNA VEZ LE DAMOS A MANDAR EL MENSAJE, LLAMAMAOS A LA FUNCIÓN DE USECHAT QUE LLAMA AL ENDPOINT NECESARIO DE LA API
+      /*
+       * Una vez que enviamos el mensaje tenemos que usar la función del useChat para enviar el mensaje a la IA y guardarlo en la BD
+       */
       postRequest(newMessage);
       //Reinicializamos el estado del mensaje y cerramos el teclado
       setNewMessage("");
@@ -88,7 +90,7 @@ const Chat = () => {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
-        <View className="flex flex-row items-center justify-start gap-4 p-4">
+        <View className="flex flex-row gap-4 justify-start items-center p-4">
           <TouchableOpacity
             //Cuando pinchemos en el menú hamburguesa se abre el modal
             onPress={toggleModal}
@@ -107,15 +109,34 @@ const Chat = () => {
         {/*Modal para la selección de los chats*/}
         <ChatsModal isVisible={showModal} onClose={toggleModal} />
 
-        <FlatList
-          className="flex-1 px-4"
-          data={messages}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={renderMessage}
-          contentContainerStyle={{
-            paddingVertical: 16,
-          }}
-        />
+        {/**
+         * En caso de que no se haya empezado la conversación con la IA, tenemos que poner un mensaje en el medio de la
+         *  pantalla animando al user a comentar sus inquietudes sobre el sueño
+         *
+         * En caso contrario lo que hacemos es mostrar la conversación que tiene el user
+         * */}
+        {messages.length === 0 ? (
+          <View className="flex-1 justify-center items-center">
+            <View className="flex-1 justify-center items-center">
+              <Text className="text-center text-[#6366ff] text-3xl font-bold mb-2">
+                Hola, User!
+              </Text>
+              <Text className="text-lg italic text-center text-white">
+                ¿Coméntame sobre tu sueño de hoy y te ayudaré a comprenderlo?
+              </Text>
+            </View>
+          </View>
+        ) : (
+          <FlatList
+            className="flex-1 px-4"
+            data={messages}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={renderMessage}
+            contentContainerStyle={{
+              paddingVertical: 16,
+            }}
+          />
+        )}
 
         <View className="flex-row items-center p-4 pb-0 border-t border-gray-700">
           <TextInput
