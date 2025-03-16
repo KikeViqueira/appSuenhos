@@ -1,0 +1,66 @@
+{
+  "questions": [
+    {
+      "id": "drm_question1",
+      "title": "¿Cómo calificarías tu nivel de concentración durante el día?",
+      "type": "scale",
+      "scale": {
+        "min": 1,
+        "max": 10,
+        "step": 1,
+        "description": "1 = Muy baja, 10 = Excelente"
+      }
+    },
+    {
+      "id": "drm_question2",
+      "title": "¿Percibiste que tu estado de ánimo y descanso influyeron en las decisiones que tomaste hoy?",
+      "type": "options",
+      "options": [
+        { "id": 1, "option": "Mucho" },
+        { "id": 2, "option": "Algo" },
+        { "id": 3, "option": "Poco" },
+        { "id": 4, "option": "Nada" }
+      ]
+    },
+    {
+      "id": "drm_question3",
+      "title": "¿Qué tan satisfecho estás con las decisiones que tomaste hoy?",
+      "type": "scale",
+      "scale": {
+        "min": 1,
+        "max": 10,
+        "step": 1,
+        "description": "1 = Muy insatisfecho, 10 = Muy satisfecho"
+      }
+    },
+    {
+      "id": "drm_question4",
+      "title": "¿Experimentaste momentos de estrés o presión al tomar decisiones?",
+      "type": "options",
+      "options": [
+        { "id": 1, "option": "Sí, con frecuencia" },
+        { "id": 2, "option": "A veces" },
+        { "id": 3, "option": "No, casi nunca" }
+      ]
+    },
+    {
+      "id": "drm_question5",
+      "title": "¿Cuál fue la emoción que predominó en tu día?",
+      "type": "options",
+      "options": [
+        { "id": 1, "option": "Alegría" },
+        { "id": 2, "option": "Estrés" },
+        { "id": 3, "option": "Tristeza" },
+        { "id": 4, "option": "Neutral" },
+        { "id": 5, "option": "Otra" }
+      ]
+    },
+    {
+      "id": "drm_question6",
+      "title": "Comentarios adicionales (opcional)",
+      "type": "text",
+      "maxLength": 250,
+      "placeholder": "Escribe aquí cualquier comentario adicional..."
+    }
+  ]
+}
