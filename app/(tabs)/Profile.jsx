@@ -169,7 +169,7 @@ const Profile = () => {
           }}
           showsVerticalScrollIndicator={false}
         >
-          {/*GRÁFICA QUE MUESTRA CUANTOS DÍAS DEL MES EL USER AHA INTERACCIONADO CON EL CHAT Y HA HABLADO SOBRE SUS SUEÑOS*/}
+          {/*GRÁFICA QUE MUESTRA CUANTOS DÍAS DEL MES EL USER HA INTERACCIONADO CON EL CHAT Y HA HABLADO SOBRE SUS SUEÑOS*/}
           <View className="flex flex-col items-center bg-[#1e2a47] rounded-xl p-4 mb-4">
             <View className="flex flex-row gap-2 items-center mb-2">
               <BadgeCheck size={20} color="#fff" />

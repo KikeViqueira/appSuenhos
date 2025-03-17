@@ -1,13 +1,13 @@
 import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Bed, RefreshCcw, Moon, Sun, BadgeCheck } from "lucide-react-native";
+import { Bed, RefreshCcw, Moon, Sun, ClipboardList } from "lucide-react-native";
 import WakeUpForm from "../../components/WakeUpForm";
 import SleepGraphs from "../../components/SleepGraphs";
 import FitbitUserGraphs from "../../components/FitbitUserGraphs";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
-import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -202,8 +202,9 @@ const Estadisticas = () => {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          gap: 2,
+          gap: 5,
           width: "100%",
+          paddingBottom: 20,
         }}
         bounces={true}
         decelerationRate="normal" // O "fast" según el comportamiento deseado
@@ -285,6 +286,21 @@ const Estadisticas = () => {
 
         {/*llamamos a la función para que reenderice lo necesario dependiendo de lo que tenga seleccionado el user*/}
         {renderComponent()}
+
+        {/* Sección donde poneremos el botón para hacer el cuestionario diario DRM*/}
+        {/* Help Button */}
+        <TouchableOpacity
+          className="bg-[#323d4f] p-4 rounded-xl items-start mt-5 w-[95%]"
+          //redireccionamos al user a la pantalla de cuestionario DRM
+          onPress={() => router.push("/DRM")}
+        >
+          <View className="flex-row gap-4 justify-center items-center self-center">
+            <Text className="text-lg text-white font-psemibold">
+              Hacer cuestionario DRM
+            </Text>
+            <ClipboardList color="white" />
+          </View>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
