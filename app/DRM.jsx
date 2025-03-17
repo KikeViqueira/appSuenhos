@@ -8,17 +8,24 @@ import {
   Platform,
   Linking,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { questions } from "../assets/DRMQuestions.json";
 import SliderQuestion from "../components/SliderQuestion";
 import OptionQuestion from "../components/OptionQuestion";
 import TextQuestion from "../components/TextQuestion";
 import { ChevronLeft } from "lucide-react-native";
 import { router } from "expo-router";
+import useDRM from "../hooks/useDRM";
 
 const DRM = () => {
+  const { saveDrmAnswers, loading, error } = useDRM();
+
   //Definimos el estado para guardar el identificador de la pregunta junto su respuesta
   const [answers, setAnswers] = useState({});
+
+  useEffect(() => {
+    console.log("Respuestas del cuestionario actualmente: ", answers);
+  });
 
   //Función para guardar la respuesta de una pregunta (id y respuesta que es el formato que espera la api para guardar la petición)
   const handleAnswer = (id, answer) => {
@@ -28,13 +35,21 @@ const DRM = () => {
     }));
   };
 
+  //Función para mandar las respuestas a la API
+  const submit = async () => {
+    await saveDrmAnswers(answers);
+    //Una vez que se ha generado el informe lo primero es borrar las respuestas para que no se queden guardadas
+    setAnswers({});
+    //TODO: TENDRÍAMOS QUE VOLVER A LA PÁGINA DE STATS PASÁNDOLE POR PROPS LA BANDERA PARA QUE SE DESPLIEGUE EL POPUP DE QUE SE HA GENERADO EL INFORME Y EL USER PUEDO CONSULTARLO EN LA SECCIÓN CORRESPONDIENTE
+  };
+
   return (
     <SafeAreaView className="flex-1 w-full h-full bg-primary">
-      <View className="flex flex-row gap-4 justify-start items-center p-4">
+      <View className="flex flex-row items-center justify-start gap-4 p-4">
         <TouchableOpacity
           //Dejamos que el user pueda volver a las gráficas en caso de que haya entrado sin querer en la pestaña
           onPress={() => router.back()}
-          className="flex flex-row gap-2 items-center py-2"
+          className="flex flex-row items-center gap-2 py-2"
         >
           <ChevronLeft size={24} color="white" />
         </TouchableOpacity>
@@ -111,7 +126,7 @@ const DRM = () => {
           <TouchableOpacity
             TouchableOpacity
             className="bg-[#15db44] py-4 rounded-xl items-center w-full"
-            //TODO:Cuando el user presione el botón llamamos al endpoint de nuestra api para generar el correspondiente informe
+            onPress={submit}
           >
             <Text className="text-lg text-white font-psemibold">
               Generar informe detallado
