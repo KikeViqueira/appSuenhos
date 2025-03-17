@@ -24,7 +24,7 @@ const DRM = () => {
   const handleAnswer = (id, answer) => {
     setAnswers((prev) => ({
       ...prev,
-      [id]: answer,
+      [id]: answer, //si existe el campo con ese id, actualiza el valor, en caso contrario crea la entrada con el id si no hay una previa
     }));
   };
 

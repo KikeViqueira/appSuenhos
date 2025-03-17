@@ -33,9 +33,11 @@ const signIn = () => {
     const emailLower = form.email.toLowerCase();
     setForm({ ...form, email: emailLower });
 
+    router.push("/Stats");
+
     //llamamos al endpoint de nuestra api para hacer el login y en caso de que sea correcto obtener el token para autenticar al user en el resto de endpoints
     //Esperamos a una respuesta de la función LoginRequest ya que es una función asíncrona y asi no pasamos a la siguiente línea de código hasta que no se haya resuelto la promesa
-    await LoginRequest(form.email, form.password);
+    //await LoginRequest(form.email, form.password);
   };
 
   useEffect(() => {
@@ -76,7 +78,7 @@ const signIn = () => {
           className="min-h-[250px]"
         >
           {/*Cuerpo del formulario*/}
-          <View className="flex flex-col items-start justify-center w-full gap-6">
+          <View className="flex flex-col gap-6 justify-center items-start w-full">
             <CustomInput
               name="Email"
               inputType={form.email}
@@ -96,7 +98,7 @@ const signIn = () => {
         </KeyboardAvoidingView>
 
         {/*Boton para iniciar sesión o ir a la pantalla de registro*/}
-        <View className="flex flex-col items-center w-full gap-6">
+        <View className="flex flex-col gap-6 items-center w-full">
           <TouchableOpacity
             onPress={submit}
             className="flex w-full justify-center items-center flex-row  gap-4 px-8 py-4 bg-[#323d4f] rounded-3xl"

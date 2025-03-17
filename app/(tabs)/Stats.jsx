@@ -1,7 +1,14 @@
 import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
 import React, { useState, useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Bed, RefreshCcw, Moon, Sun, ClipboardList } from "lucide-react-native";
+import {
+  Bed,
+  RefreshCcw,
+  Moon,
+  Sun,
+  ClipboardList,
+  File,
+} from "lucide-react-native";
 import WakeUpForm from "../../components/WakeUpForm";
 import SleepGraphs from "../../components/SleepGraphs";
 import FitbitUserGraphs from "../../components/FitbitUserGraphs";
@@ -288,7 +295,7 @@ const Estadisticas = () => {
         {renderComponent()}
 
         {/* Sección donde poneremos el botón para hacer el cuestionario diario DRM*/}
-        {/* Help Button */}
+        {/*Botón para hacer el cuestionario diario DRM*/}
         <TouchableOpacity
           className="bg-[#323d4f] p-4 rounded-xl items-start mt-5 w-[95%]"
           //redireccionamos al user a la pantalla de cuestionario DRM
@@ -299,6 +306,20 @@ const Estadisticas = () => {
               Hacer cuestionario DRM
             </Text>
             <ClipboardList color="white" />
+          </View>
+        </TouchableOpacity>
+
+        {/*Botón para ver el informe que se ha generado hoy*/}
+        <TouchableOpacity
+          className="bg-[#323d4f] p-4 rounded-xl items-start mt-5 w-[95%]"
+          //redireccionamos al user a la pantalla donde se encuentra el informe de DRM
+          onPress={() => router.push("/DrmReport")}
+        >
+          <View className="flex-row gap-4 justify-center items-center self-center">
+            <Text className="text-lg text-white font-psemibold">
+              Ver informe DRM
+            </Text>
+            <File color="white" />
           </View>
         </TouchableOpacity>
       </ScrollView>
