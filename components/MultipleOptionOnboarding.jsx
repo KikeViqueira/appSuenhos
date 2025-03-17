@@ -31,9 +31,20 @@ const MultipleOptionOnboarding = ({
       const selectedOption = options.find(
         (option) => option.id === selected
       ).option;
-      updateResponse(questionKey, selectedOption);
-      //Dependiendo de si es la última pregunta o no, finalizamos el cuestionario o pasamos a la siguiente pregunta
-      final ? onFinish() : nextQuestion();
+      /*
+       * Actualizamos el estado y, en el callback, avanzamos a la siguiente pregunta o finalizamos dependiendo de si es la última pregunta
+       *
+       * Recibimos de la función updateResponse el objeto de respuestas actualizado, y en el callback comprobamos si es la última pregunta o no
+       * si lo es le pasamos el estado de las respuestas al componente padre para que pueda hacer la petición a la API con las respuestas del usuario
+       * bien actualizadas
+       *
+       *
+       * En nextQuestion() no lo usamos ya que tampoco lo necesitamos
+       */
+
+      updateResponse(questionKey, selectedOption, (updatedData) => {
+        final ? onFinish(updatedData) : nextQuestion();
+      });
     }
   };
 

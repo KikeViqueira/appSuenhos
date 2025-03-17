@@ -33,16 +33,9 @@ const signIn = () => {
     const emailLower = form.email.toLowerCase();
     setForm({ ...form, email: emailLower });
 
-    router.push("../(Onboarding)/Onboarding");
-
-    /*
-     *Antes de llamar a la función LoginRequest, limpiamos el estado de error, por si en la solicitud anterior hubo un error
-     */
-    setError(null);
-
     //llamamos al endpoint de nuestra api para hacer el login y en caso de que sea correcto obtener el token para autenticar al user en el resto de endpoints
     //Esperamos a una respuesta de la función LoginRequest ya que es una función asíncrona y asi no pasamos a la siguiente línea de código hasta que no se haya resuelto la promesa
-    //await LoginRequest(form.email, form.password);
+    await LoginRequest(form.email, form.password);
   };
 
   useEffect(() => {
@@ -59,7 +52,7 @@ const signIn = () => {
         "El email o la contraseña son incorrectos"
       );
     } else if (token) {
-      router.push("../(Onboarding)/Onboarding");
+      router.push("/Stats");
     }
   }, [token, error]);
 

@@ -39,8 +39,17 @@ export const AuthProvider = ({ children }) => {
     loadToken();
   }, []);
 
+  /*
+   * Realizamos la petición POST a /auth/login permitir al user que inicie sesión en la app y obtenga su correspondiente token JWT para poder
+   * hacer uso de las funncionalidades de la app
+   * Los datos que tenemos que mandar en el payload son los siguientes:
+   * email: email del user
+   * password: contraseña del user
+   */
+
   //Función para hacer el login
   const LoginRequest = async (email, password) => {
+    setError(null); //Limpiamos el estado de error
     const controller = new AbortController();
     setLoading(true);
     try {
@@ -57,7 +66,6 @@ export const AuthProvider = ({ children }) => {
       );
 
       //Una vez que hemos recibido el token, lo guardamos en el estado
-      console.log(response.data.token);
       setToken(response.data.token);
 
       //Guardamos el token en la memoria segura

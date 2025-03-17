@@ -7,10 +7,19 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import OnboardingMultipleOptionsQuestions from "../../assets/OnboardingMultipleOptionsQuestions.json";
 import { SafeAreaView } from "react-native-safe-area-context";
+import useOnboarding from "../../hooks/useOnboarding";
 
 export default function Onboarding() {
-  //Función que se ejecuta al finalizar el cuestionario
-  const onFinish = () => {
+  const { saveOnboardingAnswers } = useOnboarding();
+
+  /* Función que se ejecuta al finalizar el cuestionario
+   * Recibimos del callback de la función updateResponse el objeto de respuestas actualizado y lo enviamos a la API
+   * */
+  const onFinish = (data) => {
+    console.log("Respuestas del usuario que se enviarán a la Api: ", responses);
+    //llamamos a al endpoint correspondiente en la API para guardar las respuestas del usuario
+    saveOnboardingAnswers(data);
+    //Guardamos en el almacenamiento asincrono que el usuario ha completado el cuestionario, ya que la idea de este es que se haga solo una vez desde que se crea la cuenta
     AsyncStorage.setItem("hasCompletedOnboarding", "true");
     /*Una guardamos el valor para cuando la app se vuelva a abrir que no se muestre el cuestionario de nuevo
     , si queremos cambiar en caliente sin reiniciar la app, tenemos que hacer un push desde aqui a la primera pestaña en este caso Stats*/
@@ -44,12 +53,20 @@ export default function Onboarding() {
     question4: "",
     question5: "",
   });
-  //Función para actualizar la respuesta de una pregunta específica
-  const updateResponse = (question, answer) => {
-    setResponses((prevState) => ({
-      ...prevState,
-      [question]: answer,
-    }));
+  /*
+   * Función para actualizar la respuesta de una pregunta específica
+   *
+   * tenemos que pasarle un tercer parámetro que consiste en una función callback, esta es necesaria para que donde llamemos a la función se ejecute de manera correcta
+   * con el estado de las respuestas bien actualizado, esto no es útil para pasar a la siguiente pregunta o finalizar el cuestionario de manera consistente en lo
+   * que viene siendo en este caso en el componente MultipleOptionOnboarding
+   * */
+  const updateResponse = (question, answer, callback) => {
+    setResponses((prevState) => {
+      const newState = { ...prevState, [question]: answer };
+      // Si se proporcionó un callback, lo ejecutamos con el nuevo estado
+      if (callback) callback(newState);
+      return newState; //Indicamos a react cual es el nuevo estado
+    });
   };
   //hacemos también un console.log para ver en tiempo real las respuestas que se van guardando mediante el useEffect de responses
   useEffect(() => {

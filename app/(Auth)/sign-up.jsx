@@ -11,9 +11,12 @@ import {
 import React, { useState } from "react";
 import { router } from "expo-router";
 import CustomInput from "../../components/CustomInput";
+import useUser from "../../hooks/useUser";
 
 const signUp = () => {
-  //Definimos un estado para saber los valores que el usuario introduce en los campos del formulario
+  const { loading, error, registerUser } = useUser();
+
+  //Definimos un estado que guarda en un objeto los datos del formulario que representa al user
   const [form, setForm] = useState({
     email: "",
     name: "",
@@ -23,7 +26,17 @@ const signUp = () => {
 
   //Definimos la función para mandar la respuesta a la base de datos
   const submit = () => {
-    //hacer logica de contraseñas para ver si ambas son la misma y el user ha escrito bien todo
+    //llamamos a la función del hook de user para registrar al usuario
+    registerUser(form);
+    //reiniciamos el estado del formulario para que este vacío
+    setForm({
+      email: "",
+      name: "",
+      password: "",
+      confirmPassword: "",
+    });
+    //Una vez que el user ha sido regsistrado lo redireccionamos a la pestaña de login
+    router.push("./sign-in");
   };
 
   return (
