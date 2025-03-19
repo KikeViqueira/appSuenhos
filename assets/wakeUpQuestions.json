@@ -1,0 +1,28 @@
+{
+  "questions": [
+    {
+      "id": "wakeup_question1",
+      "title": "¿Cómo ha sido la calidad de tu sueño?",
+      "type": "options",
+      "options": [
+        { "id": 1, "option": "Muy buena" },
+        { "id": 2, "option": "Buena" },
+        { "id": 3, "option": "Regular" },
+        { "id": 4, "option": "Mala" },
+        { "id": 5, "option": "Muy mala" }
+      ]
+    },
+    {
+      "id": "wakeup_question2",
+      "title": "¿Cómo te sientes de descansado?",
+      "type": "options",
+      "options": [
+        { "id": 1, "option": "Muy descansado" },
+        { "id": 2, "option": "Descansado" },
+        { "id": 3, "option": "Ni descansado ni cansado" },
+        { "id": 4, "option": "Cansado" },
+        { "id": 5, "option": "Muy cansado" }
+      ]
+    }
+  ]
+}

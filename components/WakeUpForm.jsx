@@ -11,16 +11,28 @@ import {
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import WakeUpQuestion1 from "./WakeUpQuestion1";
-import WakeUpQuestion2 from "./WakeUpQuestion2";
+import { questions } from "../assets/wakeUpQuestions";
+import OptionQuestion from "./OptionQuestion";
 
 const WakeUpForm = ({ isVisible, onClose, onSave }) => {
   //Definimos los estados para guardar las distintas partes de la respuesta
   const [time, setTime] = useState(new Date());
-  const [question1, setQuestion1] = useState(null);
-  const [question2, setQuestion2] = useState(null);
+  const [answers, setAnswers] = useState({
+    //Definimos los atributos del objeto para poder hacer comprobaciones por el componente
+    wakeUpTime: "",
+    question1: "",
+    question2: "",
+  });
   //Estado para comprobar si la hora que se ha seleccionado es válida o no debido a que date no se puede poner a null
   const [isValidTime, setIsValidTime] = useState(true);
+
+  //Función para guardar la respuesta de una pregunta (id y respuesta que es el formato que espera la api para guardar la petición)
+  const handleAnswer = (id, answer) => {
+    setAnswers((prev) => ({
+      ...prev,
+      [id]: answer, //si existe el campo con ese id, actualiza el valor, en caso contrario crea la entrada con el id si no hay una previa
+    }));
+  };
 
   //actualizamos la hora actual cada vez que abrimos el modal teniendo como referencia la bandera que nos indica si esta abierto o no
   useEffect(() => {
@@ -30,7 +42,7 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
 
   //Función que se encarga de validar si se han respondido todas las preguntas
   const hasQuestionsAnswered = () => {
-    return question1 !== null && question2 !== null;
+    return answers.question1 !== "" && answers.question2 !== "";
   };
 
   //Función que se encarga de enviar los datos de la respuesta al componente padre y cerrar el modal
@@ -53,18 +65,9 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
     }
 
     //Ambas funciones se reciben del componente padre, en este caso WakeUpForm.jsx
-    onSave({
-      //Objeto newResponse que se recibe en la función de añadir del componente padre
-      /*NOTA:
-        - Cuando se hace el form ya se guarda la hora en la que el user se ha despertado, por eso no hace falta hacer una variable que guarde específicamente esto en el componente padre
-      */
-      time,
-      question1,
-      question2,
-    });
-    //Una vez guardamos la respuesta, tenemos que poner los estados a null para que la próxima vez que se abra el formulario estén vacíos
-    setQuestion1(null);
-    setQuestion2(null);
+    onSave(answers);
+    //Una vez guardamos la respuesta, tenemos que poner el estado a null para que la próxima vez que se abra el formulario estén vacíos
+    setAnswers({});
 
     onClose();
   };
@@ -77,7 +80,7 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
     if (Platform.OS === "android") setShowTimePicker(false);
     //tenemos que comprobar que la hora que ponga el user que se ha levantado sea menor o igual a la hora actual, si no podrían exister medidas érroneas
     if (selectedTime && selectedTime <= new Date()) {
-      setTime(selectedTime);
+      handleAnswer("wakeUpTime", selectedTime);
       setIsValidTime(true);
     } else {
       setIsValidTime(false);
@@ -94,8 +97,8 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
     //Por lo tanto si queremos que lo que este dentro del modal se vea correctamente tenemos que poner dentro de este componente un SafeAreaView
     <View>
       <Modal visible={isVisible} animationType="slide">
-        <SafeAreaView className="flex flex-col gap-8 w-full h-full bg-primary">
-          <View className="flex flex-row justify-between items-center px-3">
+        <SafeAreaView className="flex flex-col w-full h-full gap-8 bg-primary">
+          <View className="flex flex-row items-center justify-between px-3">
             <Button title="Back" onPress={onClose}></Button>
             <Text
               className="font-bold text-center color-white"
@@ -156,9 +159,19 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
               )}
             </View>
 
-            {/*llamamos a las distintas preguntas de seleccionar opción*/}
-            <WakeUpQuestion1 setQuestion={setQuestion1} />
-            <WakeUpQuestion2 setQuestion={setQuestion2} />
+            {/*reenderizamos las preguntas de tipo opciones*/}
+            {questions.map((question) => {
+              //Auqnue en el archivo tenemos ya todas las preguntas de este tipo hacemos la comprobación por si en un futuro se añaden más preguntas
+              if (question.type === "options") {
+                return (
+                  <OptionQuestion
+                    key={question.id} //Tenemos que poner una key única para cada pregunta (hijo)
+                    question={question}
+                    onAnswer={handleAnswer}
+                  />
+                );
+              }
+            })}
           </ScrollView>
         </SafeAreaView>
       </Modal>

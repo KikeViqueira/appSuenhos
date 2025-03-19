@@ -12,6 +12,7 @@ import React, { useState } from "react";
 import { router } from "expo-router";
 import CustomInput from "../../components/CustomInput";
 import useUser from "../../hooks/useUser";
+import { Alert } from "react-native";
 
 const signUp = () => {
   const { loading, error, registerUser } = useUser();
@@ -26,17 +27,24 @@ const signUp = () => {
 
   //Definimos la función para mandar la respuesta a la base de datos
   const submit = () => {
-    //llamamos a la función del hook de user para registrar al usuario
-    registerUser(form);
-    //reiniciamos el estado del formulario para que este vacío
-    setForm({
-      email: "",
-      name: "",
-      password: "",
-      confirmPassword: "",
-    });
-    //Una vez que el user ha sido regsistrado lo redireccionamos a la pestaña de login
-    router.push("./sign-in");
+    //Antes de nada tenemos que comprobar que tanto la contraseña como la confirmación de la contraseña sean iguales
+    if (form.password === form.confirmPassword) {
+      //Antes de guardar el user en la BD tenemos que pasar el correo a minúsculas para que en el login ponga lo que ponga mientras los caracteres sean los mismos pueda acceder
+      form.email = form.email.toLowerCase();
+      //llamamos a la función del hook de user para registrar al usuario
+      registerUser(form);
+      //reiniciamos el estado del formulario para que este vacío
+      setForm({
+        email: "",
+        name: "",
+        password: "",
+        confirmPassword: "",
+      });
+      //Una vez que el user ha sido regsistrado lo redireccionamos a la pestaña de login
+      router.push("./sign-in");
+    } else {
+      Alert.alert("Error de registro", "Las contraseñas no coinciden");
+    }
   };
 
   return (

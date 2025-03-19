@@ -126,8 +126,8 @@ const Profile = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-primary">
-      <View className="flex flex-col flex-1 gap-4 px-4 py-6">
+    <SafeAreaView className="w-full h-full bg-primary">
+      <View className="flex flex-col w-full h-full gap-4 px-4 mt-4 ">
         {/* Header */}
         <Text
           className="text-center font-bold text-[#6366ff] py-4 "
@@ -135,31 +135,6 @@ const Profile = () => {
         >
           Configuración de la cuenta
         </Text>
-
-        {/* User Profile Photo */}
-        <View className="items-center mb-8">
-          <View className="relative">
-            <Image source={imagen} className="w-32 h-32 rounded-full" />
-            <TouchableOpacity
-              className="absolute bottom-0 right-0 bg-[#6366FF] p-2 rounded-full"
-              // Cuando hagamos click en el botón de la cámara tenemos que enseñar el modal con las diferentes opciones al usuario
-              onPress={() => setshowModal(true)}
-            >
-              <Camera size={20} color="white" />
-            </TouchableOpacity>
-          </View>
-          <Text className="mt-4 text-xl text-white font-psemibold">
-            Enrique Viqueira
-          </Text>
-        </View>
-
-        {/* Picture Options Modal */}
-        <PictureOptions
-          visible={showModal}
-          setModalVisible={setshowModal}
-          uploadPicture={uploadPicture}
-          deletePicture={deletePicture}
-        />
 
         <ScrollView
           contentContainerStyle={{
@@ -169,9 +144,33 @@ const Profile = () => {
           }}
           showsVerticalScrollIndicator={false}
         >
+          {/* User Profile Photo */}
+          <View className="items-center mb-8">
+            <View className="relative">
+              <Image source={imagen} className="w-32 h-32 rounded-full" />
+              <TouchableOpacity
+                className="absolute bottom-0 right-0 bg-[#6366FF] p-2 rounded-full"
+                // Cuando hagamos click en el botón de la cámara tenemos que enseñar el modal con las diferentes opciones al usuario
+                onPress={() => setshowModal(true)}
+              >
+                <Camera size={20} color="white" />
+              </TouchableOpacity>
+            </View>
+            <Text className="mt-4 text-xl text-white font-psemibold">
+              Enrique Viqueira
+            </Text>
+          </View>
+
+          {/* Picture Options Modal */}
+          <PictureOptions
+            visible={showModal}
+            setModalVisible={setshowModal}
+            uploadPicture={uploadPicture}
+            deletePicture={deletePicture}
+          />
           {/*GRÁFICA QUE MUESTRA CUANTOS DÍAS DEL MES EL USER HA INTERACCIONADO CON EL CHAT Y HA HABLADO SOBRE SUS SUEÑOS*/}
           <View className="flex flex-col items-center bg-[#1e2a47] rounded-xl p-4 mb-4">
-            <View className="flex flex-row gap-2 items-center mb-2">
+            <View className="flex flex-row items-center gap-2 mb-2">
               <BadgeCheck size={20} color="#fff" />
               <Text
                 className="text-lg font-bold color-[#6366ff]"
@@ -191,7 +190,7 @@ const Profile = () => {
 
           {/* Personal Information */}
           <View className="bg-[#1e2a47] rounded-xl p-4">
-            <View className="flex-row justify-between items-center mb-4">
+            <View className="flex-row items-center justify-between mb-4">
               <Text className="text-white font-pmedium">
                 Correo Electrónico
               </Text>
@@ -225,11 +224,11 @@ const Profile = () => {
 
           {/* Disable Notifications Switch */}
           <View className="bg-[#1e2a47] p-4 rounded-xl flex-row justify-between">
-            <View className="flex-row gap-2 items-center">
+            <View className="flex-row items-center gap-2">
+              <BellRing color="white" />
               <Text className="text-lg text-white font-psemibold">
                 Notificaciones Activas
               </Text>
-              <BellRing color="white" />
             </View>
             <Switch
               trackColor={{ false: "#FFFFFF", true: "#6366FF" }}
@@ -247,11 +246,11 @@ const Profile = () => {
             //Cuando pinchamos en el botón tenemos que enseñar el modal de cambiar la contraseña
             onPress={() => setshowModalChangePassword(true)}
           >
-            <View className="flex-row gap-2 items-center">
+            <View className="flex-row items-center gap-2">
+              <LockKeyhole color="white" />
               <Text className="text-lg text-white font-psemibold">
                 Cambiar Contraseña
               </Text>
-              <LockKeyhole color="white" />
             </View>
           </TouchableOpacity>
 
@@ -272,11 +271,11 @@ const Profile = () => {
             //Cuando presionamos el botón tenemos que navegar a la pantalla de mis tips favoritos
             onPress={() => router.push("../FavTips")}
           >
-            <View className="flex-row gap-2 items-center">
+            <View className="flex-row items-center gap-2">
+              <BookmarkCheck color="white" />
               <Text className="text-lg text-white font-psemibold">
                 Mis Tips Favoritos
               </Text>
-              <BookmarkCheck color="white" />
             </View>
           </TouchableOpacity>
 
@@ -285,9 +284,9 @@ const Profile = () => {
             className="bg-[#1e2a47] p-4 rounded-xl items-start"
             //TODO: Tenemos que hacer una panatlla donde el user pueda recibir ayuda en caso de problemas
           >
-            <View className="flex-row gap-2 items-center">
-              <Text className="text-lg text-white font-psemibold">Ayuda</Text>
+            <View className="flex-row items-center gap-2">
               <HelpCircle color="white" />
+              <Text className="text-lg text-white font-psemibold">Ayuda</Text>
             </View>
           </TouchableOpacity>
 

@@ -15,8 +15,13 @@ const CustomInput = ({ name, inputType, handleChangeText, placeholder }) => {
           value={inputType}
           placeholder={placeholder}
           onChangeText={handleChangeText}
+          //Si el input es el de confirmar contraseña no permitimos que se pueda copiar y pegar texto
+          contextMenuHidden={name === "Confirmar Contraseña"}
           //Si el input es un password y el estado de enseñar la contraseña está en false, ocultamos el texto
-          secureTextEntry={name === "Contraseña" && !showPassword}
+          secureTextEntry={
+            (name === "Contraseña" || name === "Confirmar Contraseña") &&
+            !showPassword
+          }
           //Estilo del input dependiendo del tipo que sea
           className={`flex-1 text-base text-[#323d4f] ${
             name === "Contraseña" || name === "Confirmar Contraseña"

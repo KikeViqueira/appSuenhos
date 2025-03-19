@@ -85,12 +85,12 @@ const Chat = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 w-full h-full bg-primary">
+    <SafeAreaView className="w-full h-full bg-primary">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
-        <View className="flex flex-row gap-4 justify-start items-center p-4">
+        <View className="flex flex-row items-center justify-start gap-4 p-4">
           <TouchableOpacity
             //Cuando pinchemos en el menú hamburguesa se abre el modal
             onPress={toggleModal}
@@ -116,8 +116,8 @@ const Chat = () => {
          * En caso contrario lo que hacemos es mostrar la conversación que tiene el user
          * */}
         {messages.length === 0 ? (
-          <View className="flex-1 justify-center items-center">
-            <View className="flex-1 justify-center items-center">
+          <View className="items-center justify-center flex-1">
+            <View className="items-center justify-center flex-1">
               <Text className="text-center text-[#6366ff] text-3xl font-bold mb-2">
                 Hola, User!
               </Text>

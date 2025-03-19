@@ -1,20 +1,34 @@
-import { View, Text, TouchableOpacity, SafeAreaView } from "react-native";
-import React from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  SafeAreaView,
+  ScrollView,
+} from "react-native";
+import React, { useEffect } from "react";
 import { ChevronLeft } from "lucide-react-native";
 import { router } from "expo-router";
+import useDRM from "../hooks/useDRM";
 
 const DrmReport = () => {
+  const { getDrmToday, error, drmToday } = useDRM();
+
   const handleGenerateTip = () => {
     //TODO: Aqui tenemos que llamar al endpoint de la api para generar un tip personalizado para el user teniendo en cuenta toda su información
   };
 
+  //Cuando el componente se reenderiza, hacemos la petición para obtener el cuestionario de hoy
+  useEffect(() => {
+    getDrmToday();
+  }, []);
+
   return (
     <SafeAreaView className="flex-1 w-full h-full bg-primary">
-      <View className="flex flex-row gap-4 justify-start items-center p-4">
+      <View className="flex flex-row items-center justify-start gap-4 p-4">
         <TouchableOpacity
           //Dejamos que el user pueda volver a las gráficas en caso de que haya entrado sin querer en la pestaña
           onPress={() => router.back()}
-          className="flex flex-row gap-2 items-center py-2"
+          className="flex flex-row items-center gap-2 py-2"
         >
           <ChevronLeft size={24} color="white" />
         </TouchableOpacity>
@@ -25,22 +39,21 @@ const DrmReport = () => {
           Cuestionario diario DRM
         </Text>
       </View>
-      <View className="flex-1 flex-col justify-between items-center w-[90%] self-center py-8">
-        <Text className="mb-4 text-lg text-white" selectable={true}>
-          Este informe proporciona un análisis detallado de su calidad de sueño
-          y patrones de descanso. Se ha observado que la duración promedio de su
-          sueño es de aproximadamente 7 horas por noche, lo que se encuentra
-          dentro de las recomendaciones de salud. Sin embargo, hay momentos en
-          los que su sueño se interrumpe, lo que puede afectar su bienestar
-          general. Es recomendable establecer una rutina de sueño consistente y
-          crear un ambiente propicio para descansar. Considerar la reducción de
-          la exposición a pantallas antes de dormir y mantener una temperatura
-          adecuada en su habitación puede mejorar la calidad de su sueño.
-          Además, es importante llevar un registro de sus hábitos de sueño y
-          cualquier factor que pueda estar afectando su descanso. Esto ayudará a
-          identificar patrones y hacer ajustes necesarios para optimizar su
-          salud y bienestar.
-        </Text>
+      <View className="flex-1 flex-col justify-between items-center w-[90%] self-center mb-10">
+        <View className="max-h-[90%]">
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1 }}
+            showsVerticalScrollIndicator={true}
+            className="border-b border-gray-700"
+          >
+            <Text className="mb-4 text-lg text-white" selectable={true}>
+              {/*Si el drmToday no es vacío lo reenderizamos, en caso contrario ponemos un mensaje de que no se ha hecho el cuestionario hoy*/}
+              {drmToday !== ""
+                ? drmToday
+                : "No se ha generado el cuestionario de hoy"}
+            </Text>
+          </ScrollView>
+        </View>
 
         <TouchableOpacity
           TouchableOpacity

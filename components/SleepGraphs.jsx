@@ -6,8 +6,8 @@ import SleepPieChart from "./SleepPieChart";
 
 const SleepGraphs = () => {
   return (
-    <View className="flex justify-center w-[95%] gap-6 px-4 py-5 rounded-lg bg-[#1e2a47]">
-      <View className="flex flex-row gap-4 justify-start">
+    <View className="flex justify-center w-full gap-6 px-4 py-5 rounded-lg bg-[#1e2a47]">
+      <View className="flex flex-row justify-start gap-4">
         <Bed size={24} color="#fff" />
         <Text
           className="text-center font-bold color-[#6366ff]"
@@ -22,7 +22,7 @@ const SleepGraphs = () => {
       </View>
 
       {/*GRÁFICA QUE MUESTRA EL PORCENTAJE EN LAS QUE HA ESTADO EL USER EN CADA UNA DE LAS POSIBLES FASES DEL SUEÑO */}
-      <View className="flex flex-row gap-4 justify-start">
+      <View className="flex flex-row justify-start gap-4">
         <Boxes size={24} color="#fff" />
         <Text
           className="text-center font-bold color-[#6366ff]"

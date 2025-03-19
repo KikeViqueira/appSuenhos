@@ -7,9 +7,9 @@ import BreathingBarChart from "./BreathingBarChart ";
 
 const FitbitUserGraphs = () => {
   return (
-    <View className="flex justify-center w-[95%] gap-6 px-4 py-5 rounded-lg bg-[#1e2a47]">
+    <View className="flex justify-center w-full gap-6 px-4 py-5 rounded-lg bg-[#1e2a47]">
       {/*GRÁFICA QUE MUESTRA LA CORRELACIÓN DE COMO INFLUYEN LAS CALORIAS CONSUMIDAS EN LAS HORAS QUE DUERME EL USER*/}
-      <View className="flex flex-row gap-4 justify-start">
+      <View className="flex flex-row justify-start gap-4">
         <Apple size={24} color="#fff" />
         <Text
           className="text-center font-bold color-[#6366ff]"
@@ -23,7 +23,7 @@ const FitbitUserGraphs = () => {
       </View>
 
       {/*GRÁFICA QUE MUESTRA COMO HA VARIADO EL HRV A LO LARGO DE LA SEMANA*/}
-      <View className="flex flex-row gap-4 justify-start">
+      <View className="flex flex-row justify-start gap-4">
         <Activity size={24} color="#fff" />
         <Text
           className="text-center font-bold color-[#6366ff]"
@@ -38,7 +38,7 @@ const FitbitUserGraphs = () => {
 
       {/*GRÁFICA QUE MUESTRA COMO HA VARIADO EL BREATHING RATE A LO LARGO DE LA SEMANA*/}
 
-      <View className="flex flex-row gap-4 justify-start">
+      <View className="flex flex-row justify-start gap-4">
         <Wind size={24} color="#fff" />
         <Text
           className="text-center font-bold color-[#6366ff]"

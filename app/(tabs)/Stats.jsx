@@ -83,7 +83,8 @@ const Estadisticas = () => {
           },
         ]
       );
-      //TODO: TENEMOS QUE CANCELAR LA NOTIFICACIÓN QUE ESTABA PROGRAMADA.
+      //eliminamos la notificación de recordatorio de despertar
+      await Notifications.cancelAllScheduledNotificationsAsync();
       console.log("Valor de isSleeping despues de la alerta: ", isSleeping);
       //TODO: Tenemos que borrar igualmente la hora de inicio de sueño si el user decide reiniciar el registro ya que el useEffect sigue podiendo cargarla
       //TODO: Esto es debido por el hecho de que solo la eliminabamos si el user hacia el registro matutino pero hay que tener en cuenta el caso de que anule el registro y vuelva a entrar a la app
@@ -206,12 +207,11 @@ const Estadisticas = () => {
     <SafeAreaView className="w-full h-full bg-primary">
       <ScrollView
         contentContainerStyle={{
-          display: "flex",
+          flexGrow: 1,
           alignItems: "center",
-          justifyContent: "center",
+          justifyContent: "start",
           gap: 5,
           width: "100%",
-          paddingBottom: 20,
         }}
         bounces={true}
         decelerationRate="normal" // O "fast" según el comportamiento deseado
@@ -223,7 +223,7 @@ const Estadisticas = () => {
 
         <View className="flex w-[95%] gap-6 px-4 py-5 rounded-lg bg-[#1e2a47]">
           {/* Título de la sección */}
-          <View className="flex flex-row gap-4 justify-start">
+          <View className="flex flex-row justify-start gap-4">
             <Bed size={24} color="white" />
             <Text
               className="text-center font-bold color-[#6366ff]"
@@ -233,7 +233,7 @@ const Estadisticas = () => {
             </Text>
           </View>
           {/* Botones para registrar las horas de sueño y abrir el modal de preguntas */}
-          <View className="flex flex-col gap-4 justify-between w-full">
+          <View className="flex flex-col justify-between w-full gap-4">
             <TouchableOpacity
               onPress={calculateSleepStart}
               className={`flex flex-row items-center justify-start p-4 gap-4 ${
@@ -263,25 +263,36 @@ const Estadisticas = () => {
         </View>
 
         {/* Nueva sección de navegación */}
-        <View className="flex flex-row justify-between w-[95%] px-4 py-5 rounded-lg bg-[#1e2a47]">
-          <TouchableOpacity
-            onPress={() => setActiveSection("sleepGraphs")}
-            className={`flex-1 mx-2 ${
-              activeSection === "sleepGraphs" ? "bg-[#6366ff]" : "bg-[#323d4f]"
-            } rounded-lg p-4 justify-center`}
-          >
-            <Text className="font-bold text-center color-white">Gráficas</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setActiveSection("fitbitGraphs")}
-            className={`flex-1 mx-2 ${
-              activeSection === "fitbitGraphs" ? "bg-[#6366ff]" : "bg-[#323d4f]"
-            } rounded-lg p-4 justify-center`}
-          >
-            <Text className="font-bold text-center color-white">
-              Gráficas reservadas de Fitbit
-            </Text>
-          </TouchableOpacity>
+        <View className="flex flex-col gap-4  w-[95%] px-4 py-5 rounded-lg bg-[#1e2a47]">
+          <View className="flex flex-row justify-between w-full gap-4">
+            <TouchableOpacity
+              onPress={() => setActiveSection("sleepGraphs")}
+              className={`flex-1 mx-2 ${
+                activeSection === "sleepGraphs"
+                  ? "bg-[#6366ff]"
+                  : "bg-[#323d4f]"
+              } rounded-lg p-4 justify-center`}
+            >
+              <Text className="font-bold text-center color-white">
+                Gráficas
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setActiveSection("fitbitGraphs")}
+              className={`flex-1 mx-2 ${
+                activeSection === "fitbitGraphs"
+                  ? "bg-[#6366ff]"
+                  : "bg-[#323d4f]"
+              } rounded-lg p-4 justify-center`}
+            >
+              <Text className="font-bold text-center color-white">
+                Gráficas reservadas de Fitbit
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/*llamamos a la función para que reenderice lo necesario dependiendo de lo que tenga seleccionado el user*/}
+          {renderComponent()}
         </View>
 
         {/* Modal de preguntas sobre la calidad del sueño */}
@@ -291,9 +302,6 @@ const Estadisticas = () => {
           onSave={saveResponse}
         />
 
-        {/*llamamos a la función para que reenderice lo necesario dependiendo de lo que tenga seleccionado el user*/}
-        {renderComponent()}
-
         {/* Sección donde poneremos el botón para hacer el cuestionario diario DRM*/}
         {/*Botón para hacer el cuestionario diario DRM*/}
         <TouchableOpacity
@@ -301,7 +309,7 @@ const Estadisticas = () => {
           //redireccionamos al user a la pantalla de cuestionario DRM
           onPress={() => router.push("/DRM")}
         >
-          <View className="flex-row gap-4 justify-center items-center self-center">
+          <View className="flex-row items-center self-center justify-center gap-4">
             <Text className="text-lg text-white font-psemibold">
               Hacer cuestionario DRM
             </Text>
@@ -315,7 +323,7 @@ const Estadisticas = () => {
           //redireccionamos al user a la pantalla donde se encuentra el informe de DRM
           onPress={() => router.push("/DrmReport")}
         >
-          <View className="flex-row gap-4 justify-center items-center self-center">
+          <View className="flex-row items-center self-center justify-center gap-4">
             <Text className="text-lg text-white font-psemibold">
               Ver informe DRM
             </Text>

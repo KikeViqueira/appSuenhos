@@ -7,6 +7,8 @@ const useDRM = () => {
   //Definimos los estados que necesitamos por ahora
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  //Estado para guardar el informe de hoy
+  const [drmToday, setDrmToday] = useState("");
 
   /*
    * Realizamos la petición POST a /users/{userId}/drm para permitir al user que registre su respuesta al cuestionario
@@ -45,11 +47,6 @@ const useDRM = () => {
           },
         }
       );
-
-      console.log(
-        "Respuesta de la API al hacer el cuestionario DRM: ",
-        response.data.reportGenerated
-      );
     } catch (error) {
       setError(error);
       console.error("Error al intentar hacer el cuestionario DRM: ", error);
@@ -58,7 +55,46 @@ const useDRM = () => {
     }
   };
 
-  return { saveDrmAnswers, loading, error };
+  const getDrmToday = async () => {
+    setError(false);
+
+    const controller = new AbortController();
+    setLoading(true);
+
+    //Obtenemos el token del user y su id
+    const token = await SecureStore.getItemAsync("userToken");
+    const userId = await SecureStore.getItemAsync("userId"); //TODO: hay que tener en cuenta que el userId que tenemos guardado es el del último user que se ha registrado en la app
+
+    try {
+      //Hacemos la petición GET a la API
+      const response = await axios.get(
+        `${API_BASE_URL}/users/1/drm?preiod=daily`,
+        {
+          signal: controller.signal,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log(
+        "Respuesta de la API al obtener el cuestionario DRM de hoy: ",
+        response.data
+      );
+
+      setDrmToday(response.data);
+    } catch (error) {
+      setError(error);
+      console.error(
+        "Error al intentar obtener el cuestionario DRM de hoy: ",
+        error
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { saveDrmAnswers, loading, error, getDrmToday, drmToday };
 };
 
 export default useDRM;
