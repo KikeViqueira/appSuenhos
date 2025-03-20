@@ -12,48 +12,61 @@ import { Play, Pause, Repeat, Upload, Trash2 } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Slider from "@react-native-community/slider";
 import * as DocumentPicker from "expo-document-picker";
-
-//Si queremos que al cambiar el emoticono del bucle solo se cambie en el audio que se esta reproduciendo, tenemos que guardar variable looping dentro de cada uno de ellos
-const relaxationSounds = [
-  {
-    id: "1",
-    title: "Ocean Waves",
-    source: require("../../assets/sounds/ocean-waves.mp3"),
-    isLooping: false,
-    isDefault: true,
-  },
-  {
-    id: "2",
-    title: "Forest Ambience",
-    source: require("../../assets/sounds/forest-ambience.mp3"),
-    isLooping: false,
-    isDefault: true,
-  },
-  {
-    id: "3",
-    title: "Rain Sounds",
-    source: require("../../assets/sounds/rain-sound.mp3"),
-    isLooping: false,
-    isDefault: true,
-  },
-  {
-    id: "4",
-    title: "Birds in Forest",
-    source: require("../../assets/sounds/birds-in-forest.mp3"),
-    isLooping: false,
-    isDefault: true,
-  },
-];
+import useSound from "../../hooks/useSound";
 
 const Music = () => {
+  //Recuperamos las funcionalidades del useSound para usar en este componente
+  const { staticSounds, getAllStaticSounds } = useSound();
+
   const [currentSound, setCurrentSound] = useState(null); //Guardamos el sonido que está sonando actualmente
   const soundRef = useRef(null); //Una referencia a el
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   //Definimos los estados para controlar el número de audios que sube el user a la app
-  const [userSounds, setUserSounds] = useState([]);
   const maxSounds = 6;
+
+  /*
+   * La función getSoundSource se encarga de obtener el asset correcto para reproducir el sonido.
+   *
+   * - Para sonidos estáticos (los que vienen por defecto en la app), React Native requiere
+   *   que se utilice require en tiempo de compilación, por lo que no se puede determinar
+   *   dinámicamente la ruta del asset. Aquí, usamos un switch para mapear la propiedad 'fileUrl'
+   *   (que proviene de la BD) al asset correspondiente.
+   *
+   * - Para sonidos dinámicos (subidos por el usuario), se asume que el objeto 'sound' ya posee
+   *   en su propiedad 'source' el objeto { uri: ... } con la URL del recurso, permitiendo cargar
+   *   el audio de forma remota.
+   *
+   * Esta separación es esencial para tener una solución escalable y profesional:
+   *  - Los sonidos estáticos quedan incluidos en el bundle mediante require.
+   *  - Los sonidos subidos por el usuario se cargan dinámicamente sin necesidad de modificar el código.
+   */
+  const getSoundSource = (sound) => {
+    if (!sound.isDefault) {
+      // Sonido subido por el usuario: ya se tiene la URI
+      return sound.source;
+    }
+    // Sonido estático: usamos require para incluir el asset en el bundle
+    switch (sound.source) {
+      case "../../assets/sounds/ocean-waves.mp3":
+        return require("../../assets/sounds/ocean-waves.mp3");
+      case "../../assets/sounds/forest-ambience.mp3":
+        return require("../../assets/sounds/forest-ambience.mp3");
+      case "../../assets/sounds/rain-sound.mp3":
+        return require("../../assets/sounds/rain-sound.mp3");
+      case "../../assets/sounds/birds-in-forest.mp3":
+        return require("../../assets/sounds/birds-in-forest.mp3");
+      default:
+        return null; // O bien un asset por defecto
+    }
+  };
+
+  //Tenemos que hacer cuando se reenderice el componente llamar a la función que recupera los sonidos estáticos
+  useEffect(() => {
+    //Los sonidos que hemos recuperado se guardan en el estado de staticSounds del useSound
+    getAllStaticSounds();
+  }, []);
 
   useEffect(() => {
     //Actualizamos de una manera constante el progreso del sonido
@@ -88,6 +101,14 @@ const Music = () => {
         isPlaying,
         progress,
       });
+
+      // Obtenemos el asset adecuado, ya sea estático (mediante require) o dinámico (por URI)
+      const soundSource = getSoundSource(sound);
+      if (!soundSource) {
+        console.error("No se pudo obtener el asset para el sonido:", sound);
+        return;
+      }
+
       if (currentSound?.id === sound.id && !isPlaying && progress > 0) {
         // Resume the paused sound
         if (soundRef.current) {
@@ -109,7 +130,7 @@ const Music = () => {
       }
 
       //Ejecutamos el nuevo sonido y actualizamos la referencia y el sonido actual
-      const { sound: newSound } = await Audio.Sound.createAsync(sound.source, {
+      const { sound: newSound } = await Audio.Sound.createAsync(soundSource, {
         shouldPlay: true,
         isLooping: sound.isLooping || false,
       });
@@ -188,13 +209,13 @@ const Music = () => {
         currentSound?.id === item.id ? "bg-[#6366ff]" : "bg-[#1e273a]"
       } w-[95%] self-center flex p-6 gap-4 rounded-lg border border-[#323d4f]`}
     >
-      <View className="flex-row justify-between items-center">
-        <Text className="text-base font-semibold text-white">{item.title}</Text>
-        <View className="flex-row gap-5 items-center">
+      <View className="flex-row items-center justify-between">
+        <Text className="text-base font-semibold text-white">{item.name}</Text>
+        <View className="flex-row items-center gap-5">
           {/*Botón para eliminar sonidos si estos han sido subidos por el user*/}
           {!item.isDefault && (
             <TouchableOpacity
-            //TODO: TENEMOS QUE LLAMAR AL ENDPOINT PARAELIMINAR EL SONIDO DE LA BD
+            //TODO: TENEMOS QUE LLAMAR AL ENDPOINT PARA ELIMINAR EL SONIDO DE LA BD
             >
               <Trash2 color="#ff6b6b" size={28} />
             </TouchableOpacity>
@@ -279,12 +300,14 @@ const Music = () => {
 
       //llamamos al document picker
       const result = await DocumentPicker.getDocumentAsync({
-        type: "audio/*" /*Solo permitir archivos de audio (* en el segundo parámetro indica que acepta cualquier tipo de extension)
-      audio/mpeg = MP3 files
-      audio/wav = WAV files
-      audio/ogg = OGG files
-      audio/* = ALL audio file types
-      */,
+        /*
+         * Solo permitir archivos de audio (* en el segundo parámetro indica que acepta cualquier tipo de extension)
+         * audio/mpeg = MP3 files
+         * audio/wav = WAV files
+         * audio/ogg = OGG files
+         * audio/* = ALL audio file types
+         */
+        type: "audio/*",
         copyToCacheDirectory: true, //Permitimos que expo lea el fichero nada más sea seleccionado
       });
 
@@ -299,16 +322,18 @@ const Music = () => {
           return;
         }
 
+        console.log("Archivo seleccionado por el user:", result);
         //Si el resultado ha sido exitoso y no supera el tamaño incluído, creamos un objeto sonido nuevo //TODO: Por ahora los guardamos de manera estática
         const newSound = {
-          id: `user-${Date.now()}`,
-          title: result.assets[0].name,
-          source: { uri: result.assets[0].uri }, //URI para que la función createAsync funcione
-          isLooping: false,
-          isDefault: false, //TODO/ Campo en la BD que indica si el sonido es subido por un user o no
+          /**
+           * Creamos la estructura del objeto sound que espera la api
+           * en el método postSound para que no sucedan errores al llamar al endpoint
+           */
+          name: result.assets[0].name,
+          source: result.assets[0].uri, //URI para que la función createAsync funcione
         };
 
-        console.log(newSound.source);
+        console.log(newSound);
 
         //TODO:Guardar el audio en la BD, por ahora lo guardamos en el estado de userSounds
         setUserSounds((prevSounds) => [...prevSounds, newSound]);
@@ -331,7 +356,7 @@ const Music = () => {
         className="bg-[#6366ff] w-[95%] self-center flex p-6 gap-4 rounded-3xl border border-[#323d4f]"
         onPress={uploadSound}
       >
-        <View className="flex-row justify-between items-center">
+        <View className="flex-row items-center justify-between">
           <Text className="text-lg text-white font-psemibold">
             Sube sonidos propios
           </Text>
@@ -371,7 +396,7 @@ const Music = () => {
           Sonidos por defecto
         </Text>
         <FlatList
-          data={relaxationSounds}
+          data={staticSounds}
           renderItem={renderSoundItem}
           keyExtractor={(item) => item.id}
           contentContainerClassName="pb-4 gap-4"
