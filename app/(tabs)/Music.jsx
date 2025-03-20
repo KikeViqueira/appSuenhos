@@ -16,7 +16,14 @@ import useSound from "../../hooks/useSound";
 
 const Music = () => {
   //Recuperamos las funcionalidades del useSound para usar en este componente
-  const { staticSounds, getAllStaticSounds } = useSound();
+  const {
+    staticSounds,
+    getAllStaticSounds,
+    userSounds,
+    getUserSounds,
+    deleteUserSound,
+    postSound,
+  } = useSound();
 
   const [currentSound, setCurrentSound] = useState(null); //Guardamos el sonido que está sonando actualmente
   const soundRef = useRef(null); //Una referencia a el
@@ -215,7 +222,10 @@ const Music = () => {
           {/*Botón para eliminar sonidos si estos han sido subidos por el user*/}
           {!item.isDefault && (
             <TouchableOpacity
-            //TODO: TENEMOS QUE LLAMAR AL ENDPOINT PARA ELIMINAR EL SONIDO DE LA BD
+              /*
+               * Tenemos que llamar al endpoint de la API para eliminar el sonido seleccionado que el user ha subido a la app
+               */
+              onPress={() => deleteUserSound(item.id)}
             >
               <Trash2 color="#ff6b6b" size={28} />
             </TouchableOpacity>
@@ -322,8 +332,6 @@ const Music = () => {
           return;
         }
 
-        console.log("Archivo seleccionado por el user:", result);
-        //Si el resultado ha sido exitoso y no supera el tamaño incluído, creamos un objeto sonido nuevo //TODO: Por ahora los guardamos de manera estática
         const newSound = {
           /**
            * Creamos la estructura del objeto sound que espera la api
@@ -334,9 +342,10 @@ const Music = () => {
         };
 
         console.log(newSound);
-
-        //TODO:Guardar el audio en la BD, por ahora lo guardamos en el estado de userSounds
-        setUserSounds((prevSounds) => [...prevSounds, newSound]);
+        //llamamos al endpoint encargado de subir el sonido en la app
+        postSound(newSound);
+        //Una vez subido el sonido por parte del user tenemos que llamar a la función que recupera los sonidos del user
+        getUserSounds();
         console.log(userSounds);
       }
     } catch (error) {

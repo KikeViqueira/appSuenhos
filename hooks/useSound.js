@@ -104,7 +104,8 @@ const useSound = () => {
       const response = await axios.post(
         `${API_BASE_URL}/sounds/${userId}`,
         {
-          sound: sound,
+          name: sound.name,
+          source: sound.source,
         },
         {
           signal: controller.signal,
