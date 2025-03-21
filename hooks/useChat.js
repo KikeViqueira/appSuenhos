@@ -38,12 +38,16 @@ const useChat = () => {
       // Actualizamos el estado agregando ambos mensajes a la vez
       setMessages((prev) => [...prev, userMessage, tempAIMessage]);
 
-      //recuperamos el token del almacenamiento seguro del movil
+      //recuperamos el token del almacenamiento seguro del movil y el id del chat de hoy
       const token = await SecureStore.getItemAsync("userToken");
+      console.log("token: ", token);
+      const chatId = await SecureStore.getItemAsync("chatId");
+
+      console.log("chatId: ", chatId);
 
       //Hacemos la petición POST al endpoint
       const response = await axios.post(
-        `${API_BASE_URL}/chats/1/null/messages`,
+        `${API_BASE_URL}/chats/1/${chatId}/messages`,
         {
           /*
            *El payload se tiene que corresponder con lo que tenemos en el modelo de datos de Message, en este caso el atributo se llama "content"
@@ -65,9 +69,16 @@ const useChat = () => {
         );
         return [
           ...tempMessage, //llamamos a la función que nos devuelve el array de mensajes sin el mensaje temporal de la IA
-          { id: Date.now() + 2, text: response.data, sender: "AI" }, //Añadimos el nuevo objeto mensaje al estado de los mensajes
+          { id: Date.now() + 2, text: response.data.response, sender: "AI" }, //Añadimos el nuevo objeto mensaje al estado de los mensajes
         ];
       });
+
+      console.log("id del chat que acabamos de crear: ", response.data.id);
+
+      //Tenemos que guardar en el secureStore el id del chat que hemos creado hoy, si no estaba guardado ya
+      if (!chatId) {
+        SecureStore.setItemAsync("chatId", response.data.id.toString());
+      }
     } catch (error) {
       //Si ocurre un error se elimina el mensaje temporal de la IA y se muestra un mensaje de error
       setMessages((prev) => prev.filter((message) => message.text !== "..."));
