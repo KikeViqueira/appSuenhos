@@ -14,6 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import ChatsModal from "../../components/ChatsModal";
 import useChat from "../../hooks/useChat";
 import TypingIndicator from "../../components/TypingIndicator";
+import { useAuthContext } from "../../context/AuthContext";
 
 const Chat = () => {
   //recuperamos las funcionalidades del hook de chat
@@ -22,6 +23,9 @@ const Chat = () => {
   const [newMessage, setNewMessage] = useState("");
   //Estado para saber si el modal en el que se eligen los chats está abierto o no
   const [showModal, setShowModal] = useState(false);
+
+  //Tenemos que recuperar el nombre del user para enseñarlo en el mensaje inicial que se pone en el chat antes de iniciar la conversación
+  const { userInfo } = useAuthContext();
 
   const toggleModal = () => {
     setShowModal(!showModal);
@@ -118,8 +122,9 @@ const Chat = () => {
         {messages.length === 0 ? (
           <View className="items-center justify-center flex-1">
             <View className="items-center justify-center flex-1">
+              {/*Mostramos el mensaje de bienvenida al user con el nombre del user en caso de que exista, en caso de que no exista dejamos el placeholder de user*/}
               <Text className="text-center text-[#6366ff] text-3xl font-bold mb-2">
-                Hola, User!
+                Hola, {userInfo?.name || "User"}!
               </Text>
               <Text className="text-lg italic text-center text-white">
                 ¿Coméntame sobre tu sueño de hoy y te ayudaré a comprenderlo?

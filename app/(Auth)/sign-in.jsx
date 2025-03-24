@@ -15,7 +15,14 @@ import { useAuthContext } from "../../context/AuthContext";
 
 const signIn = () => {
   //Recuperamos las dunciones y estados del hook de useAuth
-  const { token, loading, error, LoginRequest, setError } = useAuthContext();
+  const {
+    accessToken,
+    loading,
+    error,
+    LoginRequest,
+    setError,
+    onboardingCompleted,
+  } = useAuthContext();
 
   //Definimos un estado para saber los valores que el usuario introduce en los campos del formulario
   const [form, setForm] = useState({
@@ -53,10 +60,18 @@ const signIn = () => {
         "Error Inicio de Sesión",
         "El email o la contraseña son incorrectos"
       );
-    } else if (token) {
-      router.push("/Stats");
+    } else if (accessToken) {
+      setTimeout(() => {
+        if (onboardingCompleted) {
+          router.push("/Stats"); // Si ya completó onboarding, vamos a la pantalla principal
+          console.log("Redirigiendo a Stats");
+        } else {
+          router.push("/(Onboarding)/Onboarding"); // Sino, vamos al onboarding
+          console.log("Redirigiendo a Onboarding");
+        }
+      }, 0);
     }
-  }, [token, error]);
+  }, [accessToken, error, onboardingCompleted]);
 
   return (
     <SafeAreaView className="flex items-center w-full h-full bg-primary">

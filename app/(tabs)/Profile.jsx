@@ -26,6 +26,7 @@ import LogOutModal from "../../components/LogOutModal";
 import ChangePasswordModal from "../../components/ChangePasswordModal";
 import ChangeEmailModal from "../../components/ChangeEmailModal";
 import ChatContributionGraph from "../../components/ChatContributionGraph";
+import { useAuthContext } from "../../context/AuthContext";
 
 const Profile = () => {
   //Hacemos states tanto para guardar la foto como para controlar que el modal de opciones de cámara este desplegado o no
@@ -35,6 +36,9 @@ const Profile = () => {
   const [showModalChangePassword, setshowModalChangePassword] = useState(false);
   const [showModalChangeEmail, setshowModalChangeEmail] = useState(false);
   const [isSwitchEnabled, setIsSwitchEnabled] = useState(false);
+
+  //Recuperamos la info del user que se ha logueado en la app mediante el contexto de Auth
+  const { userInfo } = useAuthContext();
 
   //TODO:AQUI ES DONDE TENEMOS QUE HACER EL COMPORTAMIENTO DE LA FUNCIÓN QUE SE ENCARGARÁ DE ACTIVAR/DESACTIVAR LAS NOTIFICACIONES
   const toggleEnabled = async () => {
@@ -157,7 +161,7 @@ const Profile = () => {
               </TouchableOpacity>
             </View>
             <Text className="mt-4 text-xl text-white font-psemibold">
-              Enrique Viqueira
+              {userInfo?.name || "UserName Placeholder"}
             </Text>
           </View>
 
@@ -202,7 +206,7 @@ const Profile = () => {
               </TouchableOpacity>
             </View>
             <Text className="text-white font-pregular">
-              enrique.viqueira@example.com
+              {userInfo?.email || "user@domain.com"}
             </Text>
           </View>
 
@@ -219,7 +223,9 @@ const Profile = () => {
 
           <View className="bg-[#1e2a47] rounded-xl p-4 flex-col gap-4">
             <Text className="text-white font-pmedium">Fecha de nacimiento</Text>
-            <Text className="text-white font-pregular">25 agosto 2002</Text>
+            <Text className="text-white font-pregular">
+              {userInfo?.birthDate || "YYYY-MM-DD"}
+            </Text>
           </View>
 
           {/* Disable Notifications Switch */}

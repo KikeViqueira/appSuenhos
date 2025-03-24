@@ -1,4 +1,3 @@
-import { View } from "react-native";
 import React, { useEffect, useState } from "react";
 import MultipleOptionOnboarding from "../../components/MultipleOptionOnboarding";
 import AgeQuestion from "./AgeQuestion";
@@ -8,9 +7,12 @@ import { router } from "expo-router";
 import OnboardingMultipleOptionsQuestions from "../../assets/OnboardingMultipleOptionsQuestions.json";
 import { SafeAreaView } from "react-native-safe-area-context";
 import useOnboarding from "../../hooks/useOnboarding";
+import { markOnboardingAsCompleted } from "../../services/onboardingService";
+import { useAuthContext } from "../../context/AuthContext";
 
 export default function Onboarding() {
   const { saveOnboardingAnswers } = useOnboarding();
+  const { updateOnboardingStatus } = useAuthContext();
 
   /* Función que se ejecuta al finalizar el cuestionario
    * Recibimos del callback de la función updateResponse el objeto de respuestas actualizado y lo enviamos a la API
@@ -20,11 +22,14 @@ export default function Onboarding() {
     //llamamos a al endpoint correspondiente en la API para guardar las respuestas del usuario
     saveOnboardingAnswers(data);
     //Guardamos en el almacenamiento asincrono que el usuario ha completado el cuestionario, ya que la idea de este es que se haga solo una vez desde que se crea la cuenta
-    AsyncStorage.setItem("hasCompletedOnboarding", "true");
-    /*Una guardamos el valor para cuando la app se vuelva a abrir que no se muestre el cuestionario de nuevo
-    , si queremos cambiar en caliente sin reiniciar la app, tenemos que hacer un push desde aqui a la primera pestaña en este caso Stats*/
+    markOnboardingAsCompleted();
+    //Actualizamos el estado del onboarding en el contexto de la aplicación
+    updateOnboardingStatus(true);
+    /*
+     * Una guardamos el valor para cuando la app se vuelva a abrir que no se muestre el cuestionario de nuevo
+     * , si queremos cambiar en caliente sin reiniciar la app, tenemos que hacer un push desde aqui a la primera pestaña en este caso Stats*/
     console.log("Cuestionario finalizado");
-    router.push("/Stats");
+    router.replace("/Stats"); //USamosla función replace para prevenir la acción de retroceso
   };
 
   //Definimos un estado para saber en que pregunta se encuentra el usuario
@@ -57,7 +62,7 @@ export default function Onboarding() {
    * Función para actualizar la respuesta de una pregunta específica
    *
    * tenemos que pasarle un tercer parámetro que consiste en una función callback, esta es necesaria para que donde llamemos a la función se ejecute de manera correcta
-   * con el estado de las respuestas bien actualizado, esto no es útil para pasar a la siguiente pregunta o finalizar el cuestionario de manera consistente en lo
+   * con el estado de las respuestas bien actualizado, esto es útil para pasar a la siguiente pregunta o finalizar el cuestionario de manera consistente en lo
    * que viene siendo en este caso en el componente MultipleOptionOnboarding
    * */
   const updateResponse = (question, answer, callback) => {

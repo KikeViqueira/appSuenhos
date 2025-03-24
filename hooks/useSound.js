@@ -1,7 +1,8 @@
 import { useEffect, useState, Alert } from "react";
-import axios from "axios";
+import { apiClient } from "../services/apiClient";
 import * as SecureStore from "expo-secure-store";
 import { API_BASE_URL } from "../config/config";
+import { useAuthContext } from "../context/AuthContext";
 
 const useSound = () => {
   //Definimos los estados iniciales que sabemos que vamos a usar
@@ -13,24 +14,24 @@ const useSound = () => {
   const [userSounds, setUserSounds] = useState([]);
 
   /*
+   * Al usarse el hook de useSound dentro de un componente dentro del árbol de componentes de la app
+   * podemos usar los estados que están almacenados en el AuthContext para poder hacer las llamadas a la API
+   * de una manera más centralizada, rápida y eficiente.
+   */
+  const { accessToken, userId } = useAuthContext();
+
+  /*
    * Función que se encargará de recuperar los sonidos disponibles por defecto en la app para enseñarselos al usuario
    */
   const getAllStaticSounds = async () => {
     setError(null); // Reseteamos el error
-
-    //Creamos una instancia del controllador de aborto para poder cancelar la petición en caso de que sea necesario
-    const controller = new AbortController();
     setLoading(true); // Activamos el estado de carga
-
-    //Recuperamos el token del almacenamiento seguro del móvil
-    const token = await SecureStore.getItemAsync("userToken");
 
     try {
       //Hacemos la llamada a la API para recuperar los sonidos estáticos
-      const response = await axios.get(`${API_BASE_URL}/sounds`, {
-        signal: controller.signal,
+      const response = await apiClient.get(`${API_BASE_URL}/sounds`, {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 
@@ -48,21 +49,13 @@ const useSound = () => {
    */
   const getUserSounds = async () => {
     setError(null); // Reseteamos el error
-
-    //Creamos una instancia del controllador de aborto para poder cancelar la petición en caso de que sea necesario
-    const controller = new AbortController();
     setLoading(true); // Activamos el estado de carga
-
-    //Recuperamos el token del almacenamiento seguro del móvil y el id del user
-    const token = await SecureStore.getItemAsync("userToken");
-    const userId = await SecureStore.getItemAsync("userId");
 
     try {
       //Hacemos la llamada a la API para recuperar los sonidos estáticos
       const response = await axios.get(`${API_BASE_URL}/sounds/${userId}`, {
-        signal: controller.signal,
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${accessToken}`,
         },
       });
 
@@ -90,14 +83,7 @@ const useSound = () => {
 
   const postSound = async (sound) => {
     setError(null); // Reseteamos el error
-
-    //Creamos una instancia del controllador de aborto para poder cancelar la petición en caso de que sea necesario
-    const controller = new AbortController();
     setLoading(true); // Activamos el estado de carga
-
-    //Recuperamos el token del almacenamiento seguro del móvil y el id del user
-    const token = await SecureStore.getItemAsync("userToken");
-    const userId = await SecureStore.getItemAsync("userId");
 
     try {
       //Hacemos la llamada a la API para recuperar los sonidos estáticos
@@ -108,9 +94,8 @@ const useSound = () => {
           source: sound.source,
         },
         {
-          signal: controller.signal,
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${accessToken}`,
           },
         }
       );
@@ -131,23 +116,15 @@ const useSound = () => {
    */
   const deleteUserSound = async (soundId) => {
     setError(null); // Reseteamos el error
-
-    //Creamos una instancia del controllador de aborto para poder cancelar la petición en caso de que sea necesario
-    const controller = new AbortController();
     setLoading(true); // Activamos el estado de carga
-
-    //Recuperamos el token del almacenamiento seguro del móvil y el id del user
-    const token = await SecureStore.getItemAsync("userToken");
-    const userId = await SecureStore.getItemAsync("userId");
 
     try {
       //hacemos la llamada al endpoint
       const response = await axios.delete(
         `${API_BASE_URL}/sounds/${userId}/${soundId}`,
         {
-          signal: controller.signal,
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${accessToken}`,
           },
         }
       );

@@ -11,18 +11,19 @@
  * Así evitamos tener que pasar props a través de múltiples componentes para compartir datos y evitamos en definitiva
  * el "prop drilling".
  */
-import React, {
-  createContext,
-  useEffect,
-  useState,
-  useContext,
-} from "react";
+import React, { createContext, useEffect, useState, useContext } from "react";
 import { API_BASE_URL } from "../config/config";
 import * as SecureStore from "expo-secure-store";
 //Importamos los servicios y registramos las funciones para que el interceptor pueda llamarlas
-import {registerSetAccessToken, registerForceLogout, updateTokens } from "../services/TokenService";
-import {apiClient} from "../services/apiClient";
-
+import {
+  registerSetAccessToken,
+  registerForceLogout,
+  updateTokens,
+} from "../services/TokenService";
+import { apiClient } from "../services/apiClient";
+import { router } from "expo-router";
+import { hasCompletedOnboarding } from "../services/onboardingService";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const AuthContext = createContext();
 
@@ -41,24 +42,42 @@ export const AuthProvider = ({ children }) => {
    */
   const [userId, setUserId] = useState(null); // Estado que guarda el id del user que se ha registrado en la app
   const [accessToken, setAccessToken] = useState(null); // Estado que guarda el token que recibimos del endpoint del login
+  const [onboardingCompleted, setOnboardingCompleted] = useState(null); // Estado que guarda si el user ha completado el cuestionario de onboarding
   const [userInfo, setUserInfo] = useState(null); // Estado que guarda la info del user que se ha logueado en la app
+
+  //Función para actualizar el estado del onboarding
+  const updateOnboardingStatus = (status) => {
+    setOnboardingCompleted(status);
+  };
 
   //Al cargar la app, intentamos cargar el token de la memoria segura
   useEffect(() => {
     const loadAuthData = async () => {
       try {
+        //await SecureStore.deleteItemAsync("userAccessToken");
+        //await SecureStore.deleteItemAsync("userRefreshToken");
+        //await SecureStore.deleteItemAsync("userId");
+        //await AsyncStorage.removeItem("hasCompletedOnboarding");
+
         const userAccessToken = await SecureStore.getItemAsync(
           "userAccessToken"
         );
         const idUser = await SecureStore.getItemAsync("userId");
+        const onboardingStatus = await hasCompletedOnboarding();
+        console.log(
+          "Valores para el token y el id del user: ",
+          userAccessToken,
+          idUser,
+          onboardingStatus
+        );
         if (userAccessToken && idUser) {
           setAccessToken(userAccessToken);
           setUserId(idUser);
-          //llamamos a la función de getUser para recuperar la info del user que ha entrado en la app
-          getUser();
         }
+        //Se pone fuera del if pq se puede dar el caso de que el user se haya logeado y no haya completado el onboarding
+        setOnboardingCompleted(onboardingStatus);
       } catch (error) {
-        console.error("Error al cargar el token: ", error);
+        console.error("Error al cargar los datos del user: ", error);
       }
     };
     loadAuthData();
@@ -66,6 +85,15 @@ export const AuthProvider = ({ children }) => {
     registerForceLogout(logout);
     registerSetAccessToken(setAccessToken);
   }, []);
+
+  //Definimos en un nuevo efecto la llamada a la función de getUser cuando se cambia la variable de userId, accessToken o onboardingCompleted
+  useEffect(() => {
+    /**
+     * El primer getUser que se llamará será cuando el user se haya logueado y haya completado el onboarding
+     * a partir de ahí, cada vez que se actualice el token de acceso (ya sea debido al inicio de sesión o por el refresco del propio token), se llamará a getUser para recuperar la info del user
+     * */
+    if (userId && accessToken && onboardingCompleted) getUser();
+  }, [userId, accessToken, onboardingCompleted]);
 
   /*
    * Realizamos la petición POST a /auth/login permitir al user que inicie sesión en la app y obtenga su correspondiente token JWT para poder
@@ -81,20 +109,19 @@ export const AuthProvider = ({ children }) => {
     setLoading(true);
     try {
       //Hacemos la petición POST al endpoint de Login de la api
-      const response = await apiClient.post(
-        `${API_BASE_URL}/auth/login`,
-        {
-          email: email,
-          password: password,
-        },
-      );
+      const response = await apiClient.post(`${API_BASE_URL}/auth/login`, {
+        email: email,
+        password: password,
+      });
 
       //Una vez que hemos recibido los tokens, guardamos el accessToken en el estado
       setAccessToken(response.data.accessToken);
       //Guardamos el refreshToken y el accessToken en la memoria segura para que cuando el user cierre la app y la vuelva a abrir, la app sepa el valor del token
       await updateTokens(response.data.accessToken, response.data.refreshToken);
-      //TODO: EN LA RESPUESTA DEL ENDPOINT TENEMOS QUE DEVOLVER LA INFO DEL USER QUE SE HA LOGUEADO O PRO LO MENOS EL ID
-    
+      //tenemos que guardar también el id del user que se ha creado en la BD en el secureStorage y en el estado para las futuras peticiones
+      await SecureStore.setItemAsync("userId", response.data.userId.toString());
+      console.log("Usuario logueado correctamente: ", response.data);
+      setUserId(response.data.userId.toString());
     } catch (error) {
       setError(error);
       console.error("Error en el inicio de sesión: ", error);
@@ -119,23 +146,15 @@ export const AuthProvider = ({ children }) => {
 
     try {
       //hacemos la petición POST al endpoint de registro
-      const response = await apiClient.post(
-        `${API_BASE_URL}/users`,
-        {
-          /*
-           * El payload se tiene que corresponder con lo que tenemos en el modelo de datos de User, en este caso los atributos son "email", "name" y "password"
-           */
-          email: user.email,
-          name: user.name,
-          password: user.password,
-        },
-      );
-      //tenemos que guardar también el id del user que se ha creado en la BD en el secureStorage y en el estado para las futuras peticiones
-      await SecureStore.setItemAsync(
-        "userId",
-        response.data.Resource.id.toString()
-      );
-      setUserId(response.data.Resource.id.toString());
+      const response = await apiClient.post(`${API_BASE_URL}/users`, {
+        /*
+         * El payload se tiene que corresponder con lo que tenemos en el modelo de datos de User, en este caso los atributos son "email", "name" y "password"
+         */
+        email: user.email,
+        name: user.name,
+        password: user.password,
+      });
+      console.log("Usuario registrado correctamente: ", response.data);
     } catch (error) {
       //Si hay un error, lo guardamos en el estado de error
       setError(error);
@@ -162,13 +181,11 @@ export const AuthProvider = ({ children }) => {
       if (!userId) throw new Error("No hay id de usuario");
 
       //hacemos la petición get al endpoint de getUser
-      const response = await apiClient.get(`${API_BASE_URL}/users/${userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`
-          }
-        }
-      );
+      const response = await apiClient.get(`${API_BASE_URL}/users/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
 
       setUserInfo(response.data);
       console.log("Información recuperada del user: ", response.data);
@@ -190,6 +207,8 @@ export const AuthProvider = ({ children }) => {
     await SecureStore.deleteItemAsync("userAccessToken");
     await SecureStore.deleteItemAsync("userRefreshToken");
     await SecureStore.deleteItemAsync("userId");
+    //Redirigimos al user a la pantalla de login
+    router.push("/(Auth)/sign-in");
   };
 
   return (
@@ -201,6 +220,7 @@ export const AuthProvider = ({ children }) => {
       value={{
         accessToken,
         userId,
+        onboardingCompleted,
         userInfo,
         loading,
         error,
@@ -208,7 +228,8 @@ export const AuthProvider = ({ children }) => {
         logout,
         setError,
         registerUser,
-        getUser
+        getUser,
+        updateOnboardingStatus,
       }}
     >
       {children}

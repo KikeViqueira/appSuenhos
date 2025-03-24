@@ -64,11 +64,16 @@ export default function Question3({
 
   //Función para ver si existe una respuesta seleccionada y podemos continuar
   const handleSelection = () => {
-    //llamamos a la función de calcular la edad en base a la fecha seleccionada
-    const age = calculateAge(date);
-    console.log("Edad: ", age);
+    /*
+     * En la BD lo que nos interesa es guardar la fecha de nacimiento del user, ya que si guardamos solo la edad, cada año tendríamos que actualizarla
+     * Con la fecha sea el momento que sea que la recuperemos, siempre tendremos la edad actual del user mediante la resta de la fecha actual menos la de nacimiento
+     */
+    //const age = calculateAge(date);
+    //console.log("Edad: ", age);
 
-    updateResponse("question3", age.toString());
+    // Obtiene el string en formato ISO, por ejemplo: "2000-01-15T00:00:00.000Z"
+    const isoDate = date.toISOString().split("T")[0]; // Extrae "YYYY-MM-DD"
+    updateResponse("question3", isoDate);
     //Una vez guardamos la respuesta seleccionada, navegamos a la siguiente pregunta
     nextQuestion();
 
@@ -101,7 +106,7 @@ export default function Question3({
   };
 
   return (
-    <SafeAreaView className="flex justify-center items-center w-full h-full bg-primary">
+    <SafeAreaView className="flex items-center justify-center w-full h-full bg-primary">
       <View
         className="flex flex-col w-[90%] justify-center items-center gap-8"
         style={{
