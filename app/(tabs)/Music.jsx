@@ -377,7 +377,7 @@ const Music = () => {
           flexGrow: 1, //Puede crecer y adaptarse al nuevo tamaño y scroll
           paddingBottom: 20,
         }}
-        showsVerticalScrollIndicator={false} //Ocultamos la barra de scroll
+        showsVerticalScrollIndicator={true} //Ocultamos la barra de scroll
       >
         {/*Comprobamos si el user tiene sonidos subidos, si es ese caso tenemos que renderizar la parte correspondiente en la app */}
         {userSounds.length > 0 && (

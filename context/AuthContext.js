@@ -78,6 +78,8 @@ export const AuthProvider = ({ children }) => {
         setOnboardingCompleted(onboardingStatus);
       } catch (error) {
         console.error("Error al cargar los datos del user: ", error);
+      } finally {
+        setIsAuthLoading(false);
       }
     };
     loadAuthData();
@@ -94,6 +96,11 @@ export const AuthProvider = ({ children }) => {
      * */
     if (userId && accessToken && onboardingCompleted) getUser();
   }, [userId, accessToken, onboardingCompleted]);
+
+  //Cuando actualicemos la info del user tenemos que volver a hacer la petición para recuperar la info actualizada
+  useEffect(() => {
+    if (userInfo) getUser();
+  }, [userInfo]);
 
   /*
    * Realizamos la petición POST a /auth/login permitir al user que inicie sesión en la app y obtenga su correspondiente token JWT para poder
@@ -125,8 +132,6 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       setError(error);
       console.error("Error en el inicio de sesión: ", error);
-    } finally {
-      setLoading(false); //La petición ha terminado
     }
   };
 
@@ -224,6 +229,7 @@ export const AuthProvider = ({ children }) => {
         userInfo,
         loading,
         error,
+        setUserInfo,
         LoginRequest,
         logout,
         setError,

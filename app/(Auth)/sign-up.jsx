@@ -11,11 +11,11 @@ import {
 import React, { useState } from "react";
 import { router } from "expo-router";
 import CustomInput from "../../components/CustomInput";
-import useUser from "../../hooks/useUser";
 import { Alert } from "react-native";
+import { useAuthContext } from "../../context/AuthContext";
 
 const signUp = () => {
-  const { loading, error, registerUser } = useUser();
+  const { loading, error, registerUser } = useAuthContext();
 
   //Definimos un estado que guarda en un objeto los datos del formulario que representa al user
   const [form, setForm] = useState({

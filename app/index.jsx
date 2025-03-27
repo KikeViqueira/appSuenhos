@@ -1,35 +1,29 @@
 import { StatusBar } from "react-native-web";
-import { Text, View, TouchableOpacity } from "react-native";
+import { Text, View } from "react-native";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import * as Notifications from "expo-notifications";
-import { Platform } from "react-native";
-import Icon from "react-native-vector-icons/FontAwesome";
-
-//Configuración de notificaciones para que se muestren incluso cuando la app esté en primer plano
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
-
-//Solicitar permisos para recibir notificaciones en IOS
-async function requestNotificationPermissions() {
-  const settings = await Notifications.getPermissionsAsync();
-  //Si los permisos no han sido concedidos, los solicitamos
-  if (!settings.granted) {
-    await Notifications.requestPermissionsAsync();
-  }
-}
-
-if (Platform.OS === "ios") {
-  //Si estamos en un dispositivo IOS pedimos los permisos de la manera que hemos dicho antes
-  requestNotificationPermissions();
-}
+import { useAuthContext } from "../context/AuthContext";
+import { useEffect } from "react";
 
 export default function App() {
+  const { accessToken, userId, onboardingCompleted } = useAuthContext();
+
+  useEffect(() => {
+    // Si aún no se han determinado los valores, no se hace nada (puedes mostrar un loader)
+    if (accessToken === null && userId === null && onboardingCompleted === null)
+      return;
+
+    if (accessToken && userId) {
+      if (onboardingCompleted) {
+        router.replace("./(tabs)/Stats"); // Redirige a la app principal
+      } else {
+        router.replace("./(Onboarding)/Onboarding"); // Redirige al onboarding
+      }
+    } else {
+      router.replace("./(Auth)"); // Redirige a login
+    }
+  }, [accessToken, userId, onboardingCompleted]);
+
   return (
     <SafeAreaView className="flex items-center bg-primary">
       <View className="flex items-center justify-center w-full h-full gap-12">
@@ -44,16 +38,6 @@ export default function App() {
           </Text>
         </View>
         <StatusBar style="auto" />
-        {/*Con esta ruta hacemos que rootLayout tenga el control del fujo de navegación*/}
-        <TouchableOpacity
-          onPress={() => router.push("/(Auth)/sign-in")}
-          className="flex flex-row items-center gap-4 px-8 py-4 bg-[#323d4f] rounded-3xl"
-        >
-          <Icon name="envelope" size={24} color="white" />
-          <Text className="text-lg font-semibold color-white">
-            Continuar con email
-          </Text>
-        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );

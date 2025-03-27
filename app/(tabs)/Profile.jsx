@@ -27,6 +27,7 @@ import ChangePasswordModal from "../../components/ChangePasswordModal";
 import ChangeEmailModal from "../../components/ChangeEmailModal";
 import ChatContributionGraph from "../../components/ChatContributionGraph";
 import { useAuthContext } from "../../context/AuthContext";
+import useUser from "../../hooks/useUser";
 
 const Profile = () => {
   //Hacemos states tanto para guardar la foto como para controlar que el modal de opciones de cámara este desplegado o no
@@ -39,8 +40,11 @@ const Profile = () => {
 
   //Recuperamos la info del user que se ha logueado en la app mediante el contexto de Auth
   const { userInfo } = useAuthContext();
+  //Importamos la llamada al endpoint de updateUser
+  const { updateUser } = useUser();
 
   //TODO:AQUI ES DONDE TENEMOS QUE HACER EL COMPORTAMIENTO DE LA FUNCIÓN QUE SE ENCARGARÁ DE ACTIVAR/DESACTIVAR LAS NOTIFICACIONES
+  //TODO: TENEMOS QUE METER ESTO EN EL ASYNC STORAGE PARA QUE SE GUARDE EL ESTADO DE LAS NOTIFICACIONES, Y CARGARLO CON UN USEEFFECT CUANDO ENTREMOS EN LA PANTALLA
   const toggleEnabled = async () => {
     setIsSwitchEnabled(!isSwitchEnabled);
   };
@@ -110,6 +114,8 @@ const Profile = () => {
     // TODO : Implementar el guardado en la base de datos cuando tengamos la API
     try {
       console.log("Guardando la foto", imagen);
+      //Llamamos a la función de updateUser que se encargará de hacer el patch a la API para guardar la foto
+      await updateUser("/profilePicture", imagen);
       //Como estamos guardando una foto dinámica, tenemos que pasarla a un URI y asi pasar el objeto y que react sepa que es una foto que no está en el proyecto
       //Y de esta manera puede cargarla como imagen en la aplicación
       setImage({ uri: imagen });

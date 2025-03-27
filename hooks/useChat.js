@@ -8,8 +8,54 @@ const useChat = () => {
   const [messages, setMessages] = useState([]); // Estado que guarda todos los mensajes
   const [loading, setLoading] = useState(false); // Indica si la petición está en curso
   const [error, setError] = useState(null); // Almacena el error en caso de que ocurra
-
   const { accessToken, userId } = useAuthContext();
+  /*
+   * Funciones internas para guardar el chatId en el AsyncStorage junto a una marca temporal de cuando se ha hecho el chat,
+   * y función para recuperar el chatId del AsyncStorage y comprobar si es de hoy o no.
+   */
+
+  const setDailyChatId = async (id) => {
+    try {
+      const now = new Date();
+      //Establecemos la expiración del id que es al final del día
+      const endOfDay = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        23,
+        59,
+        59,
+        999
+      );
+      //Creamos el objeto que vamos a guardar en el AsyncStorage
+      const data = {
+        chatId: id,
+        expiry: endOfDay.getTime(),
+      };
+      await AsyncStorage.setItem("chatId", JSON.stringify(data));
+    } catch (error) {
+      console.error("Error al guardar el chatId en el AsyncStorage: ", error);
+    }
+  };
+
+  const getDailyChatId = async () => {
+    try {
+      const data = await AsyncStorage.getItem("chatId");
+      if (data) {
+        const { chatId, expiry } = JSON.parse(data);
+        //Comprobamos si el tiempo actual es mayor que el tiempo de expiración del chatId
+        if (Date.now() > expiry) {
+          //Si ha expirado eliminamos el chatId del AsyncStorage
+          await AsyncStorage.removeItem("chatId");
+          return null;
+        }
+        return chatId;
+      }
+    } catch (error) {
+      console.error("Error al recuperar el chatId del AsyncStorage: ", error);
+      return null;
+    }
+  };
 
   /*
    * Función para mandar un mensaje a aun chat existente o crear uno nuevo mandando un mensaje
@@ -40,11 +86,12 @@ const useChat = () => {
 
       /*
        * recuperamos el id del chat de hoy almacenado en el AsyncStorage si existe el mensaje se envía a ese chat
-       * si no existe se crea un nuevo chat con el mensaje del user y después se guarda el valor del id en el asyncStorage
-       * para llamadas futuras
-       *
+       * si no existe se crea un nuevo chat con el mensaje del user y después se guarda el valor del id con la fecha en la que se ha creado
+       * en el asyncStorage (mediante la función setDailyChatId) para llamadas futuras.
        */
-      const chatId = await AsyncStorage.getItem("chatId");
+
+      //Recuperamos el chatId del AsyncStorage mediante la función getDailyChatId
+      const chatId = await getDailyChatId();
 
       console.log("chatId: ", chatId);
 
@@ -77,9 +124,8 @@ const useChat = () => {
 
       console.log("id del chat que acabamos de crear: ", response.data.id);
 
-      //Tenemos que guardar en el asyncStorage el id del chat que hemos creado hoy, si no estaba guardado ya
-      if (!chatId)
-        await AsyncStorage.setItem("chatId", response.data.id.toString());
+      //Una vez creado tenemos que guardar la id y fecha de expiración en el AsyncStorage
+      await setDailyChatId(response.data.id.toString());
     } catch (error) {
       //Si ocurre un error se elimina el mensaje temporal de la IA y se muestra un mensaje de error
       setMessages((prev) => prev.filter((message) => message.text !== "..."));
