@@ -7,7 +7,7 @@ import {
   ScrollView,
   Switch,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Camera,
@@ -24,14 +24,14 @@ import PictureOptions from "../../components/PictureOptions";
 import { router } from "expo-router";
 import LogOutModal from "../../components/LogOutModal";
 import ChangePasswordModal from "../../components/ChangePasswordModal";
-import ChangeEmailModal from "../../components/ChangeEmailModal";
 import ChatContributionGraph from "../../components/ChatContributionGraph";
 import { useAuthContext } from "../../context/AuthContext";
 import useUser from "../../hooks/useUser";
 
 const Profile = () => {
   //Hacemos states tanto para guardar la foto como para controlar que el modal de opciones de cámara este desplegado o no
-  const [imagen, setImage] = useState(placeholderImage);
+
+  const [image, setImage] = useState(placeholderImage);
   const [showModal, setshowModal] = useState(false);
   const [showModalLogOut, setshowModalLogOut] = useState(false);
   const [showModalChangePassword, setshowModalChangePassword] = useState(false);
@@ -42,6 +42,22 @@ const Profile = () => {
   const { userInfo } = useAuthContext();
   //Importamos la llamada al endpoint de updateUser
   const { updateUser } = useUser();
+
+  //Cuando carguemos la pantalla tenemos que cargar la foto de perfil que el user tenga en la BD
+  /*
+   * El componente que espera react en las image es un objeto con la propiedad uri
+   * por eso si queremos que se renderice la imagen tenemos que entregar un objeto con la propiedad uri
+   * {uri: "url de la imagen"}
+   * En el caso de que no haya imagen, le pasamos la imagen de placeholder que tenemos en assets
+   */
+  useEffect(() => {
+    //Comprobamos si el user tiene foto de perfil y la guardamos en el estado
+    if (userInfo?.profilePicture) {
+      setImage({ uri: userInfo.profilePicture });
+    } else {
+      setImage(placeholderImage);
+    }
+  }, []);
 
   //TODO:AQUI ES DONDE TENEMOS QUE HACER EL COMPORTAMIENTO DE LA FUNCIÓN QUE SE ENCARGARÁ DE ACTIVAR/DESACTIVAR LAS NOTIFICACIONES
   //TODO: TENEMOS QUE METER ESTO EN EL ASYNC STORAGE PARA QUE SE GUARDE EL ESTADO DE LAS NOTIFICACIONES, Y CARGARLO CON UN USEEFFECT CUANDO ENTREMOS EN LA PANTALLA
@@ -111,7 +127,6 @@ const Profile = () => {
 
   //Función para guardar la foto en el estado que hemos definido y a mayores guardarla en la base de datos
   const savePicture = async ({ imagen }) => {
-    // TODO : Implementar el guardado en la base de datos cuando tengamos la API
     try {
       console.log("Guardando la foto", imagen);
       //Llamamos a la función de updateUser que se encargará de hacer el patch a la API para guardar la foto
@@ -157,7 +172,7 @@ const Profile = () => {
           {/* User Profile Photo */}
           <View className="items-center mb-8">
             <View className="relative">
-              <Image source={imagen} className="w-32 h-32 rounded-full" />
+              <Image source={image} className="w-32 h-32 rounded-full" />
               <TouchableOpacity
                 className="absolute bottom-0 right-0 bg-[#6366FF] p-2 rounded-full"
                 // Cuando hagamos click en el botón de la cámara tenemos que enseñar el modal con las diferentes opciones al usuario
@@ -204,28 +219,11 @@ const Profile = () => {
               <Text className="text-white font-pmedium">
                 Correo Electrónico
               </Text>
-              <TouchableOpacity
-                //Cuando lo presionemos tenemos que poner visible el modal para cambiar el correo del user
-                onPress={() => setshowModalChangeEmail(true)}
-              >
-                <Edit2 size={20} color="#6366FF" />
-              </TouchableOpacity>
             </View>
             <Text className="text-white font-pregular">
               {userInfo?.email || "user@domain.com"}
             </Text>
           </View>
-
-          {/* Change Email Modal */}
-          <ChangeEmailModal
-            visible={showModalChangeEmail}
-            setModalVisible={setshowModalChangeEmail}
-            //TODO: TENEMOS QUE LLAMAR A LA FUNCIÓN DE CAMBIAR ATRIBUTOS DEL USER PATCH QUE TENEMOS QUE METER EN EL USEAPI
-            //TODO: TENEMOS EN EL VALOR DEL CORREO ACTUAL DEL USER CUANDO ENTRAMOS EN LA PANTALLA DE PROFILE Y HACEMOS UN GET DE LA INFO DEL USER QUE ESTA AUTENTICADO
-            //currentEmail={}
-            //changeEmail={}
-            logOut={logOut}
-          />
 
           <View className="bg-[#1e2a47] rounded-xl p-4 flex-col gap-4">
             <Text className="text-white font-pmedium">Fecha de nacimiento</Text>

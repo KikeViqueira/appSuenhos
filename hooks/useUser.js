@@ -8,7 +8,7 @@ const useUser = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   //Recuperamos lo que nos interesa del contexto de Auth
-  const { setUserInfo, userId, accessToken } = useAuthContext();
+  const { setUserInfo, userId, accessToken, getUser } = useAuthContext();
 
   /*
    * Realizamos la petición PATCH a /users para permitir al user cambiar:
@@ -47,12 +47,12 @@ const useUser = () => {
       );
 
       /*
-       * Una vez hemos recuperado la info actualizada dle user, ya que recibimos UserUpdateDTO,
-       * actualizamos la variable de userInfo del contexto de Auth para que se haga una nueva llamada
-       * al endpoint de recuperar la info del user
+       * Una vez hemos recuperado la info actualizada del user tenemos que llamar a la función
+       * getUser() del contexto de Auth para actualizar el estado del user en la app
+       * y así reflejar los cambios en la UI.A no ser que lo que se haya actualizado sea la contraseña
        */
       console.log("User actualizado: ", response.data);
-      setUserInfo(response.data);
+      if (path !== "/password") getUser();
     } catch (error) {
       setError(error);
       console.error("Error al actualizar el usuario: ", error);

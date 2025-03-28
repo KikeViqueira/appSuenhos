@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }) => {
   const [userId, setUserId] = useState(null); // Estado que guarda el id del user que se ha registrado en la app
   const [accessToken, setAccessToken] = useState(null); // Estado que guarda el token que recibimos del endpoint del login
   const [onboardingCompleted, setOnboardingCompleted] = useState(null); // Estado que guarda si el user ha completado el cuestionario de onboarding
-  const [userInfo, setUserInfo] = useState(null); // Estado que guarda la info del user que se ha logueado en la app
+  const [userInfo, setUserInfo] = useState(null); // Estado que guarda la info del user más actualizada que hay en la BD
 
   //Función para actualizar el estado del onboarding
   const updateOnboardingStatus = (status) => {
@@ -96,11 +96,6 @@ export const AuthProvider = ({ children }) => {
      * */
     if (userId && accessToken && onboardingCompleted) getUser();
   }, [userId, accessToken, onboardingCompleted]);
-
-  //Cuando actualicemos la info del user tenemos que volver a hacer la petición para recuperar la info actualizada
-  useEffect(() => {
-    if (userInfo) getUser();
-  }, [userInfo]);
 
   /*
    * Realizamos la petición POST a /auth/login permitir al user que inicie sesión en la app y obtenga su correspondiente token JWT para poder

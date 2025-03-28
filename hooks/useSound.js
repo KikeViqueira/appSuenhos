@@ -74,7 +74,8 @@ const useSound = () => {
   };
 
   useEffect(() => {
-    console.log("Sonidos del user guardados en el estado: ", userSounds);
+    if (userSounds.length > 0)
+      console.log("Sonidos del user guardados en el estado: ", userSounds);
   }, [userSounds]);
 
   /*
