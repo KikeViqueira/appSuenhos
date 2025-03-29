@@ -9,12 +9,11 @@ import {
 import React, { useState } from "react";
 import { X } from "lucide-react-native";
 import PasswordInputModal from "./PasswordInputModal";
+import useUser from "../hooks/useUser";
 
 const ChangePasswordModal = ({
   visible, //Variable que viene del perfil para saber cuando el modal se tiene que ver o no
   setModalVisible, //Función que viene del perfil para cambiar el estado de la variable visible
-  currentPassword, //TODO: contraseña actual (obtenida, por ejemplo, de la BD o del contexto)
-  changePassword, //TODO: función que actualiza la contraseña en la BD
   logOut, // función para cerrar sesión (ya que se usará JWT)
 }) => {
   //Estados para almacenar la respuesta del user
@@ -23,12 +22,10 @@ const ChangePasswordModal = ({
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
 
+  //Recuperamos la función actualizar la info del user del contexto de user
+  const { updateUser } = useUser();
+
   const handleSubmit = () => {
-    // Validamos que la contraseña antigua coincida con la de la BD
-    if (oldPassword !== currentPassword) {
-      setError("La contraseña antigua es incorrecta.");
-      return;
-    }
     // Validamos que la nueva contraseña y su confirmación coincidan
     if (newPassword !== confirmPassword) {
       setError("La nueva contraseña y su confirmación no coinciden.");
@@ -40,7 +37,7 @@ const ChangePasswordModal = ({
       return;
     }
     // Si todo es válido, actualizamos la contraseña
-    changePassword(newPassword);
+
     // Informamos al usuario que se cerrará la sesión por seguridad (JWT)
     logOut();
     // Cerramos el modal

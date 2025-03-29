@@ -1,6 +1,5 @@
 import { useEffect, useState, Alert } from "react";
 import { apiClient } from "../services/apiClient";
-import * as SecureStore from "expo-secure-store";
 import { API_BASE_URL } from "../config/config";
 import { useAuthContext } from "../context/AuthContext";
 
@@ -8,7 +7,7 @@ const useUser = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   //Recuperamos lo que nos interesa del contexto de Auth
-  const { setUserInfo, userId, accessToken, getUser } = useAuthContext();
+  const { userId, accessToken, getUser } = useAuthContext();
 
   /*
    * Realizamos la petición PATCH a /users para permitir al user cambiar:

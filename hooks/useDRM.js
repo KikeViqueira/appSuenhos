@@ -9,7 +9,7 @@ const useDRM = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   //Estado para guardar el informe de hoy
-  const [drmToday, setDrmToday] = useState("");
+  const [drmToday, setDrmToday] = useState({});
 
   //Recuperamos la info del authContext
   const { accessToken, userId } = useAuthContext();
@@ -50,10 +50,13 @@ const useDRM = () => {
     setError(null);
     setLoading(true);
 
+    console.log("ID del user: ", userId);
+    console.log("Token de acceso: ", accessToken);
+
     try {
       //Hacemos la petición GET a la API
       const response = await apiClient.get(
-        `${API_BASE_URL}/users/${userId}/drm?preiod=daily`,
+        `${API_BASE_URL}/users/${userId}/drm?period=daily`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -66,6 +69,7 @@ const useDRM = () => {
         response.data
       );
 
+      //Guardamos el objeto DTO del drmToday en el estado drmToday
       setDrmToday(response.data);
     } catch (error) {
       setError(error);

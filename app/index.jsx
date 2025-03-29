@@ -9,9 +9,18 @@ export default function App() {
   const { accessToken, userId, onboardingCompleted } = useAuthContext();
 
   useEffect(() => {
-    // Si aún no se han determinado los valores, no se hace nada (puedes mostrar un loader)
-    if (accessToken === null && userId === null && onboardingCompleted === null)
+    // Si se han cargado los valores y son todos null, redirige a login
+    if (
+      accessToken === null &&
+      userId === null &&
+      onboardingCompleted === null
+    ) {
+      //Para evitar el error de "Attempted to navigate before mounting the Root Layout component", retrasa la navegación hasta después del primer render.
+      setTimeout(() => {
+        router.replace("./(Auth)/sign-in"); // Redirige a login
+      }, 0);
       return;
+    }
 
     if (accessToken && userId) {
       if (onboardingCompleted) {
@@ -20,7 +29,7 @@ export default function App() {
         router.replace("./(Onboarding)/Onboarding"); // Redirige al onboarding
       }
     } else {
-      router.replace("./(Auth)"); // Redirige a login
+      router.replace("./(Auth)/sign-in"); // Redirige a login
     }
   }, [accessToken, userId, onboardingCompleted]);
 

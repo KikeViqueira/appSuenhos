@@ -38,8 +38,8 @@ const Profile = () => {
   const [showModalChangeEmail, setshowModalChangeEmail] = useState(false);
   const [isSwitchEnabled, setIsSwitchEnabled] = useState(false);
 
-  //Recuperamos la info del user que se ha logueado en la app mediante el contexto de Auth
-  const { userInfo } = useAuthContext();
+  //Recuperamos la info del user que se ha logueado en la app mediante el contexto de Auth y la función para cerrar sesión
+  const { userInfo, logout } = useAuthContext();
   //Importamos la llamada al endpoint de updateUser
   const { updateUser } = useUser();
 
@@ -141,13 +141,6 @@ const Profile = () => {
         "Ha sucedido un error a la hora de guardar la foto, inténtalo de nuevo"
       );
     }
-  };
-
-  //Función para cerrar la sesión del user
-  const logOut = () => {
-    //TODO: TENDRIAMOS QUE LLAMAR AL ENDPOINT PARA CERRAR LA SESIÓN
-    setshowModalLogOut(false);
-    router.push("/sign-in");
   };
 
   return (
@@ -272,7 +265,7 @@ const Profile = () => {
             //TODO: SI HACER UNA FUNCION EN LA API O TENER UN CONTEXT DE DONDE LA SAQUEMOS O EL KEYSTORAGE O ALGO ASI
             //currentPassword={}
             //changePassword={}
-            logOut={logOut}
+            logOut={logout}
           />
 
           {/* favsTips Button */}
@@ -315,7 +308,7 @@ const Profile = () => {
           <LogOutModal
             visible={showModalLogOut}
             setModalVisible={setshowModalLogOut}
-            logOut={logOut}
+            logOut={logout}
           />
         </ScrollView>
       </View>
