@@ -58,6 +58,7 @@ export const AuthProvider = ({ children }) => {
         //await SecureStore.deleteItemAsync("userRefreshToken");
         //await SecureStore.deleteItemAsync("userId");
         //await AsyncStorage.removeItem("hasCompletedOnboarding");
+        //await AsyncStorage.setItem("hasCompletedOnboarding", "true");
 
         const userAccessToken = await SecureStore.getItemAsync(
           "userAccessToken"

@@ -89,6 +89,7 @@ const ChangePasswordModal = ({
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               placeholder="Confirmar Nueva Contraseña"
+              isConfirm={true} //Indicamos que es el input de confirmar contraseña para que no se pueda pegar texto en él
             />
           </KeyboardAvoidingView>
 

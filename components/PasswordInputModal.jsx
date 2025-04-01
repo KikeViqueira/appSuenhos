@@ -2,7 +2,12 @@ import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react-native";
 
-const PasswordInputModal = ({ value, onChangeText, placeholder }) => {
+const PasswordInputModal = ({
+  value,
+  onChangeText,
+  placeholder,
+  isConfirm = false,
+}) => {
   //Definimos el estado para saber si tenemos que mostrar lo que está escribiendo el user o no
   const [showPassword, setShowPassword] = useState(false);
 
@@ -15,6 +20,8 @@ const PasswordInputModal = ({ value, onChangeText, placeholder }) => {
         value={value}
         onChangeText={onChangeText}
         className="bg-[#1e2a47] border w-full border-gray-500 rounded-xl p-2 text-white"
+        //Si es el input de confirmar contraseña hacemos que no se pueda peagar en él ningún texto
+        contextMenuHidden={isConfirm} //No se puede pegar en el input de confirmar contraseña
       />
 
       <TouchableOpacity

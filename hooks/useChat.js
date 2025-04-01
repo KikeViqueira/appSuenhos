@@ -93,11 +93,9 @@ const useChat = () => {
       //Recuperamos el chatId del AsyncStorage mediante la función getDailyChatId
       const chatId = await getDailyChatId();
 
-      console.log("chatId: ", chatId);
-
       //Hacemos la petición POST al endpoint
       const response = await apiClient.post(
-        `${API_BASE_URL}/chats/${userId}/${chatId}/messages`,
+        `${API_BASE_URL}/chats/${userId}/${chatId ? chatId : null}/messages`,
         {
           /*
            *El payload se tiene que corresponder con lo que tenemos en el modelo de datos de Message, en este caso el atributo se llama "content"

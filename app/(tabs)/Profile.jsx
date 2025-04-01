@@ -11,7 +11,6 @@ import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Camera,
-  Edit2,
   BookmarkCheck,
   HelpCircle,
   LockKeyhole,
@@ -31,11 +30,10 @@ import useUser from "../../hooks/useUser";
 const Profile = () => {
   //Hacemos states tanto para guardar la foto como para controlar que el modal de opciones de cámara este desplegado o no
 
-  const [image, setImage] = useState(placeholderImage);
+  const [image, setImage] = useState(placeholderImage); //Valor por default
   const [showModal, setshowModal] = useState(false);
   const [showModalLogOut, setshowModalLogOut] = useState(false);
   const [showModalChangePassword, setshowModalChangePassword] = useState(false);
-  const [showModalChangeEmail, setshowModalChangeEmail] = useState(false);
   const [isSwitchEnabled, setIsSwitchEnabled] = useState(false);
 
   //Recuperamos la info del user que se ha logueado en la app mediante el contexto de Auth y la función para cerrar sesión
@@ -51,12 +49,9 @@ const Profile = () => {
    * En el caso de que no haya imagen, le pasamos la imagen de placeholder que tenemos en assets
    */
   useEffect(() => {
-    //Comprobamos si el user tiene foto de perfil y la guardamos en el estado
-    if (userInfo?.profilePicture) {
+    //Como el user siempre tiene foto de perfil ya que cuando crea la cuenta se le asigna directamente el placeholder (image), tenemos que mirar si la imagen es distinta a la de placeholder
+    if (userInfo.profilePicture !== image.uri)
       setImage({ uri: userInfo.profilePicture });
-    } else {
-      setImage(placeholderImage);
-    }
   }, []);
 
   //TODO:AQUI ES DONDE TENEMOS QUE HACER EL COMPORTAMIENTO DE LA FUNCIÓN QUE SE ENCARGARÁ DE ACTIVAR/DESACTIVAR LAS NOTIFICACIONES

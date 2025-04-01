@@ -29,6 +29,12 @@ const CustomInput = ({ name, inputType, handleChangeText, placeholder }) => {
               : ""
           }`}
           placeholderTextColor="#9ca3af"
+          //Si el input es el de email permitimos que se complete con el gestor de contraseñas del dispositivo
+          autoComplete={name === "Email" ? "email" : undefined}
+          textContentType={name === "Email" ? "emailAddress" : undefined}
+          //Añadimos el tipo de teclado y que se escriba en minusculas si es el de email
+          keyboardType={name === "Email" ? "email-address" : "default"}
+          autoCapitalize={name === "Email" ? "none" : "sentences"}
           style={{ minHeight: 24 }} // Se recomienda usar minHeight en lugar de height fija
         />
 
