@@ -7,20 +7,22 @@ import {
   FlatList,
   Platform,
 } from "react-native";
-import React, { useState } from "react";
-import { X, Trash2, Square, SquareCheckBig, Check } from "lucide-react-native";
+import React, { useEffect, useState } from "react";
+import { X, Trash2, Check } from "lucide-react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { xorBy } from "lodash";
 import ChatItem from "./ChatItem";
 import { router } from "expo-router";
+import useChat from "../hooks/useChat";
+
+//Lista de chats estáticos que usaremos de prueba
+/*const chats = [
+  { id: "1", date: "2024-04-01", summary: "Sueño sobre volar" },
+  { id: "2", date: "2024-02-14", summary: "Estrés en el trabajo" },
+  { id: "3", date: "2024-01-6", summary: "Sueño premonitorio" },
+];*/
 
 const ChatsModal = ({ isVisible, onClose }) => {
-  //Lista de chats estáticos que usaremos de prueba
-  const chats = [
-    { id: "1", date: "2024-04-01", summary: "Sueño sobre volar" },
-    { id: "2", date: "2024-02-14", summary: "Estrés en el trabajo" },
-    { id: "3", date: "2024-01-6", summary: "Sueño premonitorio" },
-  ];
   //Definimos los distintos estados que necesitamos para el model
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [filteredChats, setFilteredChats] = useState([]); //Guardaremos el chat filtrado en base a la fecha seleccionada
@@ -33,14 +35,25 @@ const ChatsModal = ({ isVisible, onClose }) => {
   const [selectedChats, setSelectedChats] = useState([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
 
+  //Importamos del hook de chat lo que nos interesa
+  const { getHistory, getConversationChat, history, deleteChats } = useChat();
+
+  useEffect(() => {
+    /*
+     * Esto se va a ejecutar cuando se monte el componente por primera vez aunque no esté visble en el componente padre que es chat
+     *Por lo que tenemos que comprobar si el modal está visible o no*/
+    getHistory();
+  }, []);
+
   const handleChatPress = (chat) => {
     //Dependiendo del modo en el que estemos pulsar en un chat tendrá una acción asociada
     if (isSelectionMode) {
       setSelectedChats(xorBy(selectedChats, [chat], "id"));
     } else {
-      //TODO: AQUI TENDREMOS QUE LLAMAR AL ENDPOINT DE LA API QUE SE ENCARGA DE CARGAR LAS CONVERSACIONES DEL CHAT EN EL QUE SE HA PINCHADO
-      console.log("Chat seleccionado: " + chat.summary);
-      router.push("/Chat");
+      //En caso de que el user haya pinchado en el chat paara veer la conversación, llamamos a la función que se encarga de recuperar la conversación del chat
+      getConversationChat(chat.id);
+      //Cerramos el modal y ya se nos lleva al chat
+      onClose();
     }
   };
 
@@ -61,7 +74,8 @@ const ChatsModal = ({ isVisible, onClose }) => {
       "Eliminando lo siguientes chats: " +
         selectedChats.map((chat) => chat.summary).join(", ") //Enseñamos los summary de los chats que han sido eliminados separados mediante comas
     );
-    //TODO: AQUI TENDREMOS QUE LLAMAR EN EL FUTURO AL ENDPOINT DE LA API QUE SE ENCARGA DE ELIMINAR LOS TIPS SELECCIONADOS
+    //llamamos al endpoint de eliminar chats pasandole los ids de los chats seleccionados
+    deleteChats(selectedChats.map((chat) => chat.id));
     setSelectedChats([]); //Limpiamos los tips seleccionados
     setIsSelectionMode(false);
   };
@@ -72,7 +86,7 @@ const ChatsModal = ({ isVisible, onClose }) => {
     //Pasamos la fecha a formato ISO (YYYY-MM-DDTHH:MM:SSZ), dividimos el string para obtener la parte de la fecha mediante el separador de "T"
     const formattedDate = selectedDate.toISOString().split("T")[0];
     //De los chats que tenemos renderizamos el que tenga la fecha que el user ha seleccionado
-    const filtered = chats.filter((chat) => chat.date === formattedDate);
+    const filtered = history.filter((chat) => chat.date === formattedDate);
     setFilteredChats(filtered);
   };
 
@@ -179,7 +193,7 @@ const ChatsModal = ({ isVisible, onClose }) => {
 
           {/*Renderizamos los últimos chats recientes en base a los últimos x días*/}
           <View className="w-[90%] flex flex-col flex-1 gap-4 self-center mt-8">
-            {chats.length > 0 ? (
+            {history.length > 0 ? (
               <>
                 <View className="flex-row items-center justify-between mb-4">
                   <Text className="mb-2 text-xl font-bold text-white">
@@ -206,7 +220,7 @@ const ChatsModal = ({ isVisible, onClose }) => {
                   )}
                 </View>
                 <FlatList
-                  data={chats}
+                  data={history}
                   keyExtractor={(item) => item.id}
                   ItemSeparatorComponent={() => <View className="h-4" />}
                   renderItem={({ item }) => (

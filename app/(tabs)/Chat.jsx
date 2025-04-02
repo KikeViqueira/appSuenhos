@@ -8,7 +8,7 @@ import {
   Platform,
   Keyboard, //para cerrar el teclado despues de enviar un mensaje tenemos que usar la API de Keyboard
 } from "react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Menu } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ChatsModal from "../../components/ChatsModal";
@@ -17,8 +17,8 @@ import TypingIndicator from "../../components/TypingIndicator";
 import { useAuthContext } from "../../context/AuthContext";
 
 const Chat = () => {
-  //recuperamos las funcionalidades del hook de chat
-  const { messages, postRequest } = useChat();
+  //recuperamos las funcionalidades y estados del hook de chat
+  const { messages, postRequest, isToday, getTodayChat } = useChat();
   //Input que guarda el mensaje que se quiere enviar
   const [newMessage, setNewMessage] = useState("");
   //Estado para saber si el modal en el que se eligen los chats está abierto o no
@@ -26,6 +26,15 @@ const Chat = () => {
 
   //Tenemos que recuperar el nombre del user para enseñarlo en el mensaje inicial que se pone en el chat antes de iniciar la conversación
   const { userInfo } = useAuthContext();
+
+  useEffect(() => {
+    //Llamamos a la función para recuperar el chat de hoy
+    getTodayChat();
+  }, []);
+
+  useEffect(() => {
+    console.log("Mensajes desde el useEffect: ", messages);
+  }, [messages]);
 
   const toggleModal = () => {
     setShowModal(!showModal);
@@ -55,7 +64,7 @@ const Chat = () => {
   //Función que se encargará a la hora de renderizar los mensajes de darle un determinado estilo
   const renderMessage = ({ item }) => {
     //hacemos variable para saber si el sender es el usuario o no
-    const isUser = item.sender === "user";
+    const isUser = item.sender === "USER";
 
     /*
      * Definimos el padding para el caso en el que la IA está escribiendo el mensaje de respuesta al user:
@@ -63,7 +72,7 @@ const Chat = () => {
      * Cuando el mensaje es en si la respuesta de manera completa ponemos el mismo estilo que los mensajes del user
      */
     const paddingClass =
-      item.sender === "AI" && item.text === "..." ? "p-0" : "p-3";
+      item.sender === "AI" && item.content === "..." ? "p-0" : "p-3";
 
     return (
       <View className={`mb-4 ${isUser ? "items-end" : "items-start"} w-full`}>
@@ -75,12 +84,12 @@ const Chat = () => {
           }`}
         >
           {/*Comprobamos si se va a renderizar un mensaje o si la ia esta generando la respuesta*/}
-          {item.sender === "AI" && item.text === "..." ? (
+          {item.sender === "AI" && item.content === "..." ? (
             <TypingIndicator />
           ) : (
             //Con selectable true hacemos que el texto sea seleccionable y se pueda copiar por parte del user
             <Text selectable={true} className="text-base text-white">
-              {item.text}
+              {item.content}
             </Text>
           )}
         </View>
@@ -160,6 +169,7 @@ const Chat = () => {
 
           <TouchableOpacity
             className="bg-[#6366ff] p-3 rounded-xl"
+            // disabled={!isToday} //En caso de que no sea el día de hoy el user no puede enviar mensajes
             onPress={handleSendMessage}
           >
             <Text className="font-semibold text-white">Enviar</Text>

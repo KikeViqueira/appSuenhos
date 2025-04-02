@@ -8,6 +8,8 @@ const useChat = () => {
   const [messages, setMessages] = useState([]); // Estado que guarda todos los mensajes
   const [loading, setLoading] = useState(false); // Indica si la petición está en curso
   const [error, setError] = useState(null); // Almacena el error en caso de que ocurra
+  const [history, setHistory] = useState([]); // Almacena el historial de chats
+  const [isToday, setIsToday] = useState(false); // Bandera que indica si el chat es de hoy o no
   const { accessToken, userId } = useAuthContext();
   /*
    * Funciones internas para guardar el chatId en el AsyncStorage junto a una marca temporal de cuando se ha hecho el chat,
@@ -69,7 +71,7 @@ const useChat = () => {
       //Agregamos el mensaje del user al estado
       const userMessage = {
         id: Date.now(),
-        text: message,
+        content: message,
         sender: "user",
       };
 
@@ -77,7 +79,7 @@ const useChat = () => {
       const tempAIMessageId = Date.now() + 1;
       const tempAIMessage = {
         id: tempAIMessageId,
-        text: "...",
+        content: "...",
         sender: "AI",
       };
 
@@ -116,7 +118,7 @@ const useChat = () => {
         );
         return [
           ...tempMessage, //llamamos a la función que nos devuelve el array de mensajes sin el mensaje temporal de la IA
-          { id: Date.now() + 2, text: response.data.response, sender: "AI" }, //Añadimos el nuevo objeto mensaje al estado de los mensajes
+          { id: Date.now() + 2, content: response.data.response, sender: "AI" }, //Añadimos el nuevo objeto mensaje al estado de los mensajes
         ];
       });
 
@@ -126,14 +128,124 @@ const useChat = () => {
       await setDailyChatId(response.data.id.toString());
     } catch (error) {
       //Si ocurre un error se elimina el mensaje temporal de la IA y se muestra un mensaje de error
-      setMessages((prev) => prev.filter((message) => message.text !== "..."));
+      setMessages((prev) =>
+        prev.filter((message) => message.content !== "...")
+      );
       setError(error);
     } finally {
       setLoading(false); //Indicamos que la petición ha terminado
     }
   };
 
-  return { messages, loading, error, postRequest, setMessages };
+  /*
+   * Endpoint para recuperar el historial de chats que tiene un user asociados a su id
+   */
+  const getHistory = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      const response = await apiClient.get(
+        `${API_BASE_URL}/users/${userId}/chats`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+      //Guardamos el historial de chats en el estado
+      setHistory(response.data);
+    } catch (error) {
+      setError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /*
+   * Endpoint para eliminar uno o mas chats de un user a partir de una lista de ids, en este caso se llama ids y se recibe como parámetro
+   */
+  const deleteChats = async (ids) => {
+    setError(null);
+    setLoading(true);
+    try {
+      const response = await apiClient.delete(
+        `${API_BASE_URL}/users/${userId}/chats`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+          data: {
+            ids: ids,
+          },
+        }
+      );
+      //Si el delete se ha hecho de manera correcta, se llama a la función getHistory para actualizar el historial de chats
+      if (response.status === 200) getHistory();
+      else {
+        Alert.alert("Error", "No se ha podido eliminar el chat");
+      }
+    } catch (error) {
+      setError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /*
+   * Endpoint para recuperar la conversación de un chat a partir de su id y recuperar una bandera que nos dice
+   * si el chat es de hoy o no, para permitir escribir o no en el respectivamente.
+   */
+  const getConversationChat = async (targetChatId) => {
+    setError(null);
+    setLoading(true);
+    try {
+      const response = await apiClient.get(
+        `${API_BASE_URL}/users/${userId}/chats/${targetChatId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+      //Guardamos el historial de mensajes en el estado
+      setMessages(response.data.messages);
+      console.log(
+        "Mensajes recuperados en el endpoint: ",
+        response.data.messages
+      );
+      //En otro estado tenemos que guardar la bandera de si el chat es de hoy o no, dependiendo del valor de esta sabremos si podemos escribir en el chat o no
+      setIsToday(response.data.isEditable);
+    } catch (error) {
+      setError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  //Funcion para recuperar la conversación del posible chat de hoy al entrar en la pestaña de chat
+  const getTodayChat = async () => {
+    //Recuperamos el chatId del AsyncStorage mediante la función getDailyChatId
+    const chatId = await getDailyChatId();
+    //Comprobamos si el chatId existe, si no existe no hacemos nada
+    if (chatId) {
+      //Llamamos a la función getConversationChat pasándole el chatId
+      getConversationChat(chatId);
+    }
+  };
+
+  return {
+    messages,
+    loading,
+    error,
+    postRequest,
+    setMessages,
+    history,
+    getHistory,
+    deleteChats,
+    getConversationChat,
+    isToday,
+    getTodayChat,
+  };
 };
 
 export default useChat;
