@@ -26,6 +26,7 @@ import ChangePasswordModal from "../../components/ChangePasswordModal";
 import ChatContributionGraph from "../../components/ChatContributionGraph";
 import { useAuthContext } from "../../context/AuthContext";
 import useUser from "../../hooks/useUser";
+import { uploadImage } from "../../services/Cloudinary";
 
 const Profile = () => {
   //Hacemos states tanto para guardar la foto como para controlar que el modal de opciones de cámara este desplegado o no
@@ -55,7 +56,7 @@ const Profile = () => {
   }, []);
 
   //TODO:AQUI ES DONDE TENEMOS QUE HACER EL COMPORTAMIENTO DE LA FUNCIÓN QUE SE ENCARGARÁ DE ACTIVAR/DESACTIVAR LAS NOTIFICACIONES
-  //TODO: TENEMOS QUE METER ESTO EN EL ASYNC STORAGE PARA QUE SE GUARDE EL ESTADO DE LAS NOTIFICACIONES, Y CARGARLO CON UN USEEFFECT CUANDO ENTREMOS EN LA PANTALLA
+  //TODO: TENEMOS QUE METER ESTO EN EL ASYNC STORAGE PARA QUE SE GUARDE EL ESTADO DE LAS NOTIFICACIONES, Y CARGARLO CON UN USEEFFECT CUANDO ENTREMOS EN LA APP
   const toggleEnabled = async () => {
     setIsSwitchEnabled(!isSwitchEnabled);
   };
@@ -123,9 +124,10 @@ const Profile = () => {
   //Función para guardar la foto en el estado que hemos definido y a mayores guardarla en la base de datos
   const savePicture = async ({ imagen }) => {
     try {
-      console.log("Guardando la foto", imagen);
-      //Llamamos a la función de updateUser que se encargará de hacer el patch a la API para guardar la foto
-      await updateUser("/profilePicture", imagen);
+      //Guardamos la imagen en un servicio de nube para que nos genere una url pública y así tener en varios dispositivos la misma imagen
+      const imageUrl = await uploadImage(imagen);
+      //Llamamos a la función de updateUser que se encargará de hacer el patch a la API para guardar la url pública de la imagen
+      await updateUser("/profilePicture", imageUrl);
       //Como estamos guardando una foto dinámica, tenemos que pasarla a un URI y asi pasar el objeto y que react sepa que es una foto que no está en el proyecto
       //Y de esta manera puede cargarla como imagen en la aplicación
       setImage({ uri: imagen });

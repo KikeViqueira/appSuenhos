@@ -19,10 +19,6 @@ const DrmReport = () => {
   //Recuperamos la info del user ya que necesitamos su nombre para poner en el informe que el user va a descargar
   const { userInfo } = useAuthContext();
 
-  const handleVisibility = () => {
-    setPdfModalVisible(!pdfModalVisible);
-  };
-
   const handleGenerateTip = () => {
     //TODO: Aqui tenemos que llamar al endpoint de la api para generar un tip personalizado para el user teniendo en cuenta toda su información
   };
@@ -112,8 +108,6 @@ const DrmReport = () => {
       } else {
         alert("La opción de compartir no está disponible en este dispositivo.");
       }
-      // Opcional: mostrar modal informativo de éxito
-      setPdfModalVisible(true);
     } catch (error) {
       console.error("Error al generar el PDF:", error);
     }

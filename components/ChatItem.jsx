@@ -12,9 +12,7 @@ const ChatItem = ({ item, isSelectionMode, isSelected }) => {
       } w-full flex flex-col justify-between p-6 rounded-lg bg-[#1e273a] border`}
     >
       <View className="flex-row justify-between">
-        <Text className="mb-2 text-xl font-bold text-white">
-          {item.summary}
-        </Text>
+        <Text className="mb-2 text-xl font-bold text-white">{item.name}</Text>
         {/*Si el selection mode esta en True renderizamos el icono de Square*/}
         {isSelectionMode && (
           <>

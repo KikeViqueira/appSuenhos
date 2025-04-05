@@ -11,18 +11,16 @@ import {
 import React, { useEffect, useState } from "react";
 import { Menu } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import ChatsModal from "../../components/ChatsModal";
 import useChat from "../../hooks/useChat";
 import TypingIndicator from "../../components/TypingIndicator";
 import { useAuthContext } from "../../context/AuthContext";
+import { router } from "expo-router";
 
 const Chat = () => {
   //recuperamos las funcionalidades y estados del hook de chat
   const { messages, postRequest, isToday, getTodayChat } = useChat();
   //Input que guarda el mensaje que se quiere enviar
   const [newMessage, setNewMessage] = useState("");
-  //Estado para saber si el modal en el que se eligen los chats está abierto o no
-  const [showModal, setShowModal] = useState(false);
 
   //Tenemos que recuperar el nombre del user para enseñarlo en el mensaje inicial que se pone en el chat antes de iniciar la conversación
   const { userInfo } = useAuthContext();
@@ -37,7 +35,7 @@ const Chat = () => {
   }, [messages]);
 
   const toggleModal = () => {
-    setShowModal(!showModal);
+    router.push("../ChatsHistory");
   };
 
   const handleSendMessage = () => {
@@ -54,7 +52,7 @@ const Chat = () => {
       /*
        * Una vez que enviamos el mensaje tenemos que usar la función del useChat para enviar el mensaje a la IA y guardarlo en la BD
        */
-      postRequest(newMessage);
+      postRequest(newMessage.trim());
       //Reinicializamos el estado del mensaje y cerramos el teclado
       setNewMessage("");
       Keyboard.dismiss();
@@ -118,9 +116,6 @@ const Chat = () => {
             Diario de Sueños y Análisis AI
           </Text>
         </View>
-
-        {/*Modal para la selección de los chats*/}
-        <ChatsModal isVisible={showModal} onClose={toggleModal} />
 
         {/**
          * En caso de que no se haya empezado la conversación con la IA, tenemos que poner un mensaje en el medio de la

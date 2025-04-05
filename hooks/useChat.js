@@ -59,6 +59,10 @@ const useChat = () => {
     }
   };
 
+  /*useEffect(() => {
+    AsyncStorage.removeItem("chatId");
+  }, []);*/
+
   /*
    * Función para mandar un mensaje a aun chat existente o crear uno nuevo mandando un mensaje
    * La función recibe dos parámetros, la url del endpoint al que se va a hacer la petición
@@ -72,7 +76,7 @@ const useChat = () => {
       const userMessage = {
         id: Date.now(),
         content: message,
-        sender: "user",
+        sender: "USER",
       };
 
       //Agregamos un mensaje temporal de la IA para simular que está escribiendo
@@ -94,6 +98,11 @@ const useChat = () => {
 
       //Recuperamos el chatId del AsyncStorage mediante la función getDailyChatId
       const chatId = await getDailyChatId();
+
+      //Si el id es null sabemos que es el primer mensaje que se manda a ese chat en el día de hoy y por lo tanto es un nuevo chat
+      //Lo guardamos en una vraible para llamar después al getHistory y actualizar el historial de chats
+      const storedChatId = chatId ? chatId : null;
+      console.log("id del chat de hoy: ", storedChatId);
 
       //Hacemos la petición POST al endpoint
       const response = await apiClient.post(
@@ -126,6 +135,10 @@ const useChat = () => {
 
       //Una vez creado tenemos que guardar la id y fecha de expiración en el AsyncStorage
       await setDailyChatId(response.data.id.toString());
+
+      //En el caso de que el valor del chatid al hacer la llamada fuese nuelo tenemos que llamar al getHistory para actualizar el historial de chats con este nuevo que se ha creado
+      //En caso de que el chat ya existiese pues ya lo tenemos en el historial de chats y no hace falta volver a llamarlo
+      if (storedChatId === null) getHistory();
     } catch (error) {
       //Si ocurre un error se elimina el mensaje temporal de la IA y se muestra un mensaje de error
       setMessages((prev) =>
@@ -154,6 +167,7 @@ const useChat = () => {
       );
       //Guardamos el historial de chats en el estado
       setHistory(response.data);
+      console.log("Historial de chats recuperado: ", response.data);
     } catch (error) {
       setError(error);
     } finally {
