@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, StatusBar } from "react-native";
+import { StyleSheet, Text, View, StatusBar, AppState } from "react-native";
 import React, { useEffect, useState } from "react";
 import { SplashScreen, Stack } from "expo-router";
 import { useFonts } from "expo-font";
@@ -61,46 +61,72 @@ const RootLayout = () => {
       if (error) throw error;
       if (fontsLoaded && !isAuthLoading) {
         SplashScreen.hideAsync();
-        //ponemos el color de status bar a claro
-        StatusBar.setBarStyle("light-content");
       }
     }, [fontsLoaded, error, isAuthLoading]);
+
+    //En el useEffect sin dependencias introducimos la lógica deponer el statusbar de nuevo a blanco si el user ha salido de la app y esta pasa a segundo plano
+    //Como la lógica de ponerla blanca nada más entrar en la app
+    useEffect(() => {
+      // Configura el StatusBar inicialmente
+      StatusBar.setBarStyle("light-content");
+      if (Platform.OS === "android") {
+        StatusBar.setBackgroundColor("black");
+      }
+
+      // Listener para reconfigurar el StatusBar cuando la app vuelva a estar activa
+      const subscription = AppState.addEventListener(
+        "change",
+        (nextAppState) => {
+          if (nextAppState === "active") {
+            StatusBar.setBarStyle("light-content");
+            if (Platform.OS === "android") {
+              StatusBar.setBackgroundColor("black");
+            }
+          }
+        }
+      );
+
+      return () => subscription.remove();
+    }, []);
 
     // Mientras se cargan las fuentes o se verifica la autenticación, no renderizamos nada (o mostramos un Loading)
     if (!fontsLoaded && isAuthLoading) return null;
 
     return (
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          animation: "fade", // Transición suave entre pantallas
-        }}
-      >
-        {accessToken && userId ? (
-          onboardingCompleted ? (
-            <Stack.Screen
-              name="(tabs)"
-              options={{
-                headerShown: false,
-                gestureEnabled: false, // Desactivamos el gesto de retroceso
-              }}
-            />
+      <>
+        <StatusBar backgroundColor="black" barStyle="light-content" />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            animation: "fade", // Transición suave entre pantallas
+          }}
+        >
+          {accessToken && userId ? (
+            onboardingCompleted ? (
+              <Stack.Screen
+                name="(tabs)"
+                options={{
+                  headerShown: false,
+                  gestureEnabled: false, // Desactivamos el gesto de retroceso
+                }}
+              />
+            ) : (
+              <Stack.Screen
+                name="(Onboarding)/Onboarding"
+                options={{ headerShown: false }}
+              />
+            )
           ) : (
             <Stack.Screen
-              name="(Onboarding)/Onboarding"
-              options={{ headerShown: false }}
+              name="(Auth)"
+              options={{
+                headerShown: false,
+                gestureEnabled: false,
+              }}
             />
-          )
-        ) : (
-          <Stack.Screen
-            name="(Auth)"
-            options={{
-              headerShown: false,
-              gestureEnabled: false,
-            }}
-          />
-        )}
-      </Stack>
+          )}
+        </Stack>
+      </>
     );
   };
 

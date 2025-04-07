@@ -1,11 +1,45 @@
-import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import React, { useState } from "react";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import TipItem from "../../components/TipItem";
 import { tips } from "../../constants/tips";
 import { xorBy } from "lodash";
-import { Trash2, Check, X } from "lucide-react-native";
+import {
+  Shield,
+  Bed,
+  Activity,
+  Apple,
+  AlertCircle,
+  Book,
+  Music,
+  Heart,
+  Trash2,
+  Check,
+  X,
+} from "lucide-react-native";
+
+//Declaramos el mapeo entre los iconos que se pueden usar en el tip y su correspondiente icono de lucide react-native
+const iconMap = {
+  shield: Shield,
+  sleep: Bed,
+  fitness: Activity,
+  food: Apple,
+  alert: AlertCircle,
+  book: Book,
+  music: Music,
+  heart: Heart,
+};
+
+/**
+ * Función que servirá para mappear los iconos del objeto tip que se reciben en String en su correspondiente icono de lucide react-native
+ * @param {string} iconName - Nombre del icono que se quiere mapear
+ * @returns {React.Component} - Icono correspondiente al nombre pasado por parámetro
+ */
+const getIcon = (iconName) => {
+  const IconComponent = iconMap[iconName] || ShieldQuestion; // Si no se encuentra el icono, se usa un icono por defecto
+  return IconComponent;
+};
 
 const Tips = () => {
   /*
@@ -105,7 +139,7 @@ const Tips = () => {
                 key={index}
                 title={tip.title}
                 description={tip.description}
-                icon={tip.icon}
+                icon={getIcon(tip.icon)} //Pasamos el icono correspondiente al tip
                 color={tip.color}
                 isSelectionMode={isSelectionMode}
                 /*

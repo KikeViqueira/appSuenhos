@@ -1,7 +1,7 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text } from "react-native";
 import React from "react";
 import { ShieldQuestion } from "lucide-react-native";
-import { Trash2, Square, SquareCheckBig } from "lucide-react-native";
+import { Square, SquareCheckBig } from "lucide-react-native";
 
 //Componente que representa un tip, recibe el título del tip y una breve descripción, más adelante podrá recibir un icono al lado del título lo que lo hace más llamativo visualmente
 //En caso de que no se pase porparátros un icono para el tip, ponemos un emoticono de ?

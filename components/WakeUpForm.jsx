@@ -14,9 +14,22 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { questions } from "../assets/wakeUpQuestions";
 import OptionQuestion from "./OptionQuestion";
 
+/**
+ *  Función que lo que hara es recibir una fecha en el formato que lo coge el componente y pasarlo a LocalDateTime o su formato
+ * para que se pueda mandar a la API y guardarlo correctamente sin problemas
+ * @param {Date} date - Fecha que se quiere formatear
+ * @return {string} - Fecha formateada en el formato que espera la API
+ */
+const formatDateToLocalDateTime = (date) => {
+  const tzOffset = date.getTimezoneOffset() * 60000; // Offset en milisegundos
+  const localDate = new Date(date - tzOffset);
+  // Formatear la fecha a YYYY-MM-DDTHH:mm:ss
+  return localDate.toISOString().slice(0, 19);
+};
+
 const WakeUpForm = ({ isVisible, onClose, onSave }) => {
   //Definimos los estados para guardar las distintas partes de la respuesta
-  const [time, setTime] = useState(new Date());
+  const [time, setTime] = useState(new Date().toLocaleTimeString());
   const [answers, setAnswers] = useState({
     //Definimos los atributos del objeto para poder hacer comprobaciones por el componente
     wakeUpTime: "",
@@ -36,9 +49,14 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
 
   //actualizamos la hora actual cada vez que abrimos el modal teniendo como referencia la bandera que nos indica si esta abierto o no
   useEffect(() => {
-    if (isVisible) setTime(new Date());
+    if (isVisible) {
+      setTime(new Date().toLocaleTimeString());
+      console.log("hora actual al abrir el modal: ", time);
+    }
     console.log("hora actual al reenderizar el componente: ", time);
-  }, [isVisible]);
+    console.log("Hora local:", new Date().toLocaleTimeString());
+    console.log("Offset en minutos:", new Date().getTimezoneOffset());
+  }, [time]);
 
   //Función que se encarga de validar si se han respondido todas las preguntas
   const hasQuestionsAnswered = () => {
@@ -80,7 +98,7 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
     if (Platform.OS === "android") setShowTimePicker(false);
     //tenemos que comprobar que la hora que ponga el user que se ha levantado sea menor o igual a la hora actual, si no podrían exister medidas érroneas
     if (selectedTime && selectedTime <= new Date()) {
-      handleAnswer("wakeUpTime", selectedTime);
+      handleAnswer("wakeUpTime", formatDateToLocalDateTime(selectedTime)); //Guardamos la hora en el formato que espera la API
       setIsValidTime(true);
     } else {
       setIsValidTime(false);
@@ -135,9 +153,7 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
               {Platform.OS === "android" && ( //Renderizamos el botón en caso de android, en caso de apple ya viene renderizado con el propio picker
                 <TouchableOpacity onPress={openTimePicker} className="w-full">
                   <View className="bg-[#1e273a] p-4 rounded-xl">
-                    <Text className="text-center text-white">
-                      {time.toLocaleTimeString()}
-                    </Text>
+                    <Text className="text-center text-white">{time}</Text>
                   </View>
                 </TouchableOpacity>
               )}

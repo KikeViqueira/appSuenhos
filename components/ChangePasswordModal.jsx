@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   TextInput,
   KeyboardAvoidingView,
+  Alert,
 } from "react-native";
 import React, { useState } from "react";
 import { X } from "lucide-react-native";
@@ -36,7 +37,12 @@ const ChangePasswordModal = ({
       setError("La nueva contraseña debe ser diferente a la antigua.");
       return;
     }
-    // Si todo es válido, actualizamos la contraseña
+    // Si todo es válido, actualizamos la contraseña, enviándole al endpoint tanto como la vieja como la nueva contraseña dentro de un objeto
+    const value = {
+      oldPassword: oldPassword,
+      newPassword: newPassword,
+    };
+    updateUser("/password", value);
 
     // Informamos al usuario que se cerrará la sesión por seguridad (JWT)
     logOut();
