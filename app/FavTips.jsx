@@ -1,20 +1,20 @@
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ChevronLeft, BookmarkCheck } from "lucide-react-native";
+import { ChevronLeft, BookmarkCheck, Lightbulb } from "lucide-react-native";
 import { router } from "expo-router";
 import { tips } from "../constants/tips";
+import useTips from "../hooks/useTips";
 
 const FavTips = () => {
-  // Simulamos los tips favoritos del usuario
-  //TODO: Aqui mediante un useEffect tendremos que recuperar los tips favs del user
-  const favoriteTips = [
-    tips[0], // Example: first tip is favorited
-    tips[2], // Example: third tip is favorited
-  ];
+  const { getFavoriteTips, favoriteTips } = useTips();
+
+  useEffect(() => {
+    getFavoriteTips();
+  }, []);
 
   return (
-    <SafeAreaView className="flex-1 bg-primary">
+    <SafeAreaView className="w-full h-full bg-primary">
       {/* Header de la sección con el botón de volver */}
 
       <View className="p-2">
@@ -31,7 +31,7 @@ const FavTips = () => {
           /*Volvemos a la página anterior, expo sabe de donde venimos por lo que no le supone un problemas retroceder
         evitando asi tener que hacer nosotros comprobaciones manuales*/
           onPress={() => router.back()}
-          className="flex-row gap-2 items-center"
+          className="flex-row items-center gap-2"
         >
           <ChevronLeft size={24} color="white" />
           <Text className="text-lg text-white font-psemibold">
@@ -40,14 +40,24 @@ const FavTips = () => {
         </TouchableOpacity>
       </View>
 
-      {/* TODO: Los tips favs se reenderizan si de el endpoint de la api recuperamos un array lleno, si esta vacío tenemos que ponerle
-      al user un mensaje de que en este momento no tiene tips en favs */}
       {favoriteTips.length === 0 ? (
-        <View className="flex-1 justify-center items-center px-6">
-          <Text className="text-lg text-center text-white">
-            Aún no has guardado ningún tip. Explora los tips y guarda los que
-            más te gusten.
+        <View className="flex-1 items-center justify-center gap-4 px-8 max-h-[75%]">
+          <Lightbulb color="#6366ff" size={80} strokeWidth={1.5} />
+          <Text className="text-2xl font-bold text-[#6366ff] mb-2 text-center">
+            No tienes tips favoritos
           </Text>
+          <Text className="text-base text-center text-white">
+            Explora tu colección de consejos personalizada para mejorar tu
+            descanso y guarda los que más te gusten.
+          </Text>
+          <TouchableOpacity
+            className="mt-6 bg-[#6366ff] px-12 py-4 rounded-full flex flex-row items-center justify-center"
+            onPress={() => router.push("./(tabs)/Tips")}
+          >
+            <Text className="text-lg text-white font-psemibold">
+              Ver todos los tips
+            </Text>
+          </TouchableOpacity>
         </View>
       ) : (
         <ScrollView

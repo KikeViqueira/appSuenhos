@@ -4,29 +4,135 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ScrollView,
+  Alert,
+  Animated,
 } from "react-native";
-import React, { useEffect, useState } from "react";
-import { ChevronLeft, Download } from "lucide-react-native";
+import React, { useEffect, useState, useRef } from "react";
+import {
+  ChevronLeft,
+  Download,
+  BookOpen,
+  ChevronDown,
+} from "lucide-react-native";
 import { router } from "expo-router";
 import useDRM from "../hooks/useDRM";
 import { useAuthContext } from "../context/AuthContext";
 import * as Print from "expo-print"; // Usamos expo-print en lugar de react-native-html-to-pdf
 import * as Sharing from "expo-sharing";
+import useTips from "../hooks/useTips";
+import { getDailyTipFlag } from "../hooks/useTips";
+import LoadingBanner from "../components/LoadingBanner";
+import { LinearGradient } from "expo-linear-gradient";
 
 const DrmReport = () => {
   const { getDrmToday, error, drmToday } = useDRM();
+  const { generateTip, getTips, tips } = useTips();
+  const [tipButtonState, setTipButtonState] = useState("default"); //Controla el estado del botón a la hora de generar el tip
+  const [showScrollIndicator, setShowScrollIndicator] = useState(true);
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const scrollViewRef = useRef(null);
+  const fadeAnim = useRef(new Animated.Value(1)).current;
 
   //Recuperamos la info del user ya que necesitamos su nombre para poner en el informe que el user va a descargar
   const { userInfo } = useAuthContext();
 
-  const handleGenerateTip = () => {
-    //TODO: Aqui tenemos que llamar al endpoint de la api para generar un tip personalizado para el user teniendo en cuenta toda su información
+  // Función para detectar si estamos al final del scroll
+  const handleScroll = (event) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    scrollY.setValue(offsetY);
+
+    const layoutHeight = event.nativeEvent.layoutMeasurement.height;
+    const contentHeight = event.nativeEvent.contentSize.height;
+    const isEndReached = layoutHeight + offsetY >= contentHeight - 20;
+
+    if (isEndReached && showScrollIndicator) {
+      // Fade out animation when reaching the bottom
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => {
+        setShowScrollIndicator(false);
+      });
+    } else if (!isEndReached && !showScrollIndicator) {
+      // Fade in animation when not at the bottom
+      setShowScrollIndicator(true);
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
   };
 
-  //Cuando el componente se reenderiza, hacemos la petición para obtener el cuestionario de hoy
+  const handleGenerateTip = async () => {
+    if (tipButtonState === "generating" || tipButtonState === "generated")
+      return;
+
+    setTipButtonState("generating");
+    try {
+      await generateTip();
+      setTipButtonState("generated");
+
+      // Actualizar los tips para asegurar que se muestra el nuevo tip en la lista
+      await getTips();
+
+      // Mostrar mensaje al usuario
+      Alert.alert(
+        "Tip generado",
+        "Se ha generado un nuevo tip personalizado. ¿Quieres verlo ahora?",
+        [
+          {
+            text: "Más tarde",
+            style: "cancel",
+          },
+          {
+            text: "Ver ahora",
+            onPress: () => router.push("./(tabs)/Tips"),
+          },
+        ]
+      );
+    } catch (error) {
+      console.error("Error generando tip:", error);
+      setTipButtonState("default");
+      Alert.alert(
+        "Error",
+        "No se pudo generar el tip. Inténtalo de nuevo más tarde."
+      );
+    }
+  };
+
+  // Función para verificar si se ha generado un tip hoy
+  const checkDailyTipStatus = async () => {
+    try {
+      const tipFlag = await getDailyTipFlag();
+      if (tipFlag) {
+        setTipButtonState("generated");
+      } else {
+        setTipButtonState("default");
+      }
+    } catch (error) {
+      console.error("Error al verificar el estado del tip diario:", error);
+      setTipButtonState("default");
+    }
+  };
+
+  // Cargar los datos iniciales cuando el componente se monta
   useEffect(() => {
-    getDrmToday();
+    const loadInitialData = async () => {
+      // Ejecutar ambas operaciones en paralelo para mejor rendimiento
+      await Promise.all([getDrmToday(), getTips()]);
+
+      // Verificar estado del tip diario después de cargar los datos
+      await checkDailyTipStatus();
+    };
+
+    loadInitialData();
   }, []);
+
+  const navigateToTips = () => {
+    router.push("./(tabs)/Tips");
+  };
 
   /*
    * Función para generar el informe en PDF y descargarlo en el dispositivo del user
@@ -113,6 +219,29 @@ const DrmReport = () => {
     }
   };
 
+  // Determinar el texto y estilo del botón según el estado
+  const getButtonText = () => {
+    switch (tipButtonState) {
+      case "generating":
+        return "Generando tip...";
+      case "generated":
+        return "Tip generado para hoy ✓";
+      default:
+        return "Generar Tip Personalizado";
+    }
+  };
+
+  const getButtonStyle = () => {
+    switch (tipButtonState) {
+      case "generating":
+        return "bg-[#15db44]/60";
+      case "generated":
+        return "bg-gray-500";
+      default:
+        return "bg-[#15db44]";
+    }
+  };
+
   return (
     <SafeAreaView className="flex-1 w-full h-full bg-primary">
       <View className="flex flex-row items-center justify-between py-4 w-[90%] self-center">
@@ -131,21 +260,31 @@ const DrmReport = () => {
             Cuestionario diario DRM
           </Text>
         </View>
-        <TouchableOpacity
-          //Cuando pinchemos en el botón de descargar el informe llamamos a la función para pasarlo a PDF
-          onPress={createPDF}
-        >
-          <Download size={24} color="white" />
-        </TouchableOpacity>
+        <View className="flex-row items-center gap-4">
+          {tipButtonState === "generated" && (
+            <TouchableOpacity onPress={navigateToTips}>
+              <BookOpen size={24} color="white" />
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            //Cuando pinchemos en el botón de descargar el informe llamamos a la función para pasarlo a PDF
+            onPress={createPDF}
+          >
+            <Download size={24} color="white" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View className="flex-1 flex-col justify-between items-center w-[90%] self-center mb-10">
-        <View className="max-h-[90%]">
+        <View className="max-h-[90%] relative">
           <ScrollView
-            contentContainerStyle={{ flexGrow: 1 }}
+            ref={scrollViewRef}
+            contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
             showsVerticalScrollIndicator={true}
             indicatorStyle="white"
             className="border-b border-gray-700"
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
           >
             <Text className="mb-4 text-lg text-white" selectable={true}>
               {/*Si el drmToday no es vacío lo reenderizamos, en caso contrario ponemos un mensaje de que no se ha hecho el cuestionario hoy*/}
@@ -154,17 +293,63 @@ const DrmReport = () => {
                 : "No se ha generado el cuestionario de hoy"}
             </Text>
           </ScrollView>
+
+          {/* Indicador de scroll animado */}
+          {showScrollIndicator && (
+            <Animated.View
+              style={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                opacity: fadeAnim,
+                alignItems: "center",
+                paddingBottom: 10,
+              }}
+            >
+              <LinearGradient
+                colors={["transparent", "rgba(18, 24, 38, 0.9)"]}
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  height: 70,
+                  borderRadius: 20,
+                }}
+              />
+              <View className="bg-[#6366ff] p-2 rounded-full">
+                <ChevronDown size={24} color="white" />
+              </View>
+            </Animated.View>
+          )}
         </View>
 
         <TouchableOpacity
-          TouchableOpacity
-          className="bg-[#15db44] py-4 rounded-xl items-center w-full"
+          className={`py-4 rounded-xl items-center w-full ${getButtonStyle()}`}
           onPress={handleGenerateTip}
+          //Desactivamos el botón cuando no esté en el estado default
+          disabled={tipButtonState !== "default"}
         >
-          <Text className="text-lg text-white font-psemibold">
-            Generar Tip Personalizado
-          </Text>
+          {tipButtonState === "generating" ? (
+            <View className="flex-row items-center justify-center">
+              <LoadingBanner />
+              <Text className="ml-2 text-lg text-white font-psemibold">
+                {getButtonText()}
+              </Text>
+            </View>
+          ) : (
+            <Text className="text-lg text-white font-psemibold">
+              {getButtonText()}
+            </Text>
+          )}
         </TouchableOpacity>
+
+        {tipButtonState === "generated" && (
+          <TouchableOpacity className="mt-4" onPress={navigateToTips}>
+            <Text className="text-[#6366ff] text-center">Ver tip generado</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </SafeAreaView>
   );

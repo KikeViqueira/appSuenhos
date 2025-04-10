@@ -1,15 +1,7 @@
 import { View, Dimensions } from "react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import { ContributionGraph } from "react-native-chart-kit";
-
-//TODO: TENEMOS QUE HACER UN ENDPOINT QUE NOS DEVUELVA LOS CHATS QUE SE HAN HECHO EN LOS ÚLTIMOS TRES MESES
-const chatData = [
-  { date: "2023-04-02", count: 1 },
-  { date: "2023-04-05", count: 1 },
-  { date: "2023-04-12", count: 1 },
-  { date: "2023-04-18", count: 1 },
-  { date: "2023-04-25", count: 1 },
-];
+import useChat from "../hooks/useChat";
 
 // Función para obtener el último día del mes actual
 const getEndDate = () => {
@@ -33,10 +25,17 @@ const getNumDays = () => {
 };
 
 const ChatContributionGraph = () => {
+  const { last3MonthsChats, getLast3MonthsChats } = useChat();
+
+  useEffect(() => {
+    // Llamamos a la función para obtener los chats de los últimos 3 meses
+    getLast3MonthsChats();
+  }, []);
+
   return (
     <View>
       <ContributionGraph
-        values={chatData}
+        values={last3MonthsChats}
         endDate={getEndDate()}
         numDays={getNumDays()}
         width={Dimensions.get("window").width - 20}

@@ -11,6 +11,7 @@ const useChat = () => {
   const [history, setHistory] = useState([]); // Almacena el historial de chats
   const [isToday, setIsToday] = useState(false); // Bandera que indica si el chat es de hoy o no
   const { accessToken, userId } = useAuthContext();
+  const [last3MonthsChats, setLast3MonthsChats] = useState([]); // Almacena los chats de los últimos tres meses
   /*
    * Funciones internas para guardar el chatId en el AsyncStorage junto a una marca temporal de cuando se ha hecho el chat,
    * y función para recuperar el chatId del AsyncStorage y comprobar si es de hoy o no.
@@ -133,12 +134,16 @@ const useChat = () => {
 
       console.log("id del chat que acabamos de crear: ", response.data.id);
 
-      //Una vez creado tenemos que guardar la id y fecha de expiración en el AsyncStorage
-      await setDailyChatId(response.data.id.toString());
+      if (response.status === 200) {
+        //Una vez creado tenemos que guardar la id y fecha de expiración en el AsyncStorage
+        await setDailyChatId(response.data.id.toString());
 
-      //En el caso de que el valor del chatid al hacer la llamada fuese nuelo tenemos que llamar al getHistory para actualizar el historial de chats con este nuevo que se ha creado
-      //En caso de que el chat ya existiese pues ya lo tenemos en el historial de chats y no hace falta volver a llamarlo
-      if (storedChatId === null) getHistory();
+        //En el caso de que el valor del chatid al hacer la llamada fuese nuelo tenemos que actualizar el historial de chats con este nuevo que se ha creado
+        //En caso de que el chat ya existiese pues ya lo tenemos en el historial de chats y no hace falta meterlo
+        if (storedChatId === null) {
+          setHistory((prev) => [...prev, response.data]);
+        }
+      }
     } catch (error) {
       //Si ocurre un error se elimina el mensaje temporal de la IA y se muestra un mensaje de error
       setMessages((prev) =>
@@ -166,7 +171,39 @@ const useChat = () => {
         }
       );
       //Guardamos el historial de chats en el estado
-      setHistory(response.data);
+      if (response.status === 200) setHistory(response.data);
+      console.log("Historial de chats recuperado: ", response.data);
+    } catch (error) {
+      setError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Endpoint para recuperar los chats que ha hecho el user en los últimos tres meses
+   * Para tener esta funcionalidad se le pasa un parámetro filter con valor last3Months al endpoint
+   */
+  const getLast3MonthsChats = async () => {
+    setError(null);
+    setLoading(true);
+
+    try {
+      const response = await apiClient.get(
+        `${API_BASE_URL}/users/${userId}/chats`,
+        {
+          params: {
+            filter: "last3Months",
+          },
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+      //Guardamos estos chats en el estado correspondiente
+      if (response.status === 200) setLast3MonthsChats(response.data);
       console.log("Historial de chats recuperado: ", response.data);
     } catch (error) {
       setError(error);
@@ -187,18 +224,23 @@ const useChat = () => {
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json", //Indicamos el tipo de contenido que se está enviando
           },
-          data: {
-            ids: ids,
-          },
+          /*
+           * En este caso usamos data y se envía el contenido de la petición desde aquí
+           * ya que es el formato que espera axios para enviar un body en una petición DELETE
+           */
+          data: ids,
         }
       );
-      //Si el delete se ha hecho de manera correcta, se llama a la función getHistory para actualizar el historial de chats
-      if (response.status === 200) getHistory();
-      else {
+      //Si el delete se ha hecho de manera correcta, quitamos del estado del historial los chats que se han eliminado
+      if (response.status === 200) {
+        setHistory((prev) => prev.filter((chat) => !ids.includes(chat.id)));
+      } else {
         Alert.alert("Error", "No se ha podido eliminar el chat");
       }
     } catch (error) {
+      console.error("Error al eliminar chats:", error.response || error);
       setError(error);
     } finally {
       setLoading(false);
@@ -221,14 +263,16 @@ const useChat = () => {
           },
         }
       );
-      //Guardamos el historial de mensajes en el estado
-      setMessages(response.data.messages);
-      console.log(
-        "Mensajes recuperados en el endpoint: ",
-        response.data.messages
-      );
-      //En otro estado tenemos que guardar la bandera de si el chat es de hoy o no, dependiendo del valor de esta sabremos si podemos escribir en el chat o no
-      setIsToday(response.data.isEditable);
+      if (response.status === 200) {
+        //Guardamos el historial de mensajes en el estado
+        setMessages(response.data.messages);
+        console.log(
+          "Mensajes recuperados en el endpoint: ",
+          response.data.messages
+        );
+        //En otro estado tenemos que guardar la bandera de si el chat es de hoy o no, dependiendo del valor de esta sabremos si podemos escribir en el chat o no
+        setIsToday(response.data.isEditable);
+      }
     } catch (error) {
       setError(error);
     } finally {
@@ -259,6 +303,8 @@ const useChat = () => {
     getConversationChat,
     isToday,
     getTodayChat,
+    getLast3MonthsChats,
+    last3MonthsChats,
   };
 };
 

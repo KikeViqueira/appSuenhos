@@ -1,13 +1,68 @@
-import { useEffect, useState, Alert } from "react";
+import { useState } from "react";
 import { apiClient } from "../services/apiClient";
 import { API_BASE_URL } from "../config/config";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuthContext } from "../context/AuthContext";
+
+/*
+ * Función para guardar en el AsyncStorage una bandera de si hoy  el user ha generado un tip o no.
+ * Función para recuperar la bandera de si hoy el user ha generado un tip o no.
+ */
+
+const setDailyTipFlag = async () => {
+  try {
+    const now = new Date();
+    //Establecemos la expiración de la bandera
+    const endOfDay = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      23,
+      59,
+      59,
+      999
+    );
+    //Creamos el objeto que vamos a guardar en el AsyncStorage
+    const data = {
+      tipCreated: true,
+      expiry: endOfDay.getTime(),
+    };
+    await AsyncStorage.setItem("tipFlag", JSON.stringify(data));
+  } catch (error) {
+    console.error(
+      "Error al guardar la bandera de tip en el AsyncStorage: ",
+      error
+    );
+  }
+};
+
+export const getDailyTipFlag = async () => {
+  try {
+    const data = await AsyncStorage.getItem("tipFlag");
+    if (data) {
+      const { tipCreated, expiry } = JSON.parse(data);
+      //Comprobamos si el tiempo actual es mayor que el tiempo de expiración del chatId
+      if (Date.now() > expiry) {
+        //Si ha expirado eliminamos la bandera del AsyncStorage
+        await AsyncStorage.removeItem("tipFlag");
+        return null;
+      }
+      return tipCreated;
+    }
+  } catch (error) {
+    console.error(
+      "Error al recuperar la bandera de tip del AsyncStorage: ",
+      error
+    );
+    return null;
+  }
+};
 
 const useTips = () => {
   const [tips, setTips] = useState([]); // Estado que guarda todos los tips
   const [loading, setLoading] = useState(false); // Indica si la petición está en curso
   const [error, setError] = useState(null); // Almacena el error en caso de que ocurra
-  const [tipSelectedDetail, setTipSelectedDetail] = useState(null); // Almacena el detalle del tip seleccionado
+  const [tipSelectedDetail, setTipSelectedDetail] = useState({}); // Almacena el detalle del tip seleccionado
   const [favoriteTips, setFavoriteTips] = useState([]); // Almacena los tips favoritos del usuario
 
   const { accessToken, userId } = useAuthContext();
@@ -20,14 +75,19 @@ const useTips = () => {
     setLoading(true);
 
     try {
-      const response = apiClient.post(`${API_BASE_URL}/users/${userId}/tips`, {
-        Headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      const response = await apiClient.post(
+        `${API_BASE_URL}/users/${userId}/tips`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
       //Una vez creado lo que tenemos que hacer es añadirlo a los tips existentes
       const newTip = response.data;
-      setTips((prevTips) => [...prevTips, newTip]);
+      if (response.status === 200) setTips((prevTips) => [...prevTips, newTip]);
+      //llamamos a la función para guardar la bandera de tip en el AsyncStorage
+      await setDailyTipFlag();
     } catch (error) {
       setError(error);
       console.error("Error al generar el tip: ", error);
@@ -47,12 +107,12 @@ const useTips = () => {
       const response = await apiClient.get(
         `${API_BASE_URL}/users/${userId}/tips`,
         {
-          Headers: {
+          headers: {
             Authorization: `Bearer ${accessToken}`,
           },
         }
       );
-      setTips(response.data);
+      if (response.status === 200) setTips(response.data);
     } catch (error) {
       setError(error);
       console.error("Error al recuperar los tips: ", error);
@@ -68,20 +128,56 @@ const useTips = () => {
     setError(null);
     setLoading(true);
 
+    console.log("Tip del cual queremos recuperar la información: ", tipId);
+
     try {
       const response = await apiClient.get(
         `${API_BASE_URL}/users/${userId}/tips/${tipId}`,
         {
-          Headers: {
+          headers: {
             Authorization: `Bearer ${accessToken}`,
           },
         }
       );
       //Almacenamos los detalles del tip seleccionado en el estado correspondiente
-      setTipSelectedDetail(response.data);
+      if (response.status === 200) setTipSelectedDetail(response.data);
     } catch (error) {
       setError(error);
       console.error("Error al recuperar el tip: ", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /*
+   * Endpoint para eliminar un tip o varios a partir de sus ids
+   */
+  const deleteTips = async (tipIds) => {
+    setError(null);
+    setLoading(true);
+
+    console.log("Ids de los tips que se van a eliminar: ", tipIds);
+
+    try {
+      const response = await apiClient.delete(
+        `${API_BASE_URL}/users/${userId}/tips`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json", //Indicamos el tipo de contenido que se está enviando
+          },
+          data: tipIds,
+        }
+      );
+      if (response.status === 200) {
+        //Dejamos guardados en el estado aquellos tips que no tengan un id que esté en el array de ids que se han pasado como parámetro para ser eliminados
+        setTips((prevTips) =>
+          prevTips.filter((tip) => !tipIds.includes(tip.id))
+        );
+      }
+    } catch (error) {
+      setError(error);
+      console.error("Error al eliminar los tips: ", error);
     } finally {
       setLoading(false);
     }
@@ -98,14 +194,14 @@ const useTips = () => {
 
     try {
       const response = await apiClient.get(
-        `${API_BASE_URL}/users/${userId}/favorite-tips`,
+        `${API_BASE_URL}/users/${userId}/favorites-tips`,
         {
-          Headers: {
+          headers: {
             Authorization: `Bearer ${accessToken}`,
           },
         }
       );
-      setFavoriteTips(response.data);
+      if (response.status === 200) setFavoriteTips(response.data);
     } catch (error) {
       setError(error);
       console.error("Error al recuperar los tips favoritos: ", error);
@@ -120,18 +216,20 @@ const useTips = () => {
 
     try {
       const response = await apiClient.post(
-        `${API_BASE_URL}/users/${userId}/favorite-tips/${idTip}`,
+        `${API_BASE_URL}/users/${userId}/favorites-tips/${idTip}`,
         {
-          Headers: {
+          headers: {
             Authorization: `Bearer ${accessToken}`,
           },
         }
       );
-      //Actualizamos la lista de tips favortitos en el estado //TODO: EL CHAT DICE QUE ES MEJOR ESTO A LLAMAR AL GET DE LA API
-      setFavoriteTips((prevFavoriteTips) => [
-        ...prevFavoriteTips,
-        response.data,
-      ]);
+      if (response.status === 200) {
+        //Actualizamos la lista de tips favortitos en el estado //TODO: EL CHAT DICE QUE ES MEJOR ESTO A LLAMAR AL GET DE LA API
+        setFavoriteTips((prevFavoriteTips) => [
+          ...prevFavoriteTips,
+          response.data,
+        ]);
+      }
     } catch (error) {
       setError(error);
       console.error("Error al añadir el tip a favoritos: ", error);
@@ -145,18 +243,20 @@ const useTips = () => {
     setLoading(true);
 
     try {
-      await apiClient.delete(
-        `${API_BASE_URL}/users/${userId}/favorite-tips/${idTip}`,
+      const response = await apiClient.delete(
+        `${API_BASE_URL}/users/${userId}/favorites-tips/${idTip}`,
         {
-          Headers: {
+          headers: {
             Authorization: `Bearer ${accessToken}`,
           },
         }
       );
-      //Actualizamos la lista de tips favortitos en el estado, para quedarnos con los que no tienen el id del que se ha eliminado
-      setFavoriteTips((prevFavoriteTips) =>
-        prevFavoriteTips.filter((tip) => tip.id !== idTip)
-      );
+      if (response.status === 200) {
+        //Actualizamos la lista de tips favortitos en el estado, para quedarnos con los que no tienen el id del que se ha eliminado
+        setFavoriteTips((prevFavoriteTips) =>
+          prevFavoriteTips.filter((tip) => tip.id !== idTip)
+        );
+      }
     } catch (error) {
       setError(error);
       console.error("Error al eliminar el tip de favoritos: ", error);
@@ -177,6 +277,7 @@ const useTips = () => {
     favoriteTips,
     addFavoriteTip,
     removeFavoriteTip,
+    deleteTips,
   };
 };
 

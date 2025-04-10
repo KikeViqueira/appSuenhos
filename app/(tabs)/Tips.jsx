@@ -4,8 +4,9 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  RefreshControl,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import TipItem from "../../components/TipItem";
@@ -57,8 +58,8 @@ const Tips = () => {
    */
   const [selectedTips, setSelectedTips] = useState([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
-  //Usamos la variable que tiene los tips definida en el hook de los tips
-  const tips = [];
+  const [refreshing, setRefreshing] = useState(false);
+  const { tips, getTips, deleteTips, loading } = useTips();
 
   //hacemos la función para que al presionarse un tip nos lleve a la página del tip detallado correspondiente
   const handleTipPress = (tip) => {
@@ -73,8 +74,16 @@ const Tips = () => {
     }
   };
 
+  // Cargar los tips cuando se monta el componente
   useEffect(() => {
-    //TODO: TENEMOS QUE LLAMAR AL ENDPOINT DE CONSEGUIR LOS TIPS DEL USER
+    getTips();
+  }, []);
+
+  // Función para refrescar los tips manualmente
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await getTips();
+    setRefreshing(false);
   }, []);
 
   //Función que se encarga de poner el modo de múltiple selección activado para su uso
@@ -88,14 +97,15 @@ const Tips = () => {
     setSelectedTips([]);
   };
 
-  //Función para confirmar la eliminación de los tips que han sido seleccionados //TODO: TENEMOS QUE VER SI LOS TIPS QUE SE VAN A ELIMINAR SON MAYORES A CERO, Y ASI NO LLAMAR A LA API INUTILMENTE (SIZE O LENGTH)
-  const confirmDeletion = () => {
+  //Función para confirmar la eliminación de los tips que han sido seleccionados
+  const confirmDeletion = async () => {
     if (selectedTips.length > 0) {
       console.log(
         "Eliminando lo siguientes tips: " +
           selectedTips.map((tip) => tip.title).join(", ") //Enseñamos los title de los tips que han sido eliminados separados mediante comas
       );
-      //TODO: AQUI TENDREMOS QUE LLAMAR EN EL FUTURO AL ENDPOINT DE LA API QUE SE ENCARGA DE ELIMINAR LOS TIPS SELECCIONADOS
+      //llamamos al endpoint de eliminar tips pasandole un array que contiene solo los ids de los tips que se han seleccionado y están en el estado
+      await deleteTips(selectedTips.map((tip) => tip.id));
       setSelectedTips([]); //Limpiamos los tips seleccionados
       setIsSelectionMode(false);
     }
@@ -225,6 +235,14 @@ const Tips = () => {
             }}
             showsVerticalScrollIndicator={true}
             indicatorStyle="white"
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={["#6366ff"]}
+                tintColor="#6366ff"
+              />
+            }
           >
             {tips.map((tip, index) => (
               <TouchableOpacity
