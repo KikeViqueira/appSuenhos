@@ -15,13 +15,6 @@ import ChatItem from "../components/ChatItem";
 import useChat from "../hooks/useChat";
 import { router } from "expo-router";
 
-//Lista de chats estáticos que usaremos de prueba
-/*const chats = [
-  { id: "1", date: "2024-04-01", summary: "Sueño sobre volar" },
-  { id: "2", date: "2024-02-14", summary: "Estrés en el trabajo" },
-  { id: "3", date: "2024-01-6", summary: "Sueño premonitorio" },
-];*/
-
 const ChatsHistory = () => {
   //Definimos los distintos estados que necesitamos para el model
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -44,21 +37,34 @@ const ChatsHistory = () => {
     getHistory();
   }, []);
 
-  const handleChatPress = (chat) => {
+  const handleChatPress = async (chat) => {
     //Dependiendo del modo en el que estemos pulsar en un chat tendrá una acción asociada
     if (isSelectionMode) {
       setSelectedChats(xorBy(selectedChats, [chat], "id"));
     } else {
-      //En caso de que el user haya pinchado en el chat para veer la conversación, llamamos a la función que se encarga de recuperar la conversación del chat
-      getConversationChat(chat.id);
-      //Volvemos a la página de chat
-      router.back();
+      console.log("Seleccionando chat para ver:", chat.id, chat.name);
+      try {
+        //En caso de que el user haya pinchado en el chat para ver la conversación, llamamos a la función que se encarga de recuperar la conversación del chat
+        const success = await getConversationChat(chat.id); //Esperamos a que se recupere la conversación del chat
+
+        if (success) {
+          console.log("Navegando de regreso a la pantalla de chat");
+          // Esperamos un poco para asegurar que AsyncStorage se ha actualizado
+          setTimeout(() => {
+            router.back();
+          }, 100);
+        }
+      } catch (error) {
+        console.error("Error al cargar la conversación:", error);
+        // Podríamos mostrar una alerta aquí
+      }
     }
   };
 
-  //Función que se encargará de poner el modo de múltiple selección activado para su uso
+  //Función que se encargará de poner el modo de múltiple selección activado para su uso y ocultar los chtas que se han filtrado en caso de que el user haya hecho una búsqueda
   const handleDeletePress = () => {
     setIsSelectionMode(true);
+    setFilteredChats([]);
   };
 
   //Función que se encarga de cancelar la eliminación múltiple y volver al estado por default
@@ -68,9 +74,9 @@ const ChatsHistory = () => {
   };
 
   //Función para confirmar la eliminación de los chats que han sido seleccionados
-  const confirmDeletion = () => {
+  const confirmDeletion = async () => {
     console.log(
-      "Eliminando lo siguientes chats: " +
+      "Eliminando los siguientes chats: " +
         selectedChats.map((chat) => chat.name).join(", ") //Enseñamos los name de los chats que han sido eliminados separados mediante comas
     );
     //llamamos al endpoint de eliminar chats pasandole los ids de los chats seleccionados
@@ -166,12 +172,17 @@ const ChatsHistory = () => {
           {/*En caso de que haya un chat filtrado mostramos su contenido: name y date.
               En otro caso lo que hacemos es mostrar un mensaje de error diciendo al user que no se ha encontrado un chat con la fecha que esta buscando*/}
           {filteredChats.length > 0 ? (
-            <View className="bg-[#1e273a] w-full flex flex-col justify-between p-6 rounded-lg">
-              <Text className="mb-2 text-xl font-bold text-white">
-                {filteredChats[0].name}
-              </Text>
-              <Text className="text-[#6366ff]">{filteredChats[0].date}</Text>
-            </View>
+            <TouchableOpacity
+              onPress={() => handleChatPress(filteredChats[0])}
+              disabled={isSelectionMode}
+            >
+              <View className="bg-[#1e273a] w-full flex flex-col justify-between p-6 rounded-lg">
+                <Text className="mb-2 text-xl font-bold text-white">
+                  {filteredChats[0].name}
+                </Text>
+                <Text className="text-[#6366ff]">{filteredChats[0].date}</Text>
+              </View>
+            </TouchableOpacity>
           ) : (
             <View className="flex items-center justify-center py-4">
               <Text className="text-base text-center text-white">

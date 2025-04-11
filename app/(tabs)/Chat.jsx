@@ -18,40 +18,50 @@ import { router } from "expo-router";
 
 const Chat = () => {
   //recuperamos las funcionalidades y estados del hook de chat
-  const { messages, postRequest, isToday, getTodayChat } = useChat();
+  const { messages, postRequest, isToday, getTodayChat, isAiWriting } =
+    useChat();
   //Input que guarda el mensaje que se quiere enviar
   const [newMessage, setNewMessage] = useState("");
+  // Estado para controlar si los mensajes se están cargando
+  const [initializing, setInitializing] = useState(true);
 
   //Tenemos que recuperar el nombre del user para enseñarlo en el mensaje inicial que se pone en el chat antes de iniciar la conversación
   const { userInfo } = useAuthContext();
 
+  // Al montar el componente, intentamos cargar el chat de hoy
   useEffect(() => {
-    //Llamamos a la función para recuperar el chat de hoy
-    getTodayChat();
+    const initialize = async () => {
+      try {
+        // Solo cargamos del servidor si no hay mensajes guardados
+        if (messages.length === 0) {
+          await getTodayChat();
+        }
+      } catch (error) {
+        console.error("Error en la inicialización:", error);
+      } finally {
+        // Marcamos como inicializado después de intentar cargar
+        setInitializing(false);
+      }
+    };
+
+    initialize();
   }, []);
 
+  // Mostramos logs de depuración
   useEffect(() => {
     console.log("Mensajes desde el useEffect: ", messages);
-  }, [messages]);
+    console.log("¿El chat es de hoy?", isToday);
+    console.log("¿IA escribiendo?", isAiWriting);
+    console.log("¿Inicializando?", initializing);
+  }, [messages, isToday, isAiWriting, initializing]);
 
   const toggleModal = () => {
     router.push("../ChatsHistory");
   };
 
   const handleSendMessage = () => {
-    //Si el mensaje no es vacío lo enviamos
-    if (newMessage.trim()) {
-      /*setMessages([
-        ...messages,
-        {
-          id: messages.length + 1,
-          text: newMessage,
-          sender: "user",
-        },
-      ]);*/
-      /*
-       * Una vez que enviamos el mensaje tenemos que usar la función del useChat para enviar el mensaje a la IA y guardarlo en la BD
-       */
+    //Si el mensaje no es vacío y la IA no está escribiendo, lo enviamos
+    if (newMessage.trim() && !isAiWriting) {
       postRequest(newMessage.trim());
       //Reinicializamos el estado del mensaje y cerramos el teclado
       setNewMessage("");
@@ -118,15 +128,18 @@ const Chat = () => {
         </View>
 
         {/**
-         * En caso de que no se haya empezado la conversación con la IA, tenemos que poner un mensaje en el medio de la
-         *  pantalla animando al user a comentar sus inquietudes sobre el sueño
-         *
-         * En caso contrario lo que hacemos es mostrar la conversación que tiene el user
-         * */}
-        {messages.length === 0 ? (
+         * En caso de que estemos inicializando o no haya mensajes, mostramos la pantalla de bienvenida
+         * En caso contrario, mostramos la conversación
+         */}
+        {initializing ? (
+          // Pantalla de carga mientras inicializamos
+          <View className="items-center justify-center flex-1">
+            <Text className="text-lg text-white">Cargando...</Text>
+          </View>
+        ) : messages.length === 0 ? (
+          // Pantalla de bienvenida para iniciar la conversación
           <View className="items-center justify-center flex-1">
             <View className="items-center justify-center flex-1">
-              {/*Mostramos el mensaje de bienvenida al user con el nombre del user en caso de que exista, en caso de que no exista dejamos el placeholder de user*/}
               <Text className="text-center text-[#6366ff] text-3xl font-bold mb-2">
                 Hola, {userInfo?.name || "User"}!
               </Text>
@@ -136,6 +149,7 @@ const Chat = () => {
             </View>
           </View>
         ) : (
+          // Lista de mensajes si hay conversación
           <FlatList
             className="flex-1 px-4"
             data={messages}
@@ -147,29 +161,40 @@ const Chat = () => {
           />
         )}
 
-        <View className="flex-row items-center p-4 pb-0 border-t border-gray-700">
-          <TextInput
-            className="flex-1 bg-[#323d4f] text-white p-3 rounded-xl mr-2"
-            value={newMessage}
-            onChangeText={setNewMessage}
-            placeholder="Escribe tus inquietudes a ZzzTime AI"
-            placeholderTextColor="#9ca3af"
-            multiline={true}
-            textAlignVertical="top"
-            scrollEnabled={true}
-            style={{
-              maxHeight: 100,
-            }}
-          />
+        {isToday ? (
+          <View className="flex-row items-center p-4 pb-0 border-t border-gray-700">
+            <TextInput
+              className="flex-1 bg-[#323d4f] text-white p-3 rounded-xl mr-2"
+              value={newMessage}
+              onChangeText={setNewMessage}
+              placeholder="Escribe tus inquietudes a ZzzTime AI"
+              placeholderTextColor="#9ca3af"
+              multiline={true}
+              textAlignVertical="top"
+              scrollEnabled={true}
+              style={{
+                maxHeight: 100,
+              }}
+            />
 
-          <TouchableOpacity
-            className="bg-[#6366ff] p-3 rounded-xl"
-            // disabled={!isToday} //En caso de que no sea el día de hoy el user no puede enviar mensajes
-            onPress={handleSendMessage}
-          >
-            <Text className="font-semibold text-white">Enviar</Text>
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              className={`${
+                isAiWriting ? "bg-[#6366ff]/60" : "bg-[#6366ff]"
+              } p-3 rounded-xl`}
+              onPress={handleSendMessage}
+              disabled={isAiWriting}
+            >
+              <Text className="font-semibold text-white">Enviar</Text>
+            </TouchableOpacity>
+          </View>
+        ) : messages.length > 0 ? (
+          <View className="p-4 pb-0 border-t border-gray-700">
+            <Text className="p-3 text-center text-gray-400">
+              Este chat no es de hoy por lo que está en modo lectura. No puedes
+              enviar nuevos mensajes.
+            </Text>
+          </View>
+        ) : null}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

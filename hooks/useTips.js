@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { apiClient } from "../services/apiClient";
 import { API_BASE_URL } from "../config/config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -77,9 +77,11 @@ const useTips = () => {
     try {
       const response = await apiClient.post(
         `${API_BASE_URL}/users/${userId}/tips`,
+        {},
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
           },
         }
       );
@@ -109,6 +111,7 @@ const useTips = () => {
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
           },
         }
       );
@@ -136,6 +139,7 @@ const useTips = () => {
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
           },
         }
       );
@@ -148,6 +152,13 @@ const useTips = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    console.log(
+      "valor de la bandera de si es favorito o no",
+      tipSelectedDetail.isFavorite
+    );
+  }, [tipSelectedDetail]);
 
   /*
    * Endpoint para eliminar un tip o varios a partir de sus ids
@@ -198,6 +209,7 @@ const useTips = () => {
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
           },
         }
       );
@@ -217,9 +229,11 @@ const useTips = () => {
     try {
       const response = await apiClient.post(
         `${API_BASE_URL}/users/${userId}/favorites-tips/${idTip}`,
+        {},
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
           },
         }
       );
@@ -248,6 +262,7 @@ const useTips = () => {
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
           },
         }
       );

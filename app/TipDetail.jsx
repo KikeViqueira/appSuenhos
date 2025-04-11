@@ -77,7 +77,7 @@ const TipDetail = () => {
   // Actualizar el estado de favorito y secciones cuando se carga el detalle del tip
   useEffect(() => {
     if (tipSelectedDetail && Object.keys(tipSelectedDetail).length > 0) {
-      // Actualizar estado favorito
+      // Actualizar estado favorito según el valor que esté en el objeto tipSelectedDetail
       if (tipSelectedDetail.isFavorite !== undefined) {
         setIsFavorite(tipSelectedDetail.isFavorite);
       }

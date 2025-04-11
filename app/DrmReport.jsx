@@ -315,7 +315,6 @@ const DrmReport = () => {
                   left: 0,
                   right: 0,
                   height: 70,
-                  borderRadius: 20,
                 }}
               />
               <View className="bg-[#6366ff] p-2 rounded-full">
