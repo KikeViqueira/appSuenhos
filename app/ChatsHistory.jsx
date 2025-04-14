@@ -145,15 +145,17 @@ const ChatsHistory = () => {
 
         {(Platform.OS === "ios" || showDatePicker) && ( //Si estamos en ios renderizamos su picker y showDatePicker esta en false
           //En caso de que showDatePicker este en true y el SO sea android lo abrimos tambien y gestionamos
-          <DateTimePicker
-            value={selectedDate}
-            mode="date"
-            display="default"
-            textColor="white"
-            maximumDate={new Date()} //Máxima fecha a la que el user puede seleccionar para la búsqqueda de chats
-            //Cada vez que cambiamos la hora se guarda en el estado de tiempo
-            onChange={handleDateChange}
-          />
+          <View className="w-full">
+            <DateTimePicker
+              value={selectedDate}
+              mode="date"
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              textColor="white"
+              themeVariant="dark" //Forzamos el tema oscuro para ios
+              maximumDate={new Date()} //Máxima fecha a la que el user puede seleccionar para la búsqqueda de chats
+              onChange={handleDateChange}
+            />
+          </View>
         )}
 
         <TouchableOpacity

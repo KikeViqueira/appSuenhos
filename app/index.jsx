@@ -6,22 +6,12 @@ import { useAuthContext } from "../context/AuthContext";
 import { useEffect } from "react";
 
 export default function App() {
-  const { accessToken, userId, onboardingCompleted } = useAuthContext();
+  const { accessToken, userId, onboardingCompleted, isAuthLoading } =
+    useAuthContext();
 
   useEffect(() => {
-    // Si se han cargado los valores y son todos null, redirige a login
-    if (
-      accessToken === null &&
-      userId === null &&
-      onboardingCompleted === null
-    ) {
-      //Para evitar el error de "Attempted to navigate before mounting the Root Layout component", retrasa la navegación hasta después del primer render.
-      setTimeout(() => {
-        router.replace("./(Auth)/sign-in"); // Redirige a login
-      }, 0);
-      return;
-    }
-
+    //Si se está cargando el auth, no se hace nada, cuando cargue y el valor de los estados esten bien actualizados se redirige a donde corresponda.
+    if (isAuthLoading) return;
     if (accessToken && userId) {
       if (onboardingCompleted) {
         router.replace("./(tabs)/Stats"); // Redirige a la app principal
@@ -29,9 +19,12 @@ export default function App() {
         router.replace("./(Onboarding)/Onboarding"); // Redirige al onboarding
       }
     } else {
-      router.replace("./(Auth)/sign-in"); // Redirige a login
+      //Para evitar el error de "Attempted to navigate before mounting the Root Layout component",se retrasa la navegación hasta después del primer render.
+      setTimeout(() => {
+        router.replace("./(Auth)/sign-in"); // Redirige a login
+      }, 0);
     }
-  }, [accessToken, userId, onboardingCompleted]);
+  }, [accessToken, userId, onboardingCompleted, isAuthLoading]);
 
   return (
     <SafeAreaView className="flex items-center bg-primary">

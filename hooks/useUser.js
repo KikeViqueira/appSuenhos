@@ -41,6 +41,7 @@ const useUser = () => {
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
           },
         }
       );

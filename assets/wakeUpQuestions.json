@@ -1,7 +1,7 @@
 {
   "questions": [
     {
-      "id": "wakeup_question1",
+      "id": "question1",
       "title": "¿Cómo ha sido la calidad de tu sueño?",
       "type": "options",
       "options": [
@@ -13,7 +13,7 @@
       ]
     },
     {
-      "id": "wakeup_question2",
+      "id": "question2",
       "title": "¿Cómo te sientes de descansado?",
       "type": "options",
       "options": [

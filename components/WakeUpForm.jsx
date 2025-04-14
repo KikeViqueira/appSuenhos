@@ -29,10 +29,12 @@ const formatDateToLocalDateTime = (date) => {
 
 const WakeUpForm = ({ isVisible, onClose, onSave }) => {
   //Definimos los estados para guardar las distintas partes de la respuesta
-  const [time, setTime] = useState(new Date().toLocaleTimeString());
+  const [time, setTime] = useState(new Date());
   const [answers, setAnswers] = useState({
-    //Definimos los atributos del objeto para poder hacer comprobaciones por el componente
+    //Definimos los campos del objeto que se van a mandar en el body de la solictud a la api
+    sleepTime: "",
     wakeUpTime: "",
+    duration: "",
     question1: "",
     question2: "",
   });
@@ -47,16 +49,15 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
     }));
   };
 
-  //actualizamos la hora actual cada vez que abrimos el modal teniendo como referencia la bandera que nos indica si esta abierto o no
   useEffect(() => {
     if (isVisible) {
-      setTime(new Date().toLocaleTimeString());
-      console.log("hora actual al abrir el modal: ", time);
+      const currentTime = new Date();
+      setTime(currentTime);
+
+      // Al abrir el modal, también establecemos la hora actual como la hora de despertar predeterminada
+      handleAnswer("wakeUpTime", formatDateToLocalDateTime(currentTime));
     }
-    console.log("hora actual al reenderizar el componente: ", time);
-    console.log("Hora local:", new Date().toLocaleTimeString());
-    console.log("Offset en minutos:", new Date().getTimezoneOffset());
-  }, [time]);
+  }, [isVisible]);
 
   //Función que se encarga de validar si se han respondido todas las preguntas
   const hasQuestionsAnswered = () => {
@@ -84,8 +85,15 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
 
     //Ambas funciones se reciben del componente padre, en este caso WakeUpForm.jsx
     onSave(answers);
-    //Una vez guardamos la respuesta, tenemos que poner el estado a null para que la próxima vez que se abra el formulario estén vacíos
-    setAnswers({});
+
+    //Una vez guardamos la respuesta, tenemos que poner el estado a valores por defecto para la próxima vez
+    setAnswers({
+      sleepTime: "",
+      wakeUpTime: "",
+      duration: "",
+      question1: "",
+      question2: "",
+    });
 
     onClose();
   };
@@ -96,18 +104,31 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
   //Función para guardar el valor que se ha seleccionado en el timePicker y poner la bandera a false para evitar su continua abertura en pantalla
   const handleTimeChange = (event, selectedTime) => {
     if (Platform.OS === "android") setShowTimePicker(false);
-    //tenemos que comprobar que la hora que ponga el user que se ha levantado sea menor o igual a la hora actual, si no podrían exister medidas érroneas
-    if (selectedTime && selectedTime <= new Date()) {
-      handleAnswer("wakeUpTime", formatDateToLocalDateTime(selectedTime)); //Guardamos la hora en el formato que espera la API
-      setIsValidTime(true);
-    } else {
-      setIsValidTime(false);
+
+    if (selectedTime) {
+      //tenemos que comprobar que la hora que ponga el user que se ha levantado sea menor o igual a la hora actual, si no podrían exister medidas érroneas
+      if (selectedTime <= new Date()) {
+        setTime(selectedTime);
+        handleAnswer("wakeUpTime", formatDateToLocalDateTime(selectedTime)); //Guardamos la hora en el formato que espera la API
+        setIsValidTime(true);
+      } else {
+        setIsValidTime(false);
+        Alert.alert(
+          "Hora no válida",
+          "La hora de despertar debe ser menor o igual a la hora actual"
+        );
+      }
     }
   };
 
   //Función que se asigna al botón correspondiente paara abrir el timePicker en Android
   const openTimePicker = () => {
     if (Platform.OS === "android") setShowTimePicker(true);
+  };
+
+  // Función para formatear la hora para mostrarla en la UI
+  const formatTimeForDisplay = (date) => {
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
   return (
@@ -153,7 +174,9 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
               {Platform.OS === "android" && ( //Renderizamos el botón en caso de android, en caso de apple ya viene renderizado con el propio picker
                 <TouchableOpacity onPress={openTimePicker} className="w-full">
                   <View className="bg-[#1e273a] p-4 rounded-xl">
-                    <Text className="text-center text-white">{time}</Text>
+                    <Text className="text-center text-white">
+                      {formatTimeForDisplay(time)}
+                    </Text>
                   </View>
                 </TouchableOpacity>
               )}
@@ -164,8 +187,6 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
                   value={time}
                   mode="time"
                   is24Hour={true}
-                  //display="spinner"
-                  //textColor="white"
                   display={Platform.OS === "ios" ? "spinner" : "default"}
                   textColor={Platform.OS === "ios" ? "white" : undefined}
                   accentColor="#6366ff" // Android specific color accent

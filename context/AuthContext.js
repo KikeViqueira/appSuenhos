@@ -44,6 +44,7 @@ export const AuthProvider = ({ children }) => {
   const [accessToken, setAccessToken] = useState(null); // Estado que guarda el token que recibimos del endpoint del login
   const [onboardingCompleted, setOnboardingCompleted] = useState(null); // Estado que guarda si el user ha completado el cuestionario de onboarding
   const [userInfo, setUserInfo] = useState(null); // Estado que guarda la info del user más actualizada que hay en la BD
+  const [isAuthLoading, setIsAuthLoading] = useState(true); // Estado para controlar si la autenticación está en curso
 
   //Función para actualizar el estado del onboarding
   const updateOnboardingStatus = (status) => {
@@ -65,12 +66,14 @@ export const AuthProvider = ({ children }) => {
         );
         const idUser = await SecureStore.getItemAsync("userId");
         const onboardingStatus = await hasCompletedOnboarding();
+
         console.log(
           "Valores para el token y el id del user: ",
           userAccessToken,
           idUser,
           onboardingStatus
         );
+
         if (userAccessToken && idUser) {
           setAccessToken(userAccessToken);
           setUserId(idUser);
@@ -80,10 +83,14 @@ export const AuthProvider = ({ children }) => {
       } catch (error) {
         console.error("Error al cargar los datos del user: ", error);
       } finally {
+        // Marcamos que la carga inicial ha terminado
         setIsAuthLoading(false);
       }
     };
+
+    // Iniciamos la carga de los datos de autenticación
     loadAuthData();
+
     //registramos las funciones para que el interceptor pueda usarlas
     registerForceLogout(logout);
     registerSetAccessToken(setAccessToken);
@@ -225,6 +232,7 @@ export const AuthProvider = ({ children }) => {
         userInfo,
         loading,
         error,
+        isAuthLoading,
         setUserInfo,
         LoginRequest,
         logout,

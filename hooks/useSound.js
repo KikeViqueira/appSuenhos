@@ -32,6 +32,7 @@ const useSound = () => {
       const response = await apiClient.get(`${API_BASE_URL}/sounds`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
         },
       });
 
@@ -53,9 +54,10 @@ const useSound = () => {
 
     try {
       //Hacemos la llamada a la API para recuperar los sonidos estáticos
-      const response = await axios.get(`${API_BASE_URL}/sounds/${userId}`, {
+      const response = await apiClient.get(`${API_BASE_URL}/sounds/${userId}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
         },
       });
 
@@ -88,7 +90,7 @@ const useSound = () => {
 
     try {
       //Hacemos la llamada a la API para recuperar los sonidos estáticos
-      const response = await axios.post(
+      const response = await apiClient.post(
         `${API_BASE_URL}/sounds/${userId}`,
         {
           name: sound.name,
@@ -97,6 +99,7 @@ const useSound = () => {
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
           },
         }
       );
@@ -121,11 +124,12 @@ const useSound = () => {
 
     try {
       //hacemos la llamada al endpoint
-      const response = await axios.delete(
+      const response = await apiClient.delete(
         `${API_BASE_URL}/sounds/${userId}/${soundId}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
           },
         }
       );

@@ -1,155 +1,171 @@
 import { useEffect, useState, Alert } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Notifications from "expo-notifications";
-
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+import { apiClient } from "../services/apiClient";
+import { API_BASE_URL } from "../config/config";
+import { useAuthContext } from "../context/AuthContext";
 
 export default function useSleep() {
-  //Estado para guardar la hora en la que el user se va a dormir y para saber si el user esta durmiendo o no
-  const [sleepTime, setSleepTime] = useState(null);
-  const [isSleeping, setIsSleeping] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [sleepLog, setSleepLog] = useState({});
+  const [sleepLogsDuration, setSleepLogsDuration] = useState({});
 
-  //Función para guardar la hora en la que el user se va a dormir
-  const calculateSleepStart = async () => {
-    //Si el usuario no estaba durmiendo, le damos la hora actual
-    if (!isSleeping) {
-      console.log("Valor de isSleeping en el if: ", isSleeping);
-      const now = new Date();
-      try {
-        //Guardamos la hora en la que el user se ha dormido en el storage del dispositivo
-        await AsyncStorage.setItem("sleepStart", now.toISOString()); //tenemos que pasarlo a string
-        setSleepTime(now);
-        setIsSleeping(true);
-        console.log("Hora en la que el user se ha ido a dormir: ", now);
+  const { accessToken, userId } = useAuthContext();
 
-        //Programamos una notificación para que cuando hayan pasado 8 horas avisar al user de que debe resgistrar la hora en la que ha despertado
-
-        const notification = await Notifications.scheduleNotificationAsync({
-          content: {
-            title: "¿Pilas recargadas?",
-            body: "No olvides registrar tu hora de despertar para calcular tu sueño.",
-          },
-          trigger: {
-            hour: 8,
-            minute: 0,
-          },
-        });
-
-        return notification;
-      } catch (error) {
-        console.error("Error al guardar la hora de inicio de sueño: ", error);
-      }
-    } else {
-      console.log("Valor de isSleeping en el else: ", isSleeping);
-      Alert.alert(
-        "Reiniciar el registro",
-        "¿Estás seguro de querer reiniciar el registro de horas de sueño?",
-        [
-          { text: "Cancelar", style: "cancel" },
-          {
-            text: "Reiniciar",
-            onPress: () => {
-              setIsSleeping(false);
-              setSleepStart(null);
-            },
-          },
-        ]
-      );
-      console.log("Valor de isSleeping despues de la alerta: ", isSleeping);
-    }
-  };
-
-  //Función para finalizar el registro de horas de sueño y calcular la duración de sueño
-  const calculateSleepDuration = async (wakeUpTime) => {
+  /*
+   * Funciones para guardar si el user ha hecho el registro matutino de sueño y
+   * para recuperar el valor de la bandera en el AsyncStorage, el valor de la bandera solo
+   * se guarda en el AsyncStorage en el mismo día ya que cada día hay uno nuevo.
+   *
+   * Las funciones son como la de chat.
+   *
+   */
+  const saveSleepLog = async () => {
     try {
-      //recuperamos la hora de sueño en la que el user se fue a dormir
-      const recoveredSleepStart = await AsyncStorage.getItem("sleepStart");
-      if (!recoveredSleepStart) {
-        console.warn("No se encontró una hora de inicio de sueño registrada.");
-        return false;
-      }
-
-      //Hemos recuperado la fecha en formato String y tenemos que pasarlo a Date
-      const sleepStartTime = new Date(recoveredSleepStart);
-      const wakeUpTimeDate = new Date(wakeUpTime);
-      const duration = wakeUpTimeDate.getTime() - sleepStartTime.getTime(); //Hacemos la diferencia en milisegundos
-
-      if (duration < 0) {
-        Alert.alert(
-          "Tiempo inválido",
-          "La hora de despertar debe ser posterior a la hora en que te fuiste a dormir"
-        );
-        return false;
-      }
-
-      const hours = Math.floor(duration / 3600000);
-
-      //hacemos un objeto donde guardamos la info del registro del sueño
-      const sleepData = {
-        startTime: sleepStartTime.toISOString(),
-        endTime: wakeUpTime.toISOString(),
-        duration: hours,
+      const now = new Date();
+      const endOfDay = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        23,
+        59,
+        59,
+        999
+      );
+      const data = {
+        sleepLog: true,
+        expiry: endOfDay.getTime(),
       };
-
-      //Limpiamos los estados, almacenamiento y notificaciones
-      await AsyncStorage.removeItem("sleepStart");
-      setIsSleeping(false);
-      setSleepTime(null);
-      Notifications.cancelAllScheduledNotificationsAsync();
-
-      //Devolvemos el objeto con la info que necesitamos para guardar en la base de datos
-      return sleepData;
+      await AsyncStorage.setItem("sleepLog", JSON.stringify(data));
     } catch (error) {
-      console.error("Error al calcular la duración de sueño: ", error);
+      console.error("Error al guardar el registro matutino de sueño: ", error);
     }
   };
 
-  //Cargamos la hora en la que el user se ha ido a dormir cuando se inicializa el hook
-  useEffect(() => {
-    //Definición de la función asíncrona
-    const loadSleepData = async () => {
-      try {
-        const recoveredSleepStart = await AsyncStorage.getItem("sleepStart");
-        if (recoveredSleepStart) {
-          const sleepStartTime = new Date(recoveredSleepStart);
-          console.log(
-            "Hora en la que el user se ha ido a dormir: ",
-            sleepStartTime
-          );
-          const now = new Date();
-
-          //Comprobamos si la hora en la que se ha ido a dormir lleva más de 24 horas almacenada en el storage
-          if (now.getTime() - sleepStartTime.getTime() <= 24 * 60 * 60 * 1000) {
-            setSleepTime(sleepStartTime);
-            setIsSleeping(true);
-          } else {
-            //En este caso borramos la hora ya que al pasar tanto tiempo las medidas no serán consistentes y realistas para la hora de representarlas en la app
-            await AsyncStorage.removeItem("sleepStart");
-          }
-        } else {
-          console.log("No se encontró una hora de inicio de sueño registrada.");
-          return false;
+  const getDailySleepLog = async () => {
+    try {
+      const storedSleepLog = await AsyncStorage.getItem("sleepLog");
+      if (storedSleepLog) {
+        const parsedData = JSON.parse(storedSleepLog);
+        if (Date.now() > parsedData.expiry) {
+          await AsyncStorage.removeItem("sleepLog");
+          return null;
         }
-      } catch (error) {
-        console.error("Error al cargar la hora de inicio de sueño: ", error);
+        return parsedData.sleepLog;
       }
-    };
+      return null;
+    } catch (error) {
+      console.error(
+        "Error al recuperar el registro matutino de sueño: ",
+        error
+      );
+      return null;
+    }
+  };
 
-    //llamamos a la función
-    loadSleepData();
-  }, []);
+  /*
+   * Endpoint para guardar el registro matutino de sueño
+   */
+  const createSleepLog = async (sleepLog) => {
+    setError(null);
+    setLoading(true);
+    try {
+      // Formatear el objeto sleepLog para enviar a la API
+      // Nos aseguramos de que sleepTime sea un string con formato ISO
+      let formattedSleepLog = { ...sleepLog };
 
-  //Devolvemos las funciones mas la bandera de si el user esta durmiendo o no para saber si se puede desplegar el formulario para registrar el sueño
-  //Hay que recordar que el requesito para rellenarlo es que el user estuviese durmiendo (boton de me voy a dormir activado)
+      // Si sleepTime es un objeto Date, lo convertimos a string ISO
+      if (formattedSleepLog.sleepTime instanceof Date) {
+        formattedSleepLog.sleepTime = formattedSleepLog.sleepTime
+          .toISOString()
+          .slice(0, 19);
+      }
+
+      // Aseguramos que duration sea un valor numérico
+      if (typeof formattedSleepLog.duration === "string") {
+        formattedSleepLog.duration = parseInt(formattedSleepLog.duration);
+      }
+
+      console.log("Formatted sleep log: ", formattedSleepLog);
+
+      const response = await apiClient.post(
+        `${API_BASE_URL}/users/${userId}/sleep-logs`,
+        {
+          data: formattedSleepLog,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        await saveSleepLog();
+        // Actualizamos el estado local con el valor más reciente
+        setSleepLog(formattedSleepLog);
+      }
+    } catch (error) {
+      console.error("Error al crear el registro matutino de sueño: ", error);
+      setError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /*
+   * Endpoint para recuperar las respuestas al cuestionario matutino de sueño
+   * o para recuperar la duración de sueño que el user aha tenido en los últimos 7 días
+   */
+
+  const getSleepLogEndpoint = async (param) => {
+    setError(null);
+    setLoading(true);
+
+    try {
+      //En caso de que el param sea null o undefined se le da un valor por defecto que recibe la api, en este caso es 1
+      const duration = param || "1";
+
+      const response = await apiClient.get(
+        `${API_BASE_URL}/users/${userId}/sleep-logs`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          params: {
+            duration: duration,
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        //Dependiendo de que param haya mandado el user guardamos la info recibida de una manera u otra
+        if (duration === "1") {
+          setSleepLog(response.data);
+        } else {
+          setSleepLogsDuration(response.data);
+        }
+      }
+    } catch (error) {
+      console.error(
+        "Error al recuperar el registro matutino de sueño: ",
+        error
+      );
+      setError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
-    calculateSleepStart,
-    calculateSleepDuration,
-    isSleeping,
+    loading,
+    error,
+    sleepLog,
+    sleepLogsDuration,
+    createSleepLog,
+    getSleepLogEndpoint,
+    getDailySleepLog,
   };
 }
