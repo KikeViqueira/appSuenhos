@@ -15,26 +15,22 @@ import { questions } from "../assets/wakeUpQuestions";
 import OptionQuestion from "./OptionQuestion";
 
 /**
- *  Función que lo que hara es recibir una fecha en el formato que lo coge el componente y pasarlo a LocalDateTime o su formato
- * para que se pueda mandar a la API y guardarlo correctamente sin problemas
+ *  Función que lo que hace es quitarle el offset de la fecha para poder trabajar con fechas locales del user y que se guarden correctamente en la BD de manera coherente
  * @param {Date} date - Fecha que se quiere formatear
  * @return {string} - Fecha formateada en el formato que espera la API
  */
-const formatDateToLocalDateTime = (date) => {
+const formatDateToLocalDate = (date) => {
   const tzOffset = date.getTimezoneOffset() * 60000; // Offset en milisegundos
   const localDate = new Date(date - tzOffset);
-  // Formatear la fecha a YYYY-MM-DDTHH:mm:ss
-  return localDate.toISOString().slice(0, 19);
+  return localDate;
 };
 
 const WakeUpForm = ({ isVisible, onClose, onSave }) => {
   //Definimos los estados para guardar las distintas partes de la respuesta
-  const [time, setTime] = useState(new Date());
+  const [time, setTime] = useState(formatDateToLocalDate(new Date()));
+  //Respuestas al cuestionario
   const [answers, setAnswers] = useState({
-    //Definimos los campos del objeto que se van a mandar en el body de la solictud a la api
-    sleepTime: "",
-    wakeUpTime: "",
-    duration: "",
+    wakeUpTime: formatDateToLocalDate(new Date()),
     question1: "",
     question2: "",
   });
@@ -51,13 +47,17 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
 
   useEffect(() => {
     if (isVisible) {
-      const currentTime = new Date();
+      const currentTime = formatDateToLocalDate(new Date());
       setTime(currentTime);
 
       // Al abrir el modal, también establecemos la hora actual como la hora de despertar predeterminada
-      handleAnswer("wakeUpTime", formatDateToLocalDateTime(currentTime));
+      handleAnswer("wakeUpTime", currentTime);
     }
   }, [isVisible]);
+
+  useEffect(() => {
+    console.log("Respuestas al cuestionario matutino: ", answers);
+  }, [answers]);
 
   //Función que se encarga de validar si se han respondido todas las preguntas
   const hasQuestionsAnswered = () => {
@@ -88,9 +88,7 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
 
     //Una vez guardamos la respuesta, tenemos que poner el estado a valores por defecto para la próxima vez
     setAnswers({
-      sleepTime: "",
-      wakeUpTime: "",
-      duration: "",
+      wakeUpTime: formatDateToLocalDate(new Date()),
       question1: "",
       question2: "",
     });
@@ -108,8 +106,9 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
     if (selectedTime) {
       //tenemos que comprobar que la hora que ponga el user que se ha levantado sea menor o igual a la hora actual, si no podrían exister medidas érroneas
       if (selectedTime <= new Date()) {
-        setTime(selectedTime);
-        handleAnswer("wakeUpTime", formatDateToLocalDateTime(selectedTime)); //Guardamos la hora en el formato que espera la API
+        const wakeUpTime = formatDateToLocalDate(selectedTime); //Limpiamos el objeto date para operar correctamente
+        setTime(wakeUpTime);
+        handleAnswer("wakeUpTime", wakeUpTime);
         setIsValidTime(true);
       } else {
         setIsValidTime(false);
@@ -190,6 +189,8 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
                   display={Platform.OS === "ios" ? "spinner" : "default"}
                   textColor={Platform.OS === "ios" ? "white" : undefined}
                   accentColor="#6366ff" // Android specific color accent
+                  //E valor maximo que se seleccione no puede superar la hora actual
+                  maximumDate={new Date()}
                   //Cada vez que cambiamos la hora se guarda en el estado de tiempo
                   onChange={handleTimeChange}
                 />

@@ -29,7 +29,7 @@ const SleepLogResponses = ({ isVisible, onClose, sleepLog }) => {
 
   // Format duration from milliseconds to hours and minutes
   const formatDuration = (durationMs) => {
-    if (!durationMs) return "No registrado";
+    if (!durationMs && durationMs !== 0) return "No registrado";
 
     try {
       // Convert to number if it's a string
@@ -51,18 +51,18 @@ const SleepLogResponses = ({ isVisible, onClose, sleepLog }) => {
       }
     } catch (e) {
       console.error("Error formatting duration:", e);
-      return durationMs;
+      return String(durationMs);
     }
   };
 
-  const getQuestionText = (questionId) => {
-    switch (questionId) {
-      case "question1":
+  const getQuestionText = (answerId) => {
+    switch (answerId) {
+      case "answer1":
         return "Calidad del sueño";
-      case "question2":
+      case "answer2":
         return "Nivel de descanso";
       default:
-        return questionId;
+        return answerId;
     }
   };
 
@@ -73,7 +73,7 @@ const SleepLogResponses = ({ isVisible, onClose, sleepLog }) => {
     <View>
       <Modal visible={isVisible} animationType="slide">
         <SafeAreaView className="flex flex-col w-full h-full gap-8 bg-primary">
-          <View className="flex flex-row items-center justify-between px-3">
+          <View className="flex flex-row items-center justify-start gap-6 px-3">
             <Button title="Volver" onPress={onClose}></Button>
             <Text
               className="font-bold text-center color-white"
@@ -81,7 +81,6 @@ const SleepLogResponses = ({ isVisible, onClose, sleepLog }) => {
             >
               Respuestas de Hoy
             </Text>
-            <View style={{ width: 70 }}></View> {/* Empty view for balance */}
           </View>
 
           <ScrollView
@@ -146,7 +145,9 @@ const SleepLogResponses = ({ isVisible, onClose, sleepLog }) => {
                       <Text className="text-xl font-bold color-[#6366ff] mb-3">
                         {getQuestionText(key)}
                       </Text>
-                      <Text className="text-lg color-white">{value}</Text>
+                      <Text className="text-lg color-white">
+                        {String(value)}
+                      </Text>
                     </View>
                   );
                 })}

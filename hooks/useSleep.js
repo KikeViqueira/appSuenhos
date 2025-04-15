@@ -86,7 +86,10 @@ export default function useSleep() {
         formattedSleepLog.duration = parseInt(formattedSleepLog.duration);
       }
 
-      console.log("Formatted sleep log: ", formattedSleepLog);
+      console.log(
+        "Formatted sleep log that is going to be sent to the API: ",
+        formattedSleepLog
+      );
 
       const response = await apiClient.post(
         `${API_BASE_URL}/users/${userId}/sleep-logs`,

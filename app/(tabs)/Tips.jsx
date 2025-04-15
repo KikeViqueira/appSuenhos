@@ -231,7 +231,8 @@ const Tips = () => {
             contentContainerStyle={{
               flexGrow: 1, //Puede crecer y adaptarse al nuevo tamaño y scroll
               gap: 16,
-              width: "92%",
+              width: "100%", // Aseguramos que no sea más ancho que su contenedor
+              alignItems: "center", // Centramos los elementos
             }}
             showsVerticalScrollIndicator={true}
             indicatorStyle="white"
@@ -249,6 +250,7 @@ const Tips = () => {
                 //Para cada uno de los tips hacemos un botón que nos lleve a la página del tip detallado
                 key={index}
                 onPress={() => handleTipPress(tip)}
+                style={{ width: "92%" }} // Establecemos ancho fijo para cada elemento
               >
                 <TipItem
                   key={index}

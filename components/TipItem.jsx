@@ -16,7 +16,7 @@ const TipItem = ({
   return (
     <View
       //Si el tip se ha marcado para ser eliminado cambiamos el color de su borde a rojo
-      className={`bg-[#1e273a] min-w-[100%] self-center flex flex-col justify-between p-6 gap-4 rounded-lg border ${
+      className={`bg-[#1e273a] w-full self-center flex flex-col justify-between p-6 gap-4 rounded-lg border ${
         isSelected ? " border-[#ff6b6b]" : " border-[#323d4f]"
       } `}
     >
