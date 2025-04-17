@@ -1,5 +1,12 @@
-import { View, Text, ScrollView, TouchableOpacity, Alert } from "react-native";
-import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  Animated,
+} from "react-native";
+import React, { useState, useEffect, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Bed,
@@ -135,6 +142,11 @@ const Estadisticas = () => {
   const [isSleeping, setIsSleeping] = useState(false); //Estado para saber si el user esta durmiendo o no
   const [hasDailySleepLog, setHasDailySleepLog] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
+
+  // Ref para el ScrollView y para la animación del indicador de scroll
+  const scrollViewRef = useRef(null);
+  const scrollIndicatorOpacity = useRef(new Animated.Value(1)).current;
+  const [showScrollIndicator, setShowScrollIndicator] = useState(true);
 
   const {
     createSleepLog,
@@ -330,24 +342,128 @@ const Estadisticas = () => {
 
   const [activeSection, setActiveSection] = useState("sleepGraphs"); //Componente por defecto que se muestra
 
+  // Al cambiar de sección, resetear el scroll y mostrar el indicador
+  useEffect(() => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ y: 0, animated: true });
+      setShowScrollIndicator(true);
+      fadeInScrollIndicator();
+    }
+  }, [activeSection]);
+
+  // Animaciones para el indicador de scroll
+  const fadeInScrollIndicator = () => {
+    Animated.sequence([
+      //Cuando de rapido tiene que llegar a la opacidad 1
+      Animated.timing(scrollIndicatorOpacity, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      //Tiempo en el que el indicador tiene opacidad 1
+      Animated.delay(2000),
+      //Cuando de rapido tiene que llegar a la opacidad 0.3
+      Animated.timing(scrollIndicatorOpacity, {
+        toValue: 0.3,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  // Función para manejar el evento de scroll
+  const handleScroll = (event) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    const contentHeight = event.nativeEvent.contentSize.height;
+    const scrollViewHeight = event.nativeEvent.layoutMeasurement.height;
+
+    // Si el scroll está cerca del final, ocultar el indicador
+    if (offsetY + scrollViewHeight >= contentHeight - 20) {
+      setShowScrollIndicator(false);
+    } else {
+      setShowScrollIndicator(true);
+    }
+  };
+
   const renderComponent = () => {
     switch (activeSection) {
       case "sleepGraphs":
         return <SleepGraphs />;
       case "fitbitGraphs":
         return <FitbitUserGraphs />;
+      case "drmSection":
+        return (
+          <View className="flex flex-col w-full gap-6 mt-4">
+            <Text className="mb-2 ml-2 text-lg font-semibold text-white">
+              Dream Reality Monitoring
+            </Text>
+
+            {/* Card layout for DRM buttons */}
+            <View className="flex-row justify-between w-full gap-4">
+              {/* Questionnaire Card */}
+              <TouchableOpacity
+                className="flex-1 bg-gradient-to-br from-[#323d4f] to-[#1e273a] p-5 rounded-xl border border-[#6366ff]/20 shadow-lg overflow-hidden"
+                onPress={() => router.push("/DRM")}
+              >
+                <View className="items-center justify-center">
+                  <View className="bg-[#6366ff]/20 p-3 rounded-full mb-4">
+                    <ClipboardList color="#6366ff" size={30} />
+                  </View>
+                  <Text className="mb-2 text-base font-bold text-center text-white">
+                    Cuestionario DRM
+                  </Text>
+                  <Text className="text-sm text-center text-gray-400">
+                    Completa el formulario para obtener tu informe
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              {/* Report Card */}
+              <TouchableOpacity
+                className="flex-1 bg-gradient-to-br from-[#323d4f] to-[#1e273a] p-5 rounded-xl border border-[#6366ff]/20 shadow-lg overflow-hidden"
+                onPress={() => router.push("/DrmReport")}
+              >
+                <View className="items-center justify-center">
+                  <View className="bg-[#6366ff]/20 p-3 rounded-full mb-4">
+                    <File color="#6366ff" size={30} />
+                  </View>
+                  <Text className="mb-2 text-base font-bold text-center text-white">
+                    Informe DRM
+                  </Text>
+                  <Text className="text-sm text-center text-gray-400">
+                    Consulta el informe generado totalmente personalizado
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+
+            <View className="bg-[#1e273a] p-4 rounded-xl border border-[#323d4f] mt-2">
+              <Text className="mb-1 text-base text-gray-400">¿Qué es DRM?</Text>
+              <Text className="text-sm text-gray-500">
+                El Day Reconstruction Method (DRM) te ayuda a reconstruir tu día
+                tras cada noche de sueño, identificando patrones de descanso y
+                emociones. Así optimizas tus hábitos de sueño y potencias tu
+                toma de decisiones.
+              </Text>
+            </View>
+          </View>
+        );
     }
   };
 
   return (
     <SafeAreaView className="w-full h-full bg-primary">
       <ScrollView
+        ref={scrollViewRef}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         contentContainerStyle={{
           flexGrow: 1,
           alignItems: "center",
           justifyContent: "start",
           gap: 5,
           width: "100%",
+          paddingBottom: 20,
         }}
         bounces={true}
         decelerationRate="normal" // O "fast" según el comportamiento deseado
@@ -441,14 +557,14 @@ const Estadisticas = () => {
 
         {/* Nueva sección de navegación */}
         <View className="flex flex-col gap-4  w-[95%] px-4 py-5 rounded-lg bg-[#1e2a47]">
-          <View className="flex flex-row justify-between w-full gap-4">
+          <View className="flex flex-row justify-between w-full">
             <TouchableOpacity
               onPress={() => setActiveSection("sleepGraphs")}
-              className={`flex-1 mx-2 ${
+              className={`flex-1 mx-1 ${
                 activeSection === "sleepGraphs"
                   ? "bg-[#6366ff]"
                   : "bg-[#323d4f]"
-              } rounded-lg p-4 justify-center`}
+              } rounded-lg p-3 justify-center`}
             >
               <Text className="font-bold text-center color-white">
                 Gráficas
@@ -456,15 +572,23 @@ const Estadisticas = () => {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => setActiveSection("fitbitGraphs")}
-              className={`flex-1 mx-2 ${
+              className={`flex-1 mx-1 ${
                 activeSection === "fitbitGraphs"
                   ? "bg-[#6366ff]"
                   : "bg-[#323d4f]"
-              } rounded-lg p-4 justify-center`}
+              } rounded-lg p-3 justify-center`}
             >
               <Text className="font-bold text-center color-white">
                 Gráficas reservadas de Fitbit
               </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => setActiveSection("drmSection")}
+              className={`flex-1 mx-1 ${
+                activeSection === "drmSection" ? "bg-[#6366ff]" : "bg-[#323d4f]"
+              } rounded-lg p-3 justify-center`}
+            >
+              <Text className="font-bold text-center color-white">DRM</Text>
             </TouchableOpacity>
           </View>
 
@@ -485,36 +609,25 @@ const Estadisticas = () => {
           onClose={() => setShowResponsesModal(false)}
           sleepLog={sleepLog}
         />
-
-        {/* Sección donde poneremos el botón para hacer el cuestionario diario DRM*/}
-        {/*Botón para hacer el cuestionario diario DRM*/}
-        <TouchableOpacity
-          className="bg-[#323d4f] p-4 rounded-xl items-start mt-5 w-[95%]"
-          //redireccionamos al user a la pantalla de cuestionario DRM
-          onPress={() => router.push("/DRM")}
-        >
-          <View className="flex-row items-center self-center justify-center gap-4">
-            <Text className="text-lg text-white font-psemibold">
-              Hacer cuestionario DRM
-            </Text>
-            <ClipboardList color="white" />
-          </View>
-        </TouchableOpacity>
-
-        {/*Botón para ver el informe que se ha generado hoy*/}
-        <TouchableOpacity
-          className="bg-[#323d4f] p-4 rounded-xl items-start mt-5 w-[95%]"
-          //redireccionamos al user a la pantalla donde se encuentra el informe de DRM
-          onPress={() => router.push("/DrmReport")}
-        >
-          <View className="flex-row items-center self-center justify-center gap-4">
-            <Text className="text-lg text-white font-psemibold">
-              Ver informe DRM
-            </Text>
-            <File color="white" />
-          </View>
-        </TouchableOpacity>
       </ScrollView>
+
+      {/* Indicador de scroll - solo visible cuando hay más contenido */}
+      {showScrollIndicator && (
+        <Animated.View
+          style={{
+            opacity: scrollIndicatorOpacity,
+            position: "absolute",
+            bottom: 15,
+            alignSelf: "center",
+          }}
+        >
+          <View className="bg-[#6366ff]/20 px-4 py-2 rounded-full">
+            <Text className="text-sm text-white">
+              Desliza para más contenido
+            </Text>
+          </View>
+        </Animated.View>
+      )}
     </SafeAreaView>
   );
 };

@@ -8,11 +8,12 @@ import {
   ScrollView,
 } from "react-native";
 import { Audio } from "expo-av";
-import { Play, Pause, Repeat, Upload, Trash2 } from "lucide-react-native";
+import { Play, Pause, Repeat, Upload, Trash2, Ban } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Slider from "@react-native-community/slider";
 import * as DocumentPicker from "expo-document-picker";
 import useSound from "../../hooks/useSound";
+import { uploadSoundToCloudinary } from "../../services/Cloudinary";
 
 const Music = () => {
   //Recuperamos las funcionalidades del useSound para usar en este componente
@@ -73,6 +74,8 @@ const Music = () => {
   useEffect(() => {
     //Los sonidos que hemos recuperado se guardan en el estado de staticSounds del useSound
     getAllStaticSounds();
+    //Recuperamos también los sonidos que el user ha subido a la app
+    getUserSounds();
   }, []);
 
   useEffect(() => {
@@ -303,7 +306,7 @@ const Music = () => {
       if (userSounds.length >= maxSounds) {
         Alert.alert(
           "Límite alcanzado",
-          "Solo puedes subir 5 sonidos, para subir uno nuevo borra alguno que ya no te interese"
+          "Solo puedes subir 6 sonidos, para subir uno nuevo borra alguno que ya no te interese"
         );
         return;
       }
@@ -332,20 +335,27 @@ const Music = () => {
           return;
         }
 
+        //Antes de guardar el sonido en la BD tenemos que guardarlo en la nube para poder obtenerlo en cualquier dispositivo
+        const cloudinaryUrl = await uploadSoundToCloudinary({
+          uri: result.assets[0].uri,
+          name: result.assets[0].name,
+        });
+
+        //Creamos el objeto que vamos a guardar en la bd
         const newSound = {
           /**
            * Creamos la estructura del objeto sound que espera la api
            * en el método postSound para que no sucedan errores al llamar al endpoint
            */
           name: result.assets[0].name,
-          source: result.assets[0].uri, //URI para que la función createAsync funcione
+          source: cloudinaryUrl, //URI para que la función createAsync funcione
         };
 
         console.log(newSound);
         //llamamos al endpoint encargado de subir el sonido en la app
-        postSound(newSound);
+        await postSound(newSound);
         //Una vez subido el sonido por parte del user tenemos que llamar a la función que recupera los sonidos del user
-        getUserSounds();
+        await getUserSounds();
         console.log(userSounds);
       }
     } catch (error) {
@@ -361,17 +371,35 @@ const Music = () => {
       >
         Sonidos Relajantes
       </Text>
-      <TouchableOpacity
-        className="bg-[#6366ff] w-[95%] self-center flex p-6 gap-4 rounded-3xl border border-[#323d4f]"
-        onPress={uploadSound}
-      >
-        <View className="flex-row items-center justify-between">
-          <Text className="text-lg text-white font-psemibold">
-            Sube sonidos propios
+
+      <View className="w-[95%] self-center">
+        <TouchableOpacity
+          className={`${
+            userSounds.length >= maxSounds ? "bg-[#ff6b6b]" : "bg-[#6366ff]"
+          } w-full self-center flex p-6 gap-4 rounded-3xl border border-[#323d4f]`}
+          onPress={uploadSound}
+        >
+          <View className="flex-row items-center justify-between">
+            <Text className="text-lg text-white font-psemibold">
+              {userSounds.length >= maxSounds
+                ? "Elimina sonidos para subir nuevos"
+                : "Sube sonidos propios"}
+            </Text>
+            {userSounds.length >= maxSounds ? (
+              <Ban color="white" size={24} className="p-2" />
+            ) : (
+              <Upload color="white" size={24} className="p-2" />
+            )}
+          </View>
+        </TouchableOpacity>
+
+        <View className="flex-row justify-end mt-2">
+          <Text className="mr-2 text-white">
+            {userSounds.length}/{maxSounds} sonidos subidos
           </Text>
-          <Upload color="white" size={24} className="p-2" />
         </View>
-      </TouchableOpacity>
+      </View>
+
       <ScrollView
         contentContainerStyle={{
           flexGrow: 1, //Puede crecer y adaptarse al nuevo tamaño y scroll

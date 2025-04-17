@@ -1,6 +1,5 @@
 import { useEffect, useState, Alert } from "react";
 import { apiClient } from "../services/apiClient";
-import * as SecureStore from "expo-secure-store";
 import { API_BASE_URL } from "../config/config";
 import { useAuthContext } from "../context/AuthContext";
 

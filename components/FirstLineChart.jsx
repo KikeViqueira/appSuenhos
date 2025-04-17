@@ -34,11 +34,18 @@ const FirstLineChart = () => {
         //Abreviamos el nombre de el día de la semana
         const dayAbbreviation = day.substring(0, 3);
 
+        // Calculamos horas y minutos para poder mostrarlos en el modal
+        const totalMinutes = Math.round(Number(duration));
+        const hours = Math.floor(totalMinutes / 60);
+        const minutes = totalMinutes % 60;
+
         //Devolvemos el obejeto que se va a reenderizar en el gráfico
         return {
           day: dayAbbreviation,
           duration: duration,
           entireDay: day,
+          hours: hours,
+          minutes: minutes,
         };
       });
 
@@ -100,8 +107,6 @@ const FirstLineChart = () => {
           labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
           strokeWidth: 2,
           useShadowColorFromDataset: false,
-          decimalPlaces: 1, // Mostrar un decimal en el eje Y
-          count: 5, // Mostrar aproximadamente 5 valores en el eje Y
           formatYLabel: (value) => Math.round(value).toString(),
           propsForDots: {
             r: "6",

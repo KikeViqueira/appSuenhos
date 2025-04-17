@@ -8,7 +8,13 @@ import {
   Platform,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import { X, Trash2, Check } from "lucide-react-native";
+import {
+  X,
+  Trash2,
+  Check,
+  MessageSquareOff,
+  MessagesSquare,
+} from "lucide-react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { xorBy } from "lodash";
 import ChatItem from "../components/ChatItem";
@@ -145,17 +151,15 @@ const ChatsHistory = () => {
 
         {(Platform.OS === "ios" || showDatePicker) && ( //Si estamos en ios renderizamos su picker y showDatePicker esta en false
           //En caso de que showDatePicker este en true y el SO sea android lo abrimos tambien y gestionamos
-          <View className="w-full">
-            <DateTimePicker
-              value={selectedDate}
-              mode="date"
-              display={Platform.OS === "ios" ? "spinner" : "default"}
-              textColor="white"
-              themeVariant="dark" //Forzamos el tema oscuro para ios
-              maximumDate={new Date()} //Máxima fecha a la que el user puede seleccionar para la búsqqueda de chats
-              onChange={handleDateChange}
-            />
-          </View>
+          <DateTimePicker
+            value={selectedDate}
+            mode="date"
+            display={Platform.OS === "ios" ? "compact" : "default"}
+            textColor="white"
+            themeVariant="dark" //Forzamos el tema oscuro para ios
+            maximumDate={new Date()} //Máxima fecha a la que el user puede seleccionar para la búsqqueda de chats
+            onChange={handleDateChange}
+          />
         )}
 
         <TouchableOpacity
@@ -196,7 +200,11 @@ const ChatsHistory = () => {
       )}
 
       {/*Renderizamos los últimos chats recientes en base a los últimos x días*/}
-      <View className="w-[90%] flex flex-col flex-1 gap-4 self-center mt-8">
+      <View
+        className={`w-[90%] flex flex-col flex-1 gap-4 self-center mt-8
+        ${history.length > 0 ? "justify-start" : "justify-center"}
+        `}
+      >
         {history.length > 0 ? (
           <>
             <View className="flex-row items-center justify-between mb-4">
@@ -241,13 +249,28 @@ const ChatsHistory = () => {
             />
           </>
         ) : (
-          <View className="flex items-center justify-center py-8">
-            <Text className="text-lg text-center text-white">
-              No hay chats registrados en estos momentos
-            </Text>
-            <Text className="text-base text-[#6366ff] text-center mt-2">
-              Los chats aparecerán aquí cuando los registres
-            </Text>
+          <View className="flex items-center justify-center px-6 py-10">
+            <View className="bg-gradient-to-b from-[#1e273a] to-[#101520] p-8 rounded-2xl border border-[#323d4f] w-full items-center">
+              <View className="bg-[#6366ff]/10 p-5 rounded-full mb-4">
+                <MessageSquareOff size={40} color="#6366ff" />
+              </View>
+
+              <Text className="mb-3 text-xl font-bold text-center text-white">
+                No hay conversaciones recientes
+              </Text>
+
+              <Text className="mb-4 text-base text-center text-gray-400">
+                Cuando converses con la IA, tus chats aparecerán aquí para
+                facilitarte el acceso a ellos.
+              </Text>
+
+              <View className="flex-row items-center gap-2 mt-2">
+                <MessagesSquare size={16} color="#6366ff" />
+                <Text className="text-sm text-[#6366ff]">
+                  También puedes buscar chats por fecha
+                </Text>
+              </View>
+            </View>
           </View>
         )}
       </View>

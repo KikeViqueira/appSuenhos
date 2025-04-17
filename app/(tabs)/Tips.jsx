@@ -194,7 +194,7 @@ const Tips = () => {
     <SafeAreaView className="w-full h-full bg-primary">
       <View className="flex flex-col items-center self-center justify-start w-full h-full gap-4 mt-3">
         {/*Header*/}
-        <View className="flex-row items-center justify-between w-[90%] ">
+        <View className="flex-row items-center justify-between w-[90%]">
           <Text
             className="text-center font-bold text-[#6366ff] py-4"
             style={{ fontSize: 24 }}
@@ -231,7 +231,6 @@ const Tips = () => {
             contentContainerStyle={{
               flexGrow: 1, //Puede crecer y adaptarse al nuevo tamaño y scroll
               gap: 16,
-              width: "100%", // Aseguramos que no sea más ancho que su contenedor
               alignItems: "center", // Centramos los elementos
             }}
             showsVerticalScrollIndicator={true}
@@ -244,13 +243,14 @@ const Tips = () => {
                 tintColor="#6366ff"
               />
             }
+            className="w-full"
           >
             {tips.map((tip, index) => (
               <TouchableOpacity
                 //Para cada uno de los tips hacemos un botón que nos lleve a la página del tip detallado
                 key={index}
+                style={{ width: "90%" }}
                 onPress={() => handleTipPress(tip)}
-                style={{ width: "92%" }} // Establecemos ancho fijo para cada elemento
               >
                 <TipItem
                   key={index}
