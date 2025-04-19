@@ -3,18 +3,26 @@ import {
   Text,
   Modal,
   SafeAreaView,
-  Button,
   ScrollView,
   TouchableOpacity,
+  StatusBar,
 } from "react-native";
 import React from "react";
-import { AlertTriangle, Clock, MoonStar, Hourglass } from "lucide-react-native";
+import {
+  AlertTriangle,
+  Clock,
+  MoonStar,
+  Hourglass,
+  ArrowLeft,
+  Coffee,
+  Sun,
+} from "lucide-react-native";
 
 const SleepLogResponses = ({ isVisible, onClose, sleepLog }) => {
   const formatTime = (timeString) => {
     if (!timeString) return "No registrado";
 
-    // Assuming timeString is in ISO format
+    //Suponemos que el timeString está en formato ISO
     try {
       const date = new Date(timeString);
       return date.toLocaleTimeString([], {
@@ -27,16 +35,16 @@ const SleepLogResponses = ({ isVisible, onClose, sleepLog }) => {
     }
   };
 
-  // Format duration from milliseconds to hours and minutes
+  // Formateamos la duración de milisegundos a horas y minutos
   const formatDuration = (durationMs) => {
     if (!durationMs && durationMs !== 0) return "No registrado";
 
     try {
-      // Convert to number if it's a string
+      // Convertimos a número si es una cadena
       const ms =
         typeof durationMs === "string" ? parseInt(durationMs) : durationMs;
 
-      // Convert milliseconds to hours and minutes
+      // Convertimos milisegundos a horas y minutos
       const hours = Math.floor(ms / 3600000);
       const minutes = Math.floor((ms % 3600000) / 60000);
 
@@ -66,103 +74,157 @@ const SleepLogResponses = ({ isVisible, onClose, sleepLog }) => {
     }
   };
 
-  // Check if sleepLog is empty or undefined
+  //Función que para cuando se recorra el mapa de preguntas se le asigna un icono a cada una de ellas
+  const getQuestionIcon = (answerId) => {
+    switch (answerId) {
+      case "answer1":
+        return <Sun size={22} color="#6366ff" />;
+      case "answer2":
+        return <Coffee size={22} color="#6366ff" />;
+      default:
+        return null;
+    }
+  };
+
+  //Comprobamos si el mapa de preguntas tiene datos
   const hasData = sleepLog && Object.keys(sleepLog).length > 0;
 
   return (
     <View>
       <Modal visible={isVisible} animationType="slide">
-        <SafeAreaView className="flex flex-col w-full h-full gap-8 bg-primary">
-          <View className="flex flex-row items-center justify-start gap-6 px-3">
-            <Button title="Volver" onPress={onClose}></Button>
-            <Text
-              className="font-bold text-center color-white"
-              style={{ fontSize: 24 }}
+        <SafeAreaView className="flex flex-col w-full h-full bg-primary">
+          <View className="flex flex-row items-center px-4 py-3 border-b border-[#2a3548]">
+            <TouchableOpacity
+              onPress={onClose}
+              className="p-2 mr-3 bg-[#1e2a47] rounded-full"
+              activeOpacity={0.7}
             >
-              Respuestas de Hoy
-            </Text>
+              <ArrowLeft size={24} color="#6366ff" />
+            </TouchableOpacity>
+            <View className="flex-row items-center">
+              <View className="w-2 h-14 mr-3 bg-[#6366ff] rounded-full" />
+              <Text className="text-[24px] font-bold text-white">
+                Respuestas de Hoy
+              </Text>
+            </View>
           </View>
 
           <ScrollView
+            className="flex-1"
             contentContainerStyle={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "start",
-              gap: 20,
-              width: "100%",
-              paddingBottom: 40,
+              paddingVertical: 20,
+              paddingHorizontal: 16,
+              gap: 16,
             }}
+            showsVerticalScrollIndicator={true}
+            indicatorStyle="white"
           >
             {hasData ? (
-              <View className="w-[90%] gap-6">
-                {/* Sleep time */}
-                <View className="bg-[#1e2a47] p-5 rounded-xl">
-                  <View className="flex-row items-center gap-2 mb-3">
-                    <MoonStar size={22} color="#6366ff" />
-                    <Text className="text-xl font-bold color-[#6366ff]">
-                      Hora de dormir
-                    </Text>
+              <View className="w-full">
+                {/* Sleep time - Enhanced card */}
+                <View className="mb-4 overflow-hidden bg-[#1e2a47] rounded-xl shadow-lg">
+                  <View className="flex-row">
+                    <View className="w-2 h-full bg-[#4834d4]" />
+                    <View className="flex-1 p-5">
+                      <View className="flex-row items-center gap-2 mb-3">
+                        <MoonStar size={22} color="#6366ff" />
+                        <Text className="text-xl font-bold color-[#6366ff]">
+                          Hora de dormir
+                        </Text>
+                      </View>
+                      <Text className="text-lg color-white">
+                        {formatTime(sleepLog.sleepTime)}
+                      </Text>
+                    </View>
                   </View>
-                  <Text className="text-lg color-white">
-                    {formatTime(sleepLog.sleepTime)}
-                  </Text>
                 </View>
 
-                {/* Wake up time */}
-                <View className="bg-[#1e2a47] p-5 rounded-xl">
-                  <View className="flex-row items-center gap-2 mb-3">
-                    <Clock size={22} color="#6366ff" />
-                    <Text className="text-xl font-bold color-[#6366ff]">
-                      Hora de despertar
-                    </Text>
+                {/* Wake up time - Enhanced card */}
+                <View className="mb-4 overflow-hidden bg-[#1e2a47] rounded-xl shadow-lg">
+                  <View className="flex-row">
+                    <View className="w-2 h-full bg-[#ff6b6b]" />
+                    <View className="flex-1 p-5">
+                      <View className="flex-row items-center gap-2 mb-3">
+                        <Clock size={22} color="#6366ff" />
+                        <Text className="text-xl font-bold color-[#6366ff]">
+                          Hora de despertar
+                        </Text>
+                      </View>
+                      <Text className="text-lg color-white">
+                        {formatTime(sleepLog.wakeUpTime)}
+                      </Text>
+                    </View>
                   </View>
-                  <Text className="text-lg color-white">
-                    {formatTime(sleepLog.wakeUpTime)}
-                  </Text>
                 </View>
 
-                {/* Sleep duration */}
-                <View className="bg-[#1e2a47] p-5 rounded-xl">
-                  <View className="flex-row items-center gap-2 mb-3">
-                    <Hourglass size={22} color="#6366ff" />
-                    <Text className="text-xl font-bold color-[#6366ff]">
-                      Duración del sueño
-                    </Text>
+                {/* Sleep duration - Enhanced card */}
+                <View className="mb-4 overflow-hidden bg-[#1e2a47] rounded-xl shadow-lg">
+                  <View className="flex-row">
+                    <View className="w-2 h-full bg-[#feca57]" />
+                    <View className="flex-1 p-5">
+                      <View className="flex-row items-center gap-2 mb-3">
+                        <Hourglass size={22} color="#6366ff" />
+                        <Text className="text-xl font-bold color-[#6366ff]">
+                          Duración del sueño
+                        </Text>
+                      </View>
+                      <Text className="text-lg color-white">
+                        {formatDuration(sleepLog.duration)}
+                      </Text>
+                    </View>
                   </View>
-                  <Text className="text-lg color-white">
-                    {formatDuration(sleepLog.duration)}
-                  </Text>
                 </View>
 
-                {/* Questions */}
+                {/* Questions - Enhanced cards */}
                 {Object.entries(sleepLog).map(([key, value]) => {
-                  // Skip time and duration fields as they are displayed separately
+                  //Campos del mapa que no representan preguntas
                   if (["wakeUpTime", "sleepTime", "duration"].includes(key))
                     return null;
 
                   return (
-                    <View key={key} className="bg-[#1e2a47] p-5 rounded-xl">
-                      <Text className="text-xl font-bold color-[#6366ff] mb-3">
-                        {getQuestionText(key)}
-                      </Text>
-                      <Text className="text-lg color-white">
-                        {String(value)}
-                      </Text>
+                    <View
+                      key={key}
+                      className="mb-4 overflow-hidden bg-[#1e2a47] rounded-xl shadow-lg"
+                    >
+                      <View className="flex-row">
+                        <View className="w-2 h-full bg-[#1dd1a1]" />
+                        <View className="flex-1 p-5">
+                          <View className="flex-row items-center gap-2 mb-3">
+                            {getQuestionIcon(key)}
+                            <Text className="text-xl font-bold color-[#6366ff]">
+                              {getQuestionText(key)}
+                            </Text>
+                          </View>
+                          <Text className="text-lg color-white">
+                            {String(value)}
+                          </Text>
+                        </View>
+                      </View>
                     </View>
                   );
                 })}
               </View>
             ) : (
-              //Nunca debería entrar aquí a no ser que ocurra un fallo en la api al devolver la información del registro de hoy
-              <View className="w-[90%] items-center justify-center gap-4 mt-10">
-                <AlertTriangle size={60} color="#ff4757" />
-                <Text className="text-xl text-center color-white">
-                  No hay datos disponibles para hoy
+              <View className="w-full items-center justify-center p-8 bg-[#1e2a47] rounded-xl mt-4">
+                <View className="p-4 mb-4 rounded-full bg-[#2a2a4a]">
+                  <AlertTriangle size={60} color="#ff4757" />
+                </View>
+                <Text className="mb-2 text-2xl font-bold text-center color-white">
+                  No hay datos disponibles
                 </Text>
-                <Text className="text-base text-center color-[#8a94a6] px-4">
+                <Text className="mb-6 text-base text-center color-[#8a94a6] px-4">
                   Completa el cuestionario matutino para ver tus respuestas
                   aquí.
                 </Text>
+                <TouchableOpacity
+                  onPress={onClose}
+                  className="py-3 px-6 bg-[#6366ff] rounded-xl"
+                  activeOpacity={0.7}
+                >
+                  <Text className="text-base font-medium text-white">
+                    Volver
+                  </Text>
+                </TouchableOpacity>
               </View>
             )}
           </ScrollView>

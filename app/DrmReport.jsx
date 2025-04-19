@@ -60,8 +60,7 @@ const DrmReport = () => {
   };
 
   const handleGenerateTip = async () => {
-    if (tipButtonState === "generating" || tipButtonState === "generated")
-      return;
+    if (tipButtonState === "generating") return;
 
     setTipButtonState("generating");
     try {

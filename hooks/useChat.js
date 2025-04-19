@@ -16,6 +16,7 @@ const useChat = () => {
   const [isAiWriting, setIsAiWriting] = useState(false); // Estado para controlar cuando la IA está escribiendo
   const { accessToken, userId } = useAuthContext();
   const [last3MonthsChats, setLast3MonthsChats] = useState([]); // Almacena los chats de los últimos tres meses
+  //TODO: CUANDO SE ELIMINA EL CHAT EN EL HISTORIAL DEL CUAL HEMOS CARGADO LA CONVERSACIÓN, HAY QUE PONER EL PLACEHOLDER DE INICIAR NUEVA CONVERSACIÓN EN LA PAGINA DE CHAT
 
   // Al iniciar el componente, recuperamos los mensajes del AsyncStorage
   useEffect(() => {

@@ -53,7 +53,8 @@ const Music = () => {
   const getSoundSource = (sound) => {
     if (!sound.isDefault) {
       // Sonido subido por el usuario: ya se tiene la URI
-      return sound.source;
+      // Pero necesitamos asegurarnos que esté en el formato correcto para Audio.Sound.createAsync
+      return { uri: sound.source };
     }
     // Sonido estático: usamos require para incluir el asset en el bundle
     switch (sound.source) {
@@ -161,6 +162,7 @@ const Music = () => {
       console.log("Reproduciendo sonido: ", sound.id);
     } catch (error) {
       console.error("Error reproduciendo sonido: ", error);
+      Alert.alert("Error", `No se pudo reproducir el sonido: ${error.message}`);
     }
   };
 
@@ -215,49 +217,48 @@ const Music = () => {
   //Función encargada de renderizar cada uno de los elementos del flatlist, en este caso objetos del array de relax sounds
   const renderSoundItem = ({ item }) => (
     <View
-      className={`${
-        currentSound?.id === item.id ? "bg-[#6366ff]" : "bg-[#1e273a]"
-      } w-[95%] self-center flex p-6 gap-4 rounded-lg border border-[#323d4f]`}
+      className={`w-[95%] self-center p-5 rounded-xl border ${
+        currentSound?.id === item.id ? "border-[#8a8cff]" : "border-[#323d4f]"
+      } shadow-md mb-1`}
     >
-      <View className="flex-row items-center justify-between">
-        <Text className="text-base font-semibold text-white">{item.name}</Text>
-        <View className="flex-row items-center gap-5">
-          {/*Botón para eliminar sonidos si estos han sido subidos por el user*/}
-          {!item.isDefault && (
-            <TouchableOpacity
-              /*
-               * Tenemos que llamar al endpoint de la API para eliminar el sonido seleccionado que el user ha subido a la app
-               */
-              onPress={() => deleteUserSound(item.id)}
-            >
-              <Trash2 color="#ff6b6b" size={28} />
-            </TouchableOpacity>
-          )}
+      <View className="flex-row items-center justify-between mb-3">
+        <Text
+          className={`text-lg font-semibold ${
+            currentSound?.id === item.id ? "text-white" : "text-gray-200"
+          }`}
+        >
+          {item.name}
+        </Text>
 
+        <View className="flex-row items-center gap-4">
           {/* Botón para repetir o no el audio */}
           <TouchableOpacity
+            className={`p-2 rounded-full ${
+              currentSound?.id === item.id && currentSound?.isLooping
+                ? "bg-white/20"
+                : "bg-transparent"
+            }`}
             onPress={() =>
-              //Solo permitimos activar el loop si el audio ya estaba sonando
               currentSound?.id === item.id ? toggleLooping() : null
             }
           >
-            {currentSound?.id === item.id && currentSound?.isLooping ? (
-              <Repeat color="white" size={24} />
-            ) : (
-              //Si el sonido se esta reproduciendo, ponemos el color del icono en azul si el audio es el que se esta reproduciendo, y en gris si no para mostrar al usuario como que la opción esta desactivada visualmente
-              <Repeat
-                color={`${
-                  currentSound?.id === item.id && currentSound?.isLooping
-                    ? "#1e273a"
-                    : "#626364"
-                }`}
-                size={24}
-              />
-            )}
+            <Repeat
+              color={
+                currentSound?.id === item.id
+                  ? currentSound?.isLooping
+                    ? "white"
+                    : "rgba(255,255,255,0.5)"
+                  : "#626364"
+              }
+              size={20}
+            />
           </TouchableOpacity>
 
-          {/* Botón para pausar o reproducir el audio */}
+          {/* Botón para pausar o reproducir el audio - MANTENER EXACTAMENTE LA MISMA LÓGICA ORIGINAL */}
           <TouchableOpacity
+            className={`w-10 h-10 rounded-full mr-3 items-center justify-center ${
+              currentSound?.id === item.id ? "bg-white/20" : "bg-[#6366ff]/20"
+            }`}
             onPress={() =>
               currentSound?.id === item.id && isPlaying
                 ? stopSound()
@@ -265,27 +266,48 @@ const Music = () => {
             }
           >
             {currentSound?.id === item.id && isPlaying ? (
-              <Pause color="white" size={24} />
+              <Pause color="white" size={20} />
             ) : (
-              <Play color="white" size={24} />
+              <Play
+                color={currentSound?.id === item.id ? "white" : "#6366ff"}
+                size={20}
+              />
             )}
           </TouchableOpacity>
+
+          {/* Botón para eliminar sonidos si estos han sido subidos por el user */}
+          {!item.isDefault && (
+            <TouchableOpacity
+              className="p-2 rounded-full bg-[#ff6b6b]/20"
+              onPress={() => deleteUserSound(item.id)}
+            >
+              <Trash2 color="#ff6b6b" size={20} />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
+
+      {/* Control y visualización del reproductor */}
       {currentSound?.id === item.id && (
-        <View className="mt-2">
+        <View className="w-full mt-1">
           <Slider
             minimumValue={0}
             maximumValue={duration}
             value={progress}
             onSlidingComplete={changePosition}
-            minimumTrackTintColor="white" //Color de la barra de progreso una vez se haya pasado esa parte de la reproducción
-            maximumTrackTintColor="#323d4f" //Color de lo que queda por reproducir
+            minimumTrackTintColor="white"
+            maximumTrackTintColor="rgba(255,255,255,0.3)"
             thumbTintColor="white"
+            thumbStyle={{ width: 15, height: 15 }}
+            trackStyle={{ height: 4, borderRadius: 2 }}
           />
-          <View className="flex-row justify-between">
-            <Text className="text-white">{formatTime(progress)}</Text>
-            <Text className="text-white">{formatTime(duration)}</Text>
+          <View className="flex-row justify-between mt-1">
+            <Text className="text-sm text-white/80">
+              {formatTime(progress)}
+            </Text>
+            <Text className="text-sm text-white/80">
+              {formatTime(duration)}
+            </Text>
           </View>
         </View>
       )}
@@ -326,8 +348,8 @@ const Music = () => {
 
       if (!result.canceled) {
         //Comprobamos que el archivo del user no supere cierto tamaño
-        const maxFileSize = 10 * 1024 * 1024; //TODO: Ponemos el tamaño límite en 10 MB
-        if (result.size > maxFileSize) {
+        const maxFileSize = 10 * 1024 * 1024; //Ponemos el tamaño límite en 10 MB
+        if (result.assets[0].size > maxFileSize) {
           Alert.alert(
             "Archivo demasiado grande",
             "El archivo no puede superar los 10 MB"
@@ -335,11 +357,21 @@ const Music = () => {
           return;
         }
 
+        //TODO: Mostrar un mensaje de carga
+
         //Antes de guardar el sonido en la BD tenemos que guardarlo en la nube para poder obtenerlo en cualquier dispositivo
         const cloudinaryUrl = await uploadSoundToCloudinary({
           uri: result.assets[0].uri,
           name: result.assets[0].name,
         });
+
+        if (!cloudinaryUrl) {
+          Alert.alert(
+            "Error al subir",
+            "No se pudo subir el archivo a la nube. Inténtalo de nuevo."
+          );
+          return;
+        }
 
         //Creamos el objeto que vamos a guardar en la bd
         const newSound = {
@@ -359,7 +391,11 @@ const Music = () => {
         console.log(userSounds);
       }
     } catch (error) {
-      Alert.alert("Error", "No se pudo subir el sonido");
+      console.error("Error completo al subir el sonido:", error);
+      Alert.alert(
+        "Error",
+        `No se pudo subir el sonido: ${error.message || "Error desconocido"}`
+      );
     }
   };
 
@@ -405,40 +441,49 @@ const Music = () => {
           flexGrow: 1, //Puede crecer y adaptarse al nuevo tamaño y scroll
           paddingBottom: 20,
         }}
+        indicatorStyle="white"
         showsVerticalScrollIndicator={true} //Ocultamos la barra de scroll
       >
         {/*Comprobamos si el user tiene sonidos subidos, si es ese caso tenemos que renderizar la parte correspondiente en la app */}
         {userSounds.length > 0 && (
-          <View>
-            <Text
-              className="py-4 ml-4 font-bold text-white text-start"
-              style={{ fontSize: 18 }}
-            >
-              Mis sonidos
-            </Text>
+          <View className="mb-6">
+            <View className="flex-row items-center mt-2 mb-4 ml-4">
+              <View className="w-1 h-5 bg-[#ff6b6b] rounded-full mr-2" />
+              <Text
+                className="font-bold text-white text-start"
+                style={{ fontSize: 18 }}
+              >
+                Mis sonidos
+              </Text>
+            </View>
             <FlatList
               data={userSounds}
               renderItem={renderSoundItem}
               keyExtractor={(item) => item.id}
-              contentContainerClassName="pb-4 gap-4"
+              contentContainerClassName="pb-2 gap-4"
               scrollEnabled={false}
             />
           </View>
         )}
 
-        <Text
-          className="py-4 ml-4 font-bold text-white text-start"
-          style={{ fontSize: 18 }}
-        >
-          Sonidos por defecto
-        </Text>
-        <FlatList
-          data={staticSounds}
-          renderItem={renderSoundItem}
-          keyExtractor={(item) => item.id}
-          contentContainerClassName="pb-4 gap-4"
-          scrollEnabled={false} //Prevenimos el nested scrolling
-        />
+        <View className="mb-6">
+          <View className="flex-row items-center mt-2 mb-4 ml-4">
+            <View className="w-1 h-5 bg-[#6366ff] rounded-full mr-2" />
+            <Text
+              className="font-bold text-white text-start"
+              style={{ fontSize: 18 }}
+            >
+              Sonidos por defecto
+            </Text>
+          </View>
+          <FlatList
+            data={staticSounds}
+            renderItem={renderSoundItem}
+            keyExtractor={(item) => item.id}
+            contentContainerClassName="pb-2 gap-4"
+            scrollEnabled={false} //Prevenimos el nested scrolling
+          />
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

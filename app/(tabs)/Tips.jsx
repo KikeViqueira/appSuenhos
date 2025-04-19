@@ -5,8 +5,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   RefreshControl,
+  Animated,
 } from "react-native";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import TipItem from "../../components/TipItem";
@@ -60,6 +61,18 @@ const Tips = () => {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const { tips, getTips, deleteTips, loading } = useTips();
+
+  // Ref para animación
+  const selectionBarOpacity = useRef(new Animated.Value(0)).current;
+
+  // Animar la entrada y salida de la barra de selección de eliminación de tips
+  useEffect(() => {
+    Animated.timing(selectionBarOpacity, {
+      toValue: isSelectionMode ? 1 : 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [isSelectionMode]);
 
   //hacemos la función para que al presionarse un tip nos lleve a la página del tip detallado correspondiente
   const handleTipPress = (tip) => {
@@ -203,28 +216,68 @@ const Tips = () => {
           </Text>
 
           {/*
-           *Dependiendo de si está activada o no la bandera de isSelectionMode tenemos que rederizar un botón o el otro
-           *Si está activada tenemos que cambiar el icono por uno de confirmar la eliminación
-           *Si no lo está la papelera activará el modo de selección múltiple para eliminar tips
+           * Mostramos el botón de eliminar solo si no estamos en modo selección
+           * y si hay tips disponibles
            */}
-          {isSelectionMode ? (
-            <View className="flex-row justify-between gap-5">
-              <TouchableOpacity onPress={disableSelection}>
-                <X color="white" size={28} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={confirmDeletion}>
-                <Check color="#ff6b6b" size={28} />
-              </TouchableOpacity>
-            </View>
-          ) : (
-            //Dejamos eliminar los tips cuando haya
-            tips.length > 0 && (
-              <TouchableOpacity onPress={handleDeletePress}>
-                <Trash2 color="#ff6b6b" size={28} />
-              </TouchableOpacity>
-            )
+          {!isSelectionMode && tips.length > 0 && (
+            <TouchableOpacity
+              onPress={handleDeletePress}
+              className="bg-[#1e273a] p-2 rounded-full"
+            >
+              <Trash2 color="#ff6b6b" size={24} />
+            </TouchableOpacity>
           )}
         </View>
+
+        {/* Barra de selección animada */}
+        {isSelectionMode && (
+          <Animated.View
+            style={{
+              opacity: selectionBarOpacity,
+              transform: [
+                {
+                  translateY: selectionBarOpacity.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [20, 0],
+                  }),
+                },
+              ],
+              width: "90%",
+            }}
+            className="mb-3"
+          >
+            <View className="flex-row items-center justify-between bg-[#1e273a] p-3 rounded-xl border border-[#323d4f]">
+              <View className="flex-row items-center">
+                <View className="bg-[#ff6b6b]/10 p-2 rounded-full mr-3">
+                  <AlertCircle color="#ff6b6b" size={20} />
+                </View>
+                <Text className="text-base text-white">
+                  {selectedTips.length}{" "}
+                  {selectedTips.length === 1
+                    ? "tip seleccionado"
+                    : "tips seleccionados"}
+                </Text>
+              </View>
+
+              <View className="flex-row gap-3">
+                <TouchableOpacity
+                  onPress={disableSelection}
+                  className="bg-[#323d4f] p-2 rounded-lg"
+                >
+                  <X color="white" size={20} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={confirmDeletion}
+                  className="bg-[#ff6b6b] p-2 rounded-lg"
+                  disabled={selectedTips.length === 0}
+                  style={{ opacity: selectedTips.length === 0 ? 0.5 : 1 }}
+                >
+                  <Check color="white" size={20} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Animated.View>
+        )}
 
         {tips.length > 0 ? (
           <ScrollView

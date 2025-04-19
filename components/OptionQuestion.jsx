@@ -1,5 +1,6 @@
-import { View, Text, TouchableOpacity, SafeAreaView } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import React, { useState } from "react";
+import { CheckCircle } from "lucide-react-native";
 
 /* Options question object example
  *    "id": "drm_question2",
@@ -17,19 +18,12 @@ const OptionQuestion = ({ question, onAnswer }) => {
   const [selectedOption, setSelectedOption] = useState(null);
 
   return (
-    <SafeAreaView
-      className="flex flex-col gap-5 justify-center items-center w-full"
-      style={{
-        height: "auto",
-      }}
-    >
-      <Text
-        className="text-center font-bold color-[#6366ff]"
-        style={{ fontSize: 18 }}
-      >
+    <View className="w-full mb-4">
+      <Text className="mb-4 text-xl font-semibold text-[#6366ff]">
         {question.title}
       </Text>
-      <View className="gap-2 w-full">
+
+      <View className="gap-3">
         {question.options.map((item) => (
           <TouchableOpacity
             key={item.id}
@@ -37,25 +31,30 @@ const OptionQuestion = ({ question, onAnswer }) => {
               setSelectedOption(item.id);
               onAnswer(question.id, item.option);
             }}
-            className="px-8 py-4 w-full rounded-2xl"
-            style={{
-              backgroundColor:
-                selectedOption === item.id ? "#162030" : "#1a2c46",
-            }}
+            className={`flex-row items-center justify-between p-4 border rounded-xl ${
+              selectedOption === item.id
+                ? "bg-[#252e40] border-[#6366ff]"
+                : "bg-[#1a2c46] border-[#323d4f]"
+            }`}
+            activeOpacity={0.7}
           >
-            {selectedOption === item.id ? (
-              <Text className="text-lg text-center color-[#6366ff] w-full">
-                {item.option}
-              </Text>
-            ) : (
-              <Text className="w-full text-lg text-center color-white">
-                {item.option}
-              </Text>
+            <Text
+              className={`text-base ${
+                selectedOption === item.id
+                  ? "text-[#6366ff] font-semibold"
+                  : "text-white"
+              }`}
+            >
+              {item.option}
+            </Text>
+
+            {selectedOption === item.id && (
+              <CheckCircle color="#6366ff" size={20} />
             )}
           </TouchableOpacity>
         ))}
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

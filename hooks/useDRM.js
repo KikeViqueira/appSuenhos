@@ -1,8 +1,62 @@
 import { useEffect, useState, Alert } from "react";
 import { apiClient } from "../services/apiClient";
-import * as SecureStore from "expo-secure-store";
 import { API_BASE_URL } from "../config/config";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuthContext } from "../context/AuthContext";
+
+/*
+ * Función para guardar en el AsyncStorage una bandera de si hoy el user ha generado un informe o no.
+ * Función para recuperar la bandera de si hoy el user ha generado un informe o no.
+ */
+
+const setDailyReportFlag = async () => {
+  try {
+    const now = new Date();
+    //Establecemos la expiración de la bandera
+    const endOfDay = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      23,
+      59,
+      59,
+      999
+    );
+    //Creamos el objeto que vamos a guardar en el AsyncStorage
+    const data = {
+      tipCreated: true,
+      expiry: endOfDay.getTime(),
+    };
+    await AsyncStorage.setItem("reportFlag", JSON.stringify(data));
+  } catch (error) {
+    console.error(
+      "Error al guardar la bandera de informe en el AsyncStorage: ",
+      error
+    );
+  }
+};
+
+export const getDailyReportFlag = async () => {
+  try {
+    const data = await AsyncStorage.getItem("reportFlag");
+    if (data) {
+      const { tipCreated, expiry } = JSON.parse(data);
+      //Comprobamos si el tiempo actual es mayor que el tiempo de expiración del chatId
+      if (Date.now() > expiry) {
+        //Si ha expirado eliminamos la bandera del AsyncStorage
+        await AsyncStorage.removeItem("reportFlag");
+        return null;
+      }
+      return tipCreated;
+    }
+  } catch (error) {
+    console.error(
+      "Error al recuperar la bandera de informe del AsyncStorage: ",
+      error
+    );
+    return null;
+  }
+};
 
 const useDRM = () => {
   //Definimos los estados que necesitamos por ahora
@@ -38,6 +92,8 @@ const useDRM = () => {
           },
         }
       );
+      //Llamamos a la función para guardar la bandera de informe en el AsyncStorage
+      await setDailyReportFlag();
     } catch (error) {
       setError(error);
       console.error("Error al intentar hacer el cuestionario DRM: ", error);

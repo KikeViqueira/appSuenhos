@@ -55,6 +55,10 @@ export const uploadSoundToCloudinary = async ({ uri, name }) => {
     return response.data.secure_url;
   } catch (error) {
     console.error("Error al subir el sonido:", error);
-    return null;
+    // Registrar detalles adicionales del error para diagnóstico
+    if (error.response) {
+      console.error("Detalles del error de Cloudinary:", error.response.data);
+    }
+    throw new Error("Error al subir el sonido a Cloudinary");
   }
 };

@@ -6,14 +6,16 @@ import {
   TouchableOpacity,
   FlatList,
   Platform,
+  Animated,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   X,
   Trash2,
   Check,
   MessageSquareOff,
   MessagesSquare,
+  AlertCircle,
 } from "lucide-react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { xorBy } from "lodash";
@@ -35,8 +37,20 @@ const ChatsHistory = () => {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false); //Estado para saber cuando estamos en android y asi manejar su comportamiento.
 
+  // Ref para animación
+  const selectionBarOpacity = useRef(new Animated.Value(0)).current;
+
   //Importamos del hook de chat lo que nos interesa
   const { getHistory, getConversationChat, history, deleteChats } = useChat();
+
+  // Animar la entrada y salida de la barra de selección
+  useEffect(() => {
+    Animated.timing(selectionBarOpacity, {
+      toValue: isSelectionMode ? 1 : 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [isSelectionMode]);
 
   useEffect(() => {
     //Esto se va a ejecutar cuando se monte el componente por primera vez*/
@@ -81,6 +95,7 @@ const ChatsHistory = () => {
 
   //Función para confirmar la eliminación de los chats que han sido seleccionados
   const confirmDeletion = async () => {
+    //TODO: SI DE LOS CHATS QUE SE ELIMINAN ESTÁ EL DE LA CONVERSACIÓN ACTUAL QUE TENEMOS, HAY QUE PONER EL PLACEHOLDER DE INICIAR CONVERSACIÓN
     console.log(
       "Eliminando los siguientes chats: " +
         selectedChats.map((chat) => chat.name).join(", ") //Enseñamos los name de los chats que han sido eliminados separados mediante comas
@@ -212,25 +227,72 @@ const ChatsHistory = () => {
                 Chats Recientes
               </Text>
               {/*
-               *Dependiendo de si está activada o no la bandera de isSelectionMode tenemos que rederizar un botón o el otro
-               *Si está activada tenemos que cambiar el icono por uno de confirmar la eliminación
-               *Si no lo está la papelera activará el modo de selección múltiple para eliminar tips
+               *Dependiendo de si está activada o no la bandera de isSelectionMode tenemos que rederizar el
+               * botón de eliminar chats o no
                */}
-              {isSelectionMode ? (
-                <View className="flex-row justify-between gap-5">
-                  <TouchableOpacity onPress={disableSelection}>
-                    <X color="white" size={28} />
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={confirmDeletion}>
-                    <Check color="#ff6b6b" size={28} />
-                  </TouchableOpacity>
-                </View>
-              ) : (
-                <TouchableOpacity onPress={handleDeletePress}>
-                  <Trash2 color="#ff6b6b" size={28} />
+              {!isSelectionMode && (
+                <TouchableOpacity
+                  onPress={handleDeletePress}
+                  className="bg-[#1e273a] p-2 rounded-full"
+                >
+                  <Trash2 color="#ff6b6b" size={24} />
                 </TouchableOpacity>
               )}
             </View>
+
+            {/*En caso de que el modo de eliminar chats este activado reenderizamos el componente de la barra de selección animada*/}
+            {isSelectionMode && (
+              <Animated.View
+                style={{
+                  opacity: selectionBarOpacity,
+                  transform: [
+                    {
+                      translateY: selectionBarOpacity.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [20, 0],
+                      }),
+                    },
+                  ],
+                }}
+                className="mb-3"
+              >
+                {isSelectionMode && (
+                  <View className="flex-row items-center justify-between bg-gradient-to-r from-[#1e273a] to-[#252e40] p-3 rounded-xl border border-[#323d4f]">
+                    <View className="flex-row items-center">
+                      <View className="bg-[#ff6b6b]/10 p-2 rounded-full mr-3">
+                        <AlertCircle color="#ff6b6b" size={20} />
+                      </View>
+                      <Text className="text-base text-white">
+                        {selectedChats.length}{" "}
+                        {selectedChats.length === 1
+                          ? "chat seleccionado"
+                          : "chats seleccionados"}
+                      </Text>
+                    </View>
+
+                    <View className="flex-row gap-3">
+                      <TouchableOpacity
+                        onPress={disableSelection}
+                        className="bg-[#323d4f] p-2 rounded-lg"
+                      >
+                        <X color="white" size={20} />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={confirmDeletion}
+                        className="bg-[#ff6b6b] p-2 rounded-lg"
+                        disabled={selectedChats.length === 0}
+                        style={{
+                          opacity: selectedChats.length === 0 ? 0.5 : 1,
+                        }}
+                      >
+                        <Check color="white" size={20} />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                )}
+              </Animated.View>
+            )}
+
             <FlatList
               data={history}
               keyExtractor={(item) => item.id}

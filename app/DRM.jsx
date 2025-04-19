@@ -15,6 +15,7 @@ import OptionQuestion from "../components/OptionQuestion";
 import TextQuestion from "../components/TextQuestion";
 import { ChevronLeft } from "lucide-react-native";
 import { router } from "expo-router";
+import { getDailyReportFlag } from "../hooks/useDRM";
 import useDRM from "../hooks/useDRM";
 
 const DRM = () => {
@@ -22,6 +23,7 @@ const DRM = () => {
 
   //Definimos el estado para guardar el identificador de la pregunta junto su respuesta
   const [answers, setAnswers] = useState({});
+  const [reportButtonState, setReportButtonState] = useState("default"); //Controla el estado del botón a la hora de generar el informe
 
   useEffect(() => {
     console.log("Respuestas del cuestionario actualmente: ", answers);
@@ -37,10 +39,67 @@ const DRM = () => {
 
   //Función para mandar las respuestas a la API
   const submit = async () => {
-    await saveDrmAnswers(answers);
-    //Una vez que se ha generado el informe lo primero es borrar las respuestas para que no se queden guardadas
-    setAnswers({});
-    //TODO: TENDRÍAMOS QUE VOLVER A LA PÁGINA DE STATS PASÁNDOLE POR PROPS LA BANDERA PARA QUE SE DESPLIEGUE EL POPUP DE QUE SE HA GENERADO EL INFORME Y EL USER PUEDO CONSULTARLO EN LA SECCIÓN CORRESPONDIENTE
+    if (reportButtonState === "generating" || reportButtonState === "generated")
+      return;
+
+    setReportButtonState("generating");
+
+    try {
+      await saveDrmAnswers(answers);
+      setReportButtonState("generated");
+      //Una vez que se ha generado el informe lo primero es borrar las respuestas para que no se queden guardadas
+      setAnswers({});
+    } catch (error) {
+      console.error("Error generando tip:", error);
+      setReportButtonState("default");
+      Alert.alert(
+        "Error",
+        "No se pudo generar el informe. Inténtalo de nuevo más tarde."
+      );
+    }
+  };
+
+  // Función para verificar si se ha generado un informe hoy
+  const checkDailyReportStatus = async () => {
+    try {
+      const reportFlag = await getDailyReportFlag();
+      if (reportFlag) {
+        setReportButtonState("generated");
+      } else {
+        setReportButtonState("default");
+      }
+    } catch (error) {
+      console.error("Error al verificar el estado del informe diario:", error);
+      setReportButtonState("default");
+    }
+  };
+
+  useEffect(() => {
+    //Cuando se monta el componente comprobamos si el user ya ha generado un informe hoy o no
+    checkDailyReportStatus();
+  }, []);
+
+  // Determinar el texto y estilo del botón según el estado
+  const getButtonText = () => {
+    switch (reportButtonState) {
+      case "generating":
+        return "Generando informe...";
+      case "generated":
+        return "Informe de hoy generado";
+      default:
+        return "Generar informe detallado";
+    }
+  };
+
+  const getButtonStyle = () => {
+    switch (reportButtonState) {
+      case "generating":
+        return "bg-[#15db44]/60";
+      case "generated":
+        return "bg-gray-400";
+      default:
+        return "bg-[#15db44]";
+    }
   };
 
   return (
@@ -124,12 +183,15 @@ const DRM = () => {
           })}
           {/*Botón para generar el informe detallado*/}
           <TouchableOpacity
-            TouchableOpacity
-            className="bg-[#15db44] py-4 rounded-xl items-center w-full"
+            className={`${getButtonStyle()} py-4 rounded-xl items-center w-full`}
             onPress={submit}
+            disabled={
+              reportButtonState === "generating" ||
+              reportButtonState === "generated"
+            }
           >
             <Text className="text-lg text-white font-psemibold">
-              Generar informe detallado
+              {getButtonText()}
             </Text>
           </TouchableOpacity>
         </ScrollView>

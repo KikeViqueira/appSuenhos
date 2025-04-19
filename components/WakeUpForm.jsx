@@ -149,16 +149,16 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
 
           <ScrollView
             contentContainerStyle={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 20,
-              width: "100%",
+              paddingVertical: 20,
+              paddingHorizontal: 16,
+              gap: 24,
             }}
+            showsVerticalScrollIndicator={true}
+            indicatorStyle="white"
           >
             {/* Contenedor que encierra la hora de la alarma*/}
             <View
-              className="flex flex-col w-[90%] justify-center items-center gap-5"
+              className="flex flex-col items-center justify-center w-full gap-5"
               style={{
                 height: "auto",
               }}
