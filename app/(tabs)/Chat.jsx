@@ -18,8 +18,14 @@ import { router } from "expo-router";
 
 const Chat = () => {
   //recuperamos las funcionalidades y estados del hook de chat
-  const { messages, postRequest, isToday, getTodayChat, isAiWriting } =
-    useChat();
+  const {
+    messages,
+    postRequest,
+    isToday,
+    getTodayChat,
+    isAiWriting,
+    clearCurrentChat,
+  } = useChat();
   //Input que guarda el mensaje que se quiere enviar
   const [newMessage, setNewMessage] = useState("");
   // Estado para controlar si los mensajes se están cargando
@@ -32,7 +38,11 @@ const Chat = () => {
   useEffect(() => {
     const initialize = async () => {
       try {
-        // Solo cargamos del servidor si no hay mensajes guardados
+        /*
+         * Solo cargamos del servidor si no hay mensajes guardados
+         * asi si cargamos un chat del historial no se hará una nueva petición al servidor sobre ese chat ya que esto ya se hace
+         * cuando presionamos en el chat del historial
+         * */
         if (messages.length === 0) {
           await getTodayChat();
         }
@@ -74,33 +84,30 @@ const Chat = () => {
     //hacemos variable para saber si el sender es el usuario o no
     const isUser = item.sender === "USER";
 
-    /*
-     * Definimos el padding para el caso en el que la IA está escribiendo el mensaje de respuesta al user:
-     * En caso de que así sea lo que tenemos que hacer es eliminarlo para que la caja que contiene el mensaje no sea muy grande
-     * Cuando el mensaje es en si la respuesta de manera completa ponemos el mismo estilo que los mensajes del user
-     */
-    const paddingClass =
-      item.sender === "AI" && item.content === "..." ? "p-0" : "p-3";
+    // Verificamos si es un indicador de escritura de la IA
+    const isTyping = item.sender === "AI" && item.content === "...";
 
+    // Si es el indicador de escritura, no aplicamos padding ni background
+    // Si es un mensaje normal, aplicamos el padding y background correspondiente
     return (
       <View className={`mb-4 ${isUser ? "items-end" : "items-start"} w-full`}>
-        <View
-          //Dependiendo de si el mensaje es del usuario o no le damos un estilo diferente
-          //Usamos la clase de padding personalizada para que dependiendo del contexto se aplique uno o el otro
-          className={`${paddingClass} rounded-2xl max-w-[80%] ${
-            isUser ? "bg-[#6366ff]" : "bg-[#323d4f]"
-          }`}
-        >
-          {/*Comprobamos si se va a renderizar un mensaje o si la ia esta generando la respuesta*/}
-          {item.sender === "AI" && item.content === "..." ? (
+        {isTyping ? (
+          // Contenedor del indicador de escritura sin fondo
+          <View className="ml-2">
             <TypingIndicator />
-          ) : (
-            //Con selectable true hacemos que el texto sea seleccionable y se pueda copiar por parte del user
+          </View>
+        ) : (
+          // Contenedor normal para mensajes regulares
+          <View
+            className={`p-3 rounded-2xl max-w-[80%] ${
+              isUser ? "bg-[#6366ff]" : "bg-[#323d4f]"
+            }`}
+          >
             <Text selectable={true} className="text-base text-white">
               {item.content}
             </Text>
-          )}
-        </View>
+          </View>
+        )}
       </View>
     );
   };

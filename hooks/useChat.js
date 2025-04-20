@@ -6,6 +6,7 @@ import { useAuthContext } from "../context/AuthContext";
 
 const CURRENT_MESSAGES_KEY = "current_chat_messages";
 const CURRENT_CHAT_EDITABLE_KEY = "current_chat_editable";
+const CURRENT_CHAT_ID_KEY = "current_chat_id";
 
 const useChat = () => {
   const [messages, setMessages] = useState([]); // Estado que guarda todos los mensajes
@@ -45,6 +46,7 @@ const useChat = () => {
      */
     const loadSavedMessages = async () => {
       try {
+        //await clearCurrentChat();
         const savedMessagesJson = await AsyncStorage.getItem(
           CURRENT_MESSAGES_KEY
         );
@@ -72,49 +74,6 @@ const useChat = () => {
 
     loadSavedMessages();
   }, []);
-
-  // Cada vez que cambian los mensajes o isToday, los guardamos en AsyncStorage
-  useEffect(() => {
-    /**
-     * Esta función guarda el estado actual (mensajes y estado editable) en AsyncStorage.
-     *
-     * ¿Cuándo y por qué guardamos el estado?
-     *
-     * 1. Sincronización automática:
-     *    - Cada vez que los mensajes o el estado editable cambian, guardamos estos cambios inmediatamente
-     *    - Esto garantiza que siempre tengamos la versión más reciente de la conversación
-     *
-     * 2. Respaldo ante cierres inesperados:
-     *    - Si la aplicación se cierra inesperadamente, los datos ya estarán guardados
-     *    - Al volver a abrir la app, se cargará el último estado conocido
-     *
-     * 3. Navegación fluida:
-     *    - Cuando el usuario navega entre pantallas, el estado ya está guardado
-     *    - Esto permite una experiencia sin interrupciones al volver a la pantalla de chat
-     *
-     * 4. Consistencia de datos:
-     *    - Mantenemos sincronizados los mensajes mostrados con lo que se ha guardado
-     *    - Esto evita confusiones donde la interfaz muestra algo diferente a lo guardado
-     */
-    const saveCurrentState = async () => {
-      try {
-        if (messages.length > 0) {
-          await AsyncStorage.setItem(
-            CURRENT_MESSAGES_KEY,
-            JSON.stringify(messages)
-          );
-          console.log("Guardando mensajes en AsyncStorage:", messages.length);
-        }
-
-        await AsyncStorage.setItem(CURRENT_CHAT_EDITABLE_KEY, String(isToday));
-        console.log("Guardando estado editable en AsyncStorage:", isToday);
-      } catch (error) {
-        console.error("Error al guardar estado actual:", error);
-      }
-    };
-
-    saveCurrentState();
-  }, [messages, isToday]);
 
   /*
    * Funciones internas para guardar el chatId en el AsyncStorage junto a una marca temporal de cuando se ha hecho el chat,
@@ -158,6 +117,24 @@ const useChat = () => {
         }
         return chatId;
       }
+    } catch (error) {
+      console.error("Error al recuperar el chatId del AsyncStorage: ", error);
+      return null;
+    }
+  };
+
+  const setCurrentChatId = async (id) => {
+    try {
+      await AsyncStorage.setItem(CURRENT_CHAT_ID_KEY, id);
+    } catch (error) {
+      console.error("Error al guardar el chatId en el AsyncStorage: ", error);
+    }
+  };
+
+  const getCurrentChatId = async () => {
+    try {
+      const id = await AsyncStorage.getItem(CURRENT_CHAT_ID_KEY);
+      return id;
     } catch (error) {
       console.error("Error al recuperar el chatId del AsyncStorage: ", error);
       return null;
@@ -241,8 +218,10 @@ const useChat = () => {
       console.log("id del chat que acabamos de crear: ", response.data.id);
 
       if (response.status === 200) {
-        //Una vez creado tenemos que guardar la id y fecha de expiración en el AsyncStorage
+        //Una vez creado tenemos que guardar la id y fecha de expiración en el AsyncStorage de este chat que acabamos de crear
+        //Y tambien tenemos que guardar la id del chat en la bandera aux para saber en que chat está el user
         await setDailyChatId(response.data.id.toString());
+        await setCurrentChatId(response.data.id.toString());
 
         //En el caso de que el valor del chatid al hacer la llamada fuese nuelo tenemos que actualizar el historial de chats con este nuevo que se ha creado
         //En caso de que el chat ya existiese pues ya lo tenemos en el historial de chats y no hace falta meterlo
@@ -331,6 +310,8 @@ const useChat = () => {
    *    - Resetea el estado de la conversación actual
    *    Esto es crucial para evitar inconsistencias donde el usuario elimina un chat
    *    pero la app sigue mostrando sus mensajes o intentando enviar mensajes a un chat ya eliminado.
+   * 3. Si el chat actualmente abierto en la pantalla principal se elimina (pero no es el de hoy),
+   *    cargar el chat de hoy o mostrar la pantalla de bienvenida.
    */
   const deleteChats = async (ids) => {
     setError(null);
@@ -338,10 +319,16 @@ const useChat = () => {
     try {
       // Verificamos si el chat de hoy está entre los chats que se van a eliminar
       const currentChatId = await getDailyChatId();
+      const currentOpenChatId = await getCurrentChatId(); // ID del chat actualmente abierto
+
       const isDeletingTodaysChat =
         currentChatId && ids.includes(parseInt(currentChatId));
 
+      const isDeletingOpenChat =
+        currentOpenChatId && ids.includes(parseInt(currentOpenChatId));
+
       console.log("¿Eliminando chat de hoy?", isDeletingTodaysChat);
+      console.log("¿Eliminando chat abierto?", isDeletingOpenChat);
 
       const response = await apiClient.delete(
         `${API_BASE_URL}/users/${userId}/chats`,
@@ -369,18 +356,47 @@ const useChat = () => {
             "El chat de hoy ha sido eliminado. Limpiando referencias en AsyncStorage..."
           );
 
-          // Limpiar el chatId del día actual
+          // También podemos limpiar el chatId si queremos forzar la creación de un nuevo chat
           await AsyncStorage.removeItem("chatId");
 
-          // Limpiar los mensajes y el estado actual
-          await AsyncStorage.removeItem(CURRENT_MESSAGES_KEY);
-          await AsyncStorage.removeItem(CURRENT_CHAT_EDITABLE_KEY);
-
-          // Resetear los estados en memoria
-          setMessages([]);
-          setIsToday(true);
+          //Si el chat en el que estaba el user es el mismo que el diario limpiamos las banderas del chat y la key del chat en el que estaba el user
+          if (currentOpenChatId === currentChatId) {
+            await AsyncStorage.removeItem(CURRENT_CHAT_ID_KEY);
+            await clearCurrentChat();
+          }
 
           console.log("Referencias del chat de hoy eliminadas correctamente");
+        } else if (isDeletingOpenChat) {
+          /*
+           * Si el chat que está actualmente abierto en la pantalla principal se elimina
+           * (pero no es el de hoy), debemos cargar el chat de hoy o mostrar la pantalla
+           * de bienvenida.
+           */
+          console.log(
+            "El chat actualmente abierto ha sido eliminado pero no es el de hoy."
+          );
+
+          // Limpiar el estado del chat actual
+          await AsyncStorage.removeItem(CURRENT_MESSAGES_KEY);
+          await AsyncStorage.removeItem(CURRENT_CHAT_EDITABLE_KEY);
+          await AsyncStorage.removeItem(CURRENT_CHAT_ID_KEY);
+
+          setMessages([]);
+
+          // Si hay un chat de hoy, intentamos cargarlo
+          if (currentChatId) {
+            try {
+              console.log("Intentando cargar el chat de hoy en su lugar...");
+              await getConversationChat(currentChatId);
+            } catch (err) {
+              console.error("Error al cargar el chat de hoy:", err);
+              // Si falla, simplemente dejamos la pantalla vacía para un nuevo chat
+              setIsToday(true);
+            }
+          } else {
+            // No hay chat de hoy, configuramos para mostrar la pantalla de bienvenida
+            setIsToday(true);
+          }
         }
       } else {
         Alert.alert("Error", "No se ha podido eliminar el chat");
@@ -457,10 +473,8 @@ const useChat = () => {
         setMessages(chatMessages);
         console.log("Chat editable:", chatEditable);
 
-        // También guardamos el chatId en el AsyncStorage si es editable/de hoy
-        if (chatEditable) {
-          await setDailyChatId(targetChatId.toString());
-        }
+        // También guardamos el id del chat en la bandera aux para saber en que chat está el user
+        await setCurrentChatId(targetChatId.toString());
 
         return true;
       } else {
@@ -531,9 +545,6 @@ const useChat = () => {
       await AsyncStorage.removeItem(CURRENT_MESSAGES_KEY);
       await AsyncStorage.removeItem(CURRENT_CHAT_EDITABLE_KEY);
 
-      // También podemos limpiar el chatId si queremos forzar la creación de un nuevo chat
-      await AsyncStorage.removeItem("chatId");
-
       // Resetear los estados en memoria
       setMessages([]);
       setIsToday(true); // Permitimos que se pueda escribir
@@ -563,6 +574,7 @@ const useChat = () => {
     last3MonthsChats,
     isAiWriting,
     clearCurrentChat,
+    getCurrentChatId,
   };
 };
 

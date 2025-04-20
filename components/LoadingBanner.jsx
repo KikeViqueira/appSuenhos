@@ -4,10 +4,10 @@ import LottieView from "lottie-react-native";
 const LoadingBanner = () => {
   return (
     <LottieView
-      source={require("../assets/animations/loadBanner.json")}
+      source={require("../assets/animations/bigLoadBanner.json")}
       autoPlay
       loop
-      style={{ width: 80, height: 50 }}
+      style={{ width: 350, height: 350 }}
     />
   );
 };

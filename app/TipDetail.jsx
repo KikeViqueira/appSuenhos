@@ -165,11 +165,43 @@ const TipDetail = () => {
   // Si está cargando, mostrar un indicador de carga
   if (isLoading) {
     return (
-      <SafeAreaView className="items-center justify-center flex-1 bg-primary">
-        <LoadingBanner />
-        <Text className="mt-4 text-lg text-white">
-          Cargando información del tip...
-        </Text>
+      <SafeAreaView className="flex-1 bg-primary">
+        <View className="flex flex-row items-center justify-between px-8 pt-3">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="flex flex-row items-center gap-2 py-4"
+          >
+            <ChevronLeft size={24} color="white" />
+            <Text className="text-lg font-semibold color-white">
+              Volver a la lista de tips
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View className="items-center justify-center flex-1 px-6">
+          <View className="w-full bg-[#1e2a47] rounded-xl p-8">
+            <View className="flex-row w-full">
+              <View className="w-2 h-full bg-[#6366ff]" />
+              <View className="items-center flex-1">
+                <LoadingBanner />
+                <Text className="mb-2 text-xl font-bold text-white">
+                  Cargando información del tip
+                </Text>
+                <Text className="text-base text-center text-[#8a94a6] px-4 mb-3">
+                  Estamos preparando todos los detalles para que puedas mejorar
+                  tu calidad de sueño.
+                </Text>
+
+                <View className="flex flex-row justify-center w-full gap-2 mt-2">
+                  <View className="h-2 w-2 rounded-full bg-[#6366ff] opacity-30" />
+                  <View className="h-2 w-2 rounded-full bg-[#6366ff] opacity-50" />
+                  <View className="h-2 w-2 rounded-full bg-[#6366ff] opacity-70" />
+                  <View className="h-2 w-2 rounded-full bg-[#6366ff] opacity-100" />
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
       </SafeAreaView>
     );
   }

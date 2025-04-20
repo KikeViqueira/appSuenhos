@@ -8,7 +8,14 @@ import {
   Animated,
 } from "react-native";
 import React, { useEffect, useState, useRef } from "react";
-import { ChevronLeft, Download, ChevronDown } from "lucide-react-native";
+import {
+  ChevronLeft,
+  Download,
+  ChevronDown,
+  ClipboardList,
+  AlertTriangle,
+  Info,
+} from "lucide-react-native";
 import { router } from "expo-router";
 import useDRM from "../hooks/useDRM";
 import { useAuthContext } from "../context/AuthContext";
@@ -235,6 +242,9 @@ const DrmReport = () => {
     }
   };
 
+  // Verificar si hay datos de informe disponibles
+  const hasReportData = drmToday && drmToday.report && drmToday.report !== "";
+
   return (
     <SafeAreaView className="flex-1 w-full h-full bg-primary">
       <View className="flex flex-row items-center justify-between py-4 w-[90%] self-center">
@@ -253,84 +263,174 @@ const DrmReport = () => {
             Cuestionario diario DRM
           </Text>
         </View>
-        <View className="flex-row items-center gap-4">
-          <TouchableOpacity
-            //Cuando pinchemos en el botón de descargar el informe llamamos a la función para pasarlo a PDF
-            onPress={createPDF}
-          >
-            <Download size={24} color="white" />
-          </TouchableOpacity>
-        </View>
+        {hasReportData && (
+          <View className="flex-row items-center gap-4">
+            <TouchableOpacity
+              //Cuando pinchemos en el botón de descargar el informe llamamos a la función para pasarlo a PDF
+              onPress={createPDF}
+            >
+              <Download size={24} color="white" />
+            </TouchableOpacity>
+          </View>
+        )}
       </View>
 
       <View className="flex-1 flex-col justify-between items-center w-[90%] self-center mb-10">
-        <View className="max-h-[90%] relative">
-          <ScrollView
-            ref={scrollViewRef}
-            contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
-            showsVerticalScrollIndicator={true}
-            indicatorStyle="white"
-            className="border-b border-gray-700"
-            onScroll={handleScroll}
-            scrollEventThrottle={16}
-          >
-            <Text className="mb-4 text-lg text-white" selectable={true}>
-              {/*Si el drmToday no es vacío lo reenderizamos, en caso contrario ponemos un mensaje de que no se ha hecho el cuestionario hoy*/}
-              {drmToday.report !== ""
-                ? drmToday.report
-                : "No se ha generado el cuestionario de hoy"}
-            </Text>
-          </ScrollView>
+        {hasReportData ? (
+          <>
+            <View className="max-h-[90%] relative">
+              <ScrollView
+                ref={scrollViewRef}
+                contentContainerStyle={{ flexGrow: 1, paddingBottom: 20 }}
+                showsVerticalScrollIndicator={true}
+                indicatorStyle="white"
+                className="border-b border-gray-700"
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
+              >
+                <Text className="mb-4 text-lg text-white" selectable={true}>
+                  {drmToday.report}
+                </Text>
+              </ScrollView>
 
-          {/* Indicador de scroll animado */}
-          {showScrollIndicator && (
-            <Animated.View
-              style={{
-                position: "absolute",
-                bottom: 0,
-                left: 0,
-                right: 0,
-                opacity: fadeAnim,
-                alignItems: "center",
-                paddingBottom: 10,
-              }}
+              {/* Indicador de scroll animado */}
+              {showScrollIndicator && (
+                <Animated.View
+                  style={{
+                    position: "absolute",
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    opacity: fadeAnim,
+                    alignItems: "center",
+                    paddingBottom: 10,
+                  }}
+                >
+                  <LinearGradient
+                    colors={["transparent", "rgba(18, 24, 38, 0.9)"]}
+                    style={{
+                      position: "absolute",
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      height: 70,
+                    }}
+                  />
+                  <View className="bg-[#6366ff] p-2 rounded-full">
+                    <ChevronDown size={24} color="white" />
+                  </View>
+                </Animated.View>
+              )}
+            </View>
+
+            <TouchableOpacity
+              className={`py-4 rounded-xl items-center w-full ${getButtonStyle()}`}
+              //Si el botón esta en default llamamos a crear tip, si este ya está creado navegamos a la pestaña de tips
+              onPress={
+                tipButtonState === "default"
+                  ? handleGenerateTip
+                  : navigateToTips
+              }
+              //Desactivamos cualquier funcionalidad del botón mientras se este generando un tip
+              disabled={tipButtonState === "generating"}
             >
-              <LinearGradient
-                colors={["transparent", "rgba(18, 24, 38, 0.9)"]}
-                style={{
-                  position: "absolute",
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  height: 70,
-                }}
-              />
-              <View className="bg-[#6366ff] p-2 rounded-full">
-                <ChevronDown size={24} color="white" />
+              {tipButtonState === "generating" ? (
+                <Text className="ml-2 text-lg text-white font-psemibold">
+                  {getButtonText()}
+                </Text>
+              ) : (
+                <Text className="text-lg text-white font-psemibold">
+                  {getButtonText()}
+                </Text>
+              )}
+            </TouchableOpacity>
+          </>
+        ) : (
+          <View className="items-center justify-center flex-1 w-full">
+            <View className="w-full items-center justify-center p-8 bg-[#1e2a47] rounded-xl flex gap-5">
+              <View className="flex-row w-full">
+                <View className="w-2 h-full bg-[#ff4757]" />
+                <View className="flex-1">
+                  <View className="p-4 mb-4 rounded-full bg-[#2a2a4a] self-center">
+                    <AlertTriangle size={60} color="#ff4757" />
+                  </View>
+                  <Text className="mb-2 text-2xl font-bold text-center text-white">
+                    No hay informe DRM disponible
+                  </Text>
+                  <Text className="text-base text-center text-[#8a94a6] px-4 mb-4">
+                    Para generar un informe DRM necesitas asegurarte de tener al
+                    menos un cuestionario de registro matutino en la última
+                    semana.
+                  </Text>
+                </View>
               </View>
-            </Animated.View>
-          )}
-        </View>
 
-        <TouchableOpacity
-          className={`py-4 rounded-xl items-center w-full ${getButtonStyle()}`}
-          //Si el botón esta en default llamamos a crear tip, si este ya está creado navegamos a la pestaña de tips
-          onPress={
-            tipButtonState === "default" ? handleGenerateTip : navigateToTips
-          }
-          //Desactivamos cualquier funcionalidad del botón mientras se este generando un tip
-          disabled={tipButtonState === "generating"}
-        >
-          {tipButtonState === "generating" ? (
-            <Text className="ml-2 text-lg text-white font-psemibold">
-              {getButtonText()}
-            </Text>
-          ) : (
-            <Text className="text-lg text-white font-psemibold">
-              {getButtonText()}
-            </Text>
-          )}
-        </TouchableOpacity>
+              <View className="w-full p-4 rounded-xl">
+                <View className="flex-row items-center mb-3">
+                  <ClipboardList size={22} color="#6366ff" />
+                  <Text className="ml-2 text-xl font-semibold text-[#6366ff]">
+                    ¿Qué necesitas hacer?
+                  </Text>
+                </View>
+                <View className="flex-row items-start mb-2">
+                  <View className="w-6 h-6 rounded-full bg-[#6366ff] items-center justify-center mt-0.5 mr-2">
+                    <Text className="font-bold text-white">1</Text>
+                  </View>
+                  <Text className="flex-1 text-white">
+                    Completar un cuestionario matutino como mínimo una vez en
+                    los últimos 7 días
+                  </Text>
+                </View>
+                <View className="flex-row items-start mb-2">
+                  <View className="w-6 h-6 rounded-full bg-[#6366ff] items-center justify-center mt-0.5 mr-2">
+                    <Text className="font-bold text-white">2</Text>
+                  </View>
+                  <Text className="flex-1 text-white">
+                    Rellenar el propio formulario DRM para tener un mejor
+                    contexto y poder entregarte un informe mucho más preciso
+                  </Text>
+                </View>
+                <View className="flex-row items-start">
+                  <View className="w-6 h-6 rounded-full bg-[#6366ff] items-center justify-center mt-0.5 mr-2">
+                    <Text className="font-bold text-white">3</Text>
+                  </View>
+                  <Text className="flex-1 text-white">
+                    Pinchar en el botón de generar infome y venir a esta pestaña
+                    a consultarlo
+                  </Text>
+                </View>
+              </View>
+
+              <View className="w-full bg-[#232e45] p-4 rounded-xl border border-[#3d4a69]">
+                <View className="flex-row items-start">
+                  <View className="bg-[#6366ff]/10 p-2 rounded-full mr-3">
+                    <Info size={20} color="#6366ff" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-base font-semibold text-[#6366ff] mb-1">
+                      Mayor precisión con más datos
+                    </Text>
+                    <Text className="text-sm text-[#d1d5db]">
+                      Ten en cuenta que cuantos más cuestionarios matutinos
+                      completes, más preciso y personalizado será tu informe
+                      DRM.
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              <TouchableOpacity
+                onPress={() => router.back()}
+                className="py-3 px-6 bg-[#6366ff] rounded-xl"
+                activeOpacity={0.7}
+              >
+                <Text className="text-base font-medium text-white">
+                  Volver a inicio
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );
