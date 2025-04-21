@@ -6,14 +6,28 @@ import {
   FlatList,
   Alert,
   ScrollView,
+  Modal,
+  Animated,
 } from "react-native";
 import { Audio } from "expo-av";
-import { Play, Pause, Repeat, Upload, Trash2, Ban } from "lucide-react-native";
+import {
+  Play,
+  Pause,
+  Repeat,
+  Upload,
+  Trash2,
+  Ban,
+  Clock,
+  Check,
+  X,
+  Timer,
+} from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Slider from "@react-native-community/slider";
 import * as DocumentPicker from "expo-document-picker";
 import useSound from "../../hooks/useSound";
 import { uploadSoundToCloudinary } from "../../services/Cloudinary";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Music = () => {
   //Recuperamos las funcionalidades del useSound para usar en este componente
@@ -33,6 +47,21 @@ const Music = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   //Definimos los estados para controlar el número de audios que sube el user a la app
   const maxSounds = 6;
+
+  // Estados para el temporizador
+  const [timerModalVisible, setTimerModalVisible] = useState(false);
+  const [timerDuration, setTimerDuration] = useState(null); // en milisegundos
+  const [timerRemaining, setTimerRemaining] = useState(null);
+  const [timerActive, setTimerActive] = useState(false);
+  const timerOpacityAnim = useRef(new Animated.Value(1)).current;
+  const progressAnim = useRef(new Animated.Value(0)).current;
+
+  const timerOptions = [
+    { label: "15 min", value: 15 * 60 * 1000 },
+    { label: "30 min", value: 30 * 60 * 1000 },
+    { label: "1 hora", value: 60 * 60 * 1000 },
+    { label: "2 horas", value: 2 * 60 * 60 * 1000 },
+  ];
 
   /*
    * La función getSoundSource se encarga de obtener el asset correcto para reproducir el sonido.
@@ -71,6 +100,22 @@ const Music = () => {
     }
   };
 
+  // Cargar preferencias del temporizador al iniciar
+  useEffect(() => {
+    const loadTimerPreference = async () => {
+      try {
+        const savedValue = await AsyncStorage.getItem("preferredTimerDuration");
+        if (savedValue) {
+          setTimerDuration(parseInt(savedValue));
+        }
+      } catch (error) {
+        console.error("Error cargando preferencias del temporizador:", error);
+      }
+    };
+
+    loadTimerPreference();
+  }, []);
+
   //Tenemos que hacer cuando se reenderice el componente llamar a la función que recupera los sonidos estáticos
   useEffect(() => {
     //Los sonidos que hemos recuperado se guardan en el estado de staticSounds del useSound
@@ -104,6 +149,77 @@ const Music = () => {
     };
   }, [isPlaying]);
 
+  // Efecto para gestionar el temporizador
+  useEffect(() => {
+    let timerInterval;
+
+    if (
+      timerActive &&
+      timerRemaining !== null &&
+      isPlaying &&
+      currentSound?.isLooping
+    ) {
+      // Actualizar la animación de progreso del temporizador
+      if (timerDuration > 0) {
+        const progress = 1 - timerRemaining / timerDuration;
+        Animated.timing(progressAnim, {
+          toValue: progress,
+          duration: 300,
+          useNativeDriver: false,
+        }).start();
+      }
+
+      timerInterval = setInterval(() => {
+        setTimerRemaining((prev) => {
+          const newRemaining = prev - 1000;
+
+          // Cuando quedan menos de 10 segundos, empezamos a animar la opacidad
+          if (newRemaining <= 10000 && newRemaining > 0) {
+            Animated.sequence([
+              Animated.timing(timerOpacityAnim, {
+                toValue: 0.3,
+                duration: 500,
+                useNativeDriver: true,
+              }),
+              Animated.timing(timerOpacityAnim, {
+                toValue: 1,
+                duration: 500,
+                useNativeDriver: true,
+              }),
+            ]).start();
+          }
+
+          // Si el tiempo ha terminado, detenemos el sonido
+          if (newRemaining <= 0) {
+            stopSound();
+            setTimerActive(false);
+            setTimerRemaining(null);
+            return null;
+          }
+
+          return newRemaining;
+        });
+      }, 1000);
+    } else if (
+      !isPlaying &&
+      currentSound?.isLooping &&
+      timerRemaining !== null
+    ) {
+      // Cuando el sonido está pausado pero aún tiene tiempo restante,
+      // no necesitamos hacer nada, solo detenemos el intervalo
+      // El temporizador se reactivará cuando se reanude la reproducción
+    } else if (!currentSound?.isLooping && timerActive) {
+      // Si se desactiva el bucle mientras el temporizador estaba activo, cancelamos el temporizador
+      setTimerActive(false);
+    }
+
+    return () => {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+      }
+    };
+  }, [timerActive, timerRemaining, isPlaying, currentSound?.isLooping]);
+
   const playSound = async (sound) => {
     try {
       console.log("Antes de reproducir: ", {
@@ -126,6 +242,12 @@ const Music = () => {
           await soundRef.current.setPositionAsync(progress);
           await soundRef.current.playAsync();
           setIsPlaying(true);
+
+          // Restaurar el temporizador si hay tiempo restante y el sonido está en bucle
+          if (timerRemaining !== null && currentSound.isLooping) {
+            setTimerActive(true);
+          }
+
           console.log("Reanudando sonido: ", sound.id);
           return;
         }
@@ -134,6 +256,12 @@ const Music = () => {
       //Si cambiamos el sonido reseteamos el progreso
       if (currentSound?.id !== sound.id) {
         setProgress(0);
+
+        // Reiniciamos el temporizador si el nuevo sonido está en bucle
+        if (timerDuration && sound.isLooping) {
+          setTimerRemaining(timerDuration);
+          setTimerActive(true);
+        }
       }
 
       if (soundRef.current) {
@@ -154,11 +282,20 @@ const Music = () => {
           setIsPlaying(false);
           setCurrentSound(null);
           setProgress(0);
+          setTimerActive(false);
+          setTimerRemaining(null);
         }
       });
       soundRef.current = newSound;
       setCurrentSound({ ...sound, isLooping: sound.isLooping || false }); //En este caso usamos el estado directamente
       setIsPlaying(true);
+
+      // Activar temporizador si existe y el sonido está en bucle
+      if (timerDuration && sound.isLooping) {
+        setTimerRemaining(timerDuration);
+        setTimerActive(true);
+      }
+
       console.log("Reproduciendo sonido: ", sound.id);
     } catch (error) {
       console.error("Error reproduciendo sonido: ", error);
@@ -177,6 +314,12 @@ const Music = () => {
 
         setIsPlaying(false); //Asegurar que React detecta el cambio
         setProgress(status.positionMillis); //Guardamos la posición actual
+
+        // Pausar el temporizador sin cancelarlo, manteniendo el tiempo restante
+        if (timerActive) {
+          setTimerActive(false);
+          // No reseteamos timerRemaining para mantener el tiempo cuando se reanude
+        }
 
         console.log("Después de pausar: ", {
           currentSound,
@@ -200,6 +343,15 @@ const Music = () => {
           ...prevSound,
           isLooping: newIsLooping,
         })); //Guardamos el nuevo estado dentro del sonido actual
+
+        // Si está activando el bucle y hay un temporizador configurado, lo activamos
+        if (newIsLooping && timerDuration) {
+          setTimerRemaining(timerDuration);
+          setTimerActive(true);
+        } else if (!newIsLooping) {
+          // Si está desactivando el bucle, desactivamos el temporizador
+          setTimerActive(false);
+        }
       } catch (error) {
         console.error("Error cambiando el bucle del sonido: ", error);
       }
@@ -212,6 +364,70 @@ const Music = () => {
       await soundRef.current.setPositionAsync(position);
       setProgress(position);
     }
+  };
+
+  // Función para configurar el temporizador
+  const setTimer = async (duration) => {
+    setTimerDuration(duration);
+    if (duration) {
+      setTimerRemaining(duration);
+
+      // Solo activar el temporizador si hay un sonido reproduciéndose en bucle
+      if (currentSound?.isLooping && isPlaying) {
+        setTimerActive(true);
+      }
+
+      // Guardar preferencia del usuario
+      try {
+        await AsyncStorage.setItem(
+          "preferredTimerDuration",
+          duration.toString()
+        );
+      } catch (error) {
+        console.error("Error guardando preferencia de temporizador:", error);
+      }
+    } else {
+      await cancelTimer();
+    }
+    setTimerModalVisible(false);
+  };
+
+  // Función para cancelar el temporizador
+  const cancelTimer = async () => {
+    setTimerActive(false);
+    setTimerRemaining(null);
+    setTimerDuration(null);
+
+    // Reset de la animación
+    Animated.timing(progressAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+
+    // Eliminar preferencia guardada
+    try {
+      await AsyncStorage.removeItem("preferredTimerDuration");
+    } catch (error) {
+      console.error("Error eliminando preferencia de temporizador:", error);
+    }
+  };
+
+  // Función para formatear tiempo del temporizador
+  const formatTimerTime = (milliseconds) => {
+    if (!milliseconds) return "--:--";
+
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (hours > 0) {
+      return `${hours}:${minutes < 10 ? "0" : ""}${minutes}:${
+        seconds < 10 ? "0" : ""
+      }${seconds}`;
+    }
+    return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
   };
 
   //Función encargada de renderizar cada uno de los elementos del flatlist, en este caso objetos del array de relax sounds
@@ -254,7 +470,7 @@ const Music = () => {
             />
           </TouchableOpacity>
 
-          {/* Botón para pausar o reproducir el audio - MANTENER EXACTAMENTE LA MISMA LÓGICA ORIGINAL */}
+          {/* Botón para pausar o reproducir el audio */}
           <TouchableOpacity
             className={`w-10 h-10 rounded-full mr-3 items-center justify-center ${
               currentSound?.id === item.id ? "bg-white/20" : "bg-[#6366ff]/20"
@@ -436,6 +652,65 @@ const Music = () => {
         </View>
       </View>
 
+      {/* Timer global section */}
+      {(isPlaying && currentSound?.isLooping) || timerActive ? (
+        <View className="w-[95%] self-center mb-2">
+          <TouchableOpacity
+            onPress={() => setTimerModalVisible(true)}
+            className="bg-[#1e273a] p-4 rounded-xl shadow border border-[#323d4f] overflow-hidden"
+          >
+            <View className="flex-row items-center justify-between">
+              <View className="flex-row items-center">
+                <View className="bg-[#6366ff]/20 p-2 rounded-full mr-3">
+                  <Timer color="#6366ff" size={20} />
+                </View>
+                <View>
+                  <Text className="font-semibold text-white">Temporizador</Text>
+                  {timerActive ? (
+                    <Animated.Text
+                      className="text-[#6366ff]"
+                      style={{ opacity: timerOpacityAnim }}
+                    >
+                      El sonido se detendrá en {formatTimerTime(timerRemaining)}
+                    </Animated.Text>
+                  ) : (
+                    <Text className="text-gray-400">
+                      {timerDuration
+                        ? `Configurado: ${formatTimerTime(timerDuration)}`
+                        : "No configurado"}
+                    </Text>
+                  )}
+                </View>
+              </View>
+
+              {timerActive && (
+                <TouchableOpacity
+                  onPress={cancelTimer}
+                  className="bg-[#ff6b6b]/20 p-2 rounded-full"
+                >
+                  <X color="#ff6b6b" size={18} />
+                </TouchableOpacity>
+              )}
+            </View>
+
+            {/* Barra de progreso del temporizador */}
+            {timerActive && timerDuration && (
+              <View className="h-1 w-full bg-[#323d4f] rounded-full mt-3 overflow-hidden">
+                <Animated.View
+                  className="h-full bg-[#6366ff] rounded-full"
+                  style={{
+                    width: progressAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: ["0%", "100%"],
+                    }),
+                  }}
+                />
+              </View>
+            )}
+          </TouchableOpacity>
+        </View>
+      ) : null}
+
       <ScrollView
         contentContainerStyle={{
           flexGrow: 1, //Puede crecer y adaptarse al nuevo tamaño y scroll
@@ -485,6 +760,64 @@ const Music = () => {
           />
         </View>
       </ScrollView>
+
+      {/* Modal del temporizador */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={timerModalVisible}
+        onRequestClose={() => setTimerModalVisible(false)}
+      >
+        <View className="items-center justify-center flex-1 bg-black/60">
+          <View className="w-[85%] bg-[#1e2a47] p-6 rounded-2xl">
+            <View className="flex-row items-center justify-between mb-5">
+              <Text className="text-xl font-bold text-white">Temporizador</Text>
+              <TouchableOpacity
+                onPress={() => setTimerModalVisible(false)}
+                className="p-1"
+              >
+                <X color="white" size={24} />
+              </TouchableOpacity>
+            </View>
+
+            <Text className="mb-4 text-base text-white">
+              Selecciona cuándo deseas que se detenga la reproducción del sonido
+              en bucle
+            </Text>
+
+            <View className="mb-4">
+              {timerOptions.map((option) => (
+                <TouchableOpacity
+                  key={option.value}
+                  className={`flex-row items-center justify-between p-4 my-1 rounded-xl ${
+                    timerDuration === option.value
+                      ? "bg-[#6366ff]"
+                      : "bg-[#323d4f]"
+                  }`}
+                  onPress={() => setTimer(option.value)}
+                >
+                  <Text className="font-semibold text-white">
+                    {option.label}
+                  </Text>
+                  {timerDuration === option.value && (
+                    <Check color="white" size={20} />
+                  )}
+                </TouchableOpacity>
+              ))}
+
+              <TouchableOpacity
+                className={`flex-row items-center justify-between p-4 my-1 rounded-xl ${
+                  timerDuration === null ? "bg-[#6366ff]" : "bg-[#323d4f]"
+                }`}
+                onPress={() => setTimer(null)}
+              >
+                <Text className="font-semibold text-white">Sin límite</Text>
+                {timerDuration === null && <Check color="white" size={20} />}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };

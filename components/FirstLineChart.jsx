@@ -42,7 +42,8 @@ const FirstLineChart = () => {
         //Devolvemos el obejeto que se va a reenderizar en el gráfico
         return {
           day: dayAbbreviation,
-          duration: duration,
+          // Convertimos la duración de minutos totales a horas con decimales para la gráfica
+          duration: hours + minutes / 60,
           entireDay: day,
           hours: hours,
           minutes: minutes,
@@ -58,6 +59,17 @@ const FirstLineChart = () => {
     setSelectedPoint(formattedSleepData[index]);
     //Enseñamos el modal al user
     setModalVisible(true);
+  };
+
+  // Función para formatear las etiquetas del eje Y como horas:minutos
+  const formatYLabel = (value) => {
+    const hours = Math.floor(value);
+    const minutes = Math.round((value - hours) * 60);
+
+    if (minutes === 0) {
+      return `${hours}h`;
+    }
+    return `${hours}:${minutes.toString().padStart(2, "0")}`;
   };
 
   if (loading) {
@@ -97,7 +109,7 @@ const FirstLineChart = () => {
         bezier
         yAxisLabel=""
         fromZero
-        yAxisInterval={2} // Intervalo de 2 horas para mostrar valores enteros
+        yAxisInterval={1} // Intervalo de 1 hora para mostrar valores enteros
         yAxisSuffix=""
         onDataPointClick={handleDataPointClick}
         chartConfig={{
@@ -107,7 +119,7 @@ const FirstLineChart = () => {
           labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
           strokeWidth: 2,
           useShadowColorFromDataset: false,
-          formatYLabel: (value) => Math.round(value).toString(),
+          formatYLabel: formatYLabel,
           propsForDots: {
             r: "6",
             strokeWidth: "1",

@@ -15,17 +15,12 @@ import useChat from "../../hooks/useChat";
 import TypingIndicator from "../../components/TypingIndicator";
 import { useAuthContext } from "../../context/AuthContext";
 import { router } from "expo-router";
+import LoadingBanner from "../../components/LoadingBanner";
 
 const Chat = () => {
   //recuperamos las funcionalidades y estados del hook de chat
-  const {
-    messages,
-    postRequest,
-    isToday,
-    getTodayChat,
-    isAiWriting,
-    clearCurrentChat,
-  } = useChat();
+  const { messages, postRequest, isToday, getTodayChat, isAiWriting } =
+    useChat();
   //Input que guarda el mensaje que se quiere enviar
   const [newMessage, setNewMessage] = useState("");
   // Estado para controlar si los mensajes se están cargando
@@ -139,9 +134,30 @@ const Chat = () => {
          * En caso contrario, mostramos la conversación
          */}
         {initializing ? (
-          // Pantalla de carga mientras inicializamos
-          <View className="items-center justify-center flex-1">
-            <Text className="text-lg text-white">Cargando...</Text>
+          // Pantalla de carga profesional mientras inicializamos
+          <View className="items-center justify-center flex-1 px-6">
+            <View className="w-full bg-[#1e2a47] rounded-xl p-8">
+              <View className="flex-row w-full">
+                <View className="w-2 h-full bg-[#6366ff]" />
+                <View className="items-center flex-1">
+                  <LoadingBanner />
+                  <Text className="mb-2 text-xl font-bold text-white">
+                    Cargando entorno de ZzzTime AI
+                  </Text>
+                  <Text className="text-base text-center text-[#8a94a6] px-4 mb-3">
+                    Estamos preparando tu diálogo con ZzzTime AI para analizar
+                    tus sueños y mejorar tu descanso.
+                  </Text>
+
+                  <View className="flex flex-row justify-center w-full gap-2 mt-2">
+                    <View className="h-2 w-2 rounded-full bg-[#6366ff] opacity-30" />
+                    <View className="h-2 w-2 rounded-full bg-[#6366ff] opacity-50" />
+                    <View className="h-2 w-2 rounded-full bg-[#6366ff] opacity-70" />
+                    <View className="h-2 w-2 rounded-full bg-[#6366ff] opacity-100" />
+                  </View>
+                </View>
+              </View>
+            </View>
           </View>
         ) : messages.length === 0 ? (
           // Pantalla de bienvenida para iniciar la conversación
@@ -169,31 +185,34 @@ const Chat = () => {
         )}
 
         {isToday ? (
-          <View className="flex-row items-center p-4 pb-0 border-t border-gray-700">
-            <TextInput
-              className="flex-1 bg-[#323d4f] text-white p-3 rounded-xl mr-2"
-              value={newMessage}
-              onChangeText={setNewMessage}
-              placeholder="Escribe tus inquietudes a ZzzTime AI"
-              placeholderTextColor="#9ca3af"
-              multiline={true}
-              textAlignVertical="top"
-              scrollEnabled={true}
-              style={{
-                maxHeight: 100,
-              }}
-            />
+          //Si no se ha inicializado ocultamos el input y el botón de enviar
+          !initializing && (
+            <View className="flex-row items-center p-4 pb-0 border-t border-gray-700">
+              <TextInput
+                className="flex-1 bg-[#323d4f] text-white p-3 rounded-xl mr-2"
+                value={newMessage}
+                onChangeText={setNewMessage}
+                placeholder="Escribe tus inquietudes a ZzzTime AI"
+                placeholderTextColor="#9ca3af"
+                multiline={true}
+                textAlignVertical="top"
+                scrollEnabled={true}
+                style={{
+                  maxHeight: 100,
+                }}
+              />
 
-            <TouchableOpacity
-              className={`${
-                isAiWriting ? "bg-[#6366ff]/60" : "bg-[#6366ff]"
-              } p-3 rounded-xl`}
-              onPress={handleSendMessage}
-              disabled={isAiWriting}
-            >
-              <Text className="font-semibold text-white">Enviar</Text>
-            </TouchableOpacity>
-          </View>
+              <TouchableOpacity
+                className={`${
+                  isAiWriting ? "bg-[#6366ff]/60" : "bg-[#6366ff]"
+                } p-3 rounded-xl`}
+                onPress={handleSendMessage}
+                disabled={isAiWriting}
+              >
+                <Text className="font-semibold text-white">Enviar</Text>
+              </TouchableOpacity>
+            </View>
+          )
         ) : messages.length > 0 ? (
           <View className="p-4 pb-0 border-t border-gray-700">
             <Text className="p-3 text-center text-gray-400">

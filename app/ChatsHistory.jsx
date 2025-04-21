@@ -7,6 +7,7 @@ import {
   FlatList,
   Platform,
   Animated,
+  Alert,
 } from "react-native";
 import React, { useEffect, useState, useRef } from "react";
 import {
@@ -16,6 +17,8 @@ import {
   MessageSquareOff,
   MessagesSquare,
   AlertCircle,
+  Calendar,
+  ArrowRight,
 } from "lucide-react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { xorBy } from "lodash";
@@ -25,9 +28,18 @@ import { router } from "expo-router";
 
 const ChatsHistory = () => {
   //Definimos los distintos estados que necesitamos para el model
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [startDate, setStartDate] = useState(
+    new Date(new Date().setDate(new Date().getDate() - 7))
+  ); // Por defecto 7 días atrás
+  const [endDate, setEndDate] = useState(new Date()); // Por defecto hoy
   const [filteredChats, setFilteredChats] = useState([]); //Guardaremos el chat filtrado en base a la fecha seleccionada
   const [hasSearched, setHasSearched] = useState(false);
+
+  // Estados para controlar la visualización de los selectores de fecha
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [activeDatePicker, setActiveDatePicker] = useState(null); // 'start' o 'end'
+
   /*
    *Creamos estado para guardar los chats que se seleccionan en la selección múltiple para ser eliminados
    *
@@ -35,7 +47,6 @@ const ChatsHistory = () => {
    */
   const [selectedChats, setSelectedChats] = useState([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false); //Estado para saber cuando estamos en android y asi manejar su comportamiento.
 
   // Ref para animación
   const selectionBarOpacity = useRef(new Animated.Value(0)).current;
@@ -95,7 +106,6 @@ const ChatsHistory = () => {
 
   //Función para confirmar la eliminación de los chats que han sido seleccionados
   const confirmDeletion = async () => {
-    //TODO: SI DE LOS CHATS QUE SE ELIMINAN ESTÁ EL DE LA CONVERSACIÓN ACTUAL QUE TENEMOS, HAY QUE PONER EL PLACEHOLDER DE INICIAR CONVERSACIÓN
     console.log(
       "Eliminando los siguientes chats: " +
         selectedChats.map((chat) => chat.name).join(", ") //Enseñamos los name de los chats que han sido eliminados separados mediante comas
@@ -106,35 +116,90 @@ const ChatsHistory = () => {
     setIsSelectionMode(false);
   };
 
-  //Obtenemos los chats en base a la fecha seleccionada por el user
-  const handleSearchByDate = () => {
-    setHasSearched(true); //Activamos la bandera de búsqueda para saber si el user ha hecho una búsqueda
-    //Pasamos la fecha a formato ISO (YYYY-MM-DDTHH:MM:SSZ), dividimos el string para obtener la parte de la fecha mediante el separador de "T"
-    const formattedDate = selectedDate.toISOString().split("T")[0];
-    //De los chats que tenemos renderizamos el que tenga la fecha que el user ha seleccionado
-    const filtered = history.filter((chat) => chat.date === formattedDate);
+  // Función para formatear fecha a YYYY-MM-DD
+  const formatDate = (date) => {
+    return date.toISOString().split("T")[0];
+  };
+
+  // Obtenemos los chats en el rango de fechas seleccionado
+  const handleSearchByDateRange = () => {
+    // Validar que la fecha de inicio sea anterior a la fecha de fin
+    if (startDate > endDate) {
+      Alert.alert(
+        "Error en fechas",
+        "La fecha de inicio debe ser anterior a la fecha de fin",
+        [{ text: "Entendido" }]
+      );
+      return;
+    }
+
+    setHasSearched(true);
+
+    //En el caso de que esteamos en un dispositivo IOS tenemos que cerrar el picker en el estado que guarda cual está activo
+    if (Platform.OS === "ios") {
+      setActiveDatePicker(null);
+    }
+
+    // Formateamos ambas fechas a YYYY-MM-DD
+    const startDateString = formatDate(startDate);
+    const endDateString = formatDate(endDate);
+
+    // Filtrar los chats cuya fecha esté entre las dos fechas seleccionadas
+    const filtered = history.filter((chat) => {
+      const chatDate = chat.date; // Suponemos que chat.date es YYYY-MM-DD
+      return chatDate >= startDateString && chatDate <= endDateString;
+    });
+
     setFilteredChats(filtered);
   };
 
-  const handleDateChange = (event, date) => {
-    /*Una vez que se abre lo ponemos en false para no renderizar seguido el picker de android
-    si no estaremos en el caso de que el picker una vez abierto y elegido una fecha o intentar cerrarlo siempre se nos va a abrir continuamente*/
+  // Manejador de cambio de fecha para ambos selectores
+  const handleDateChange = (event, date, pickerType) => {
+    // Cerramos el picker en Android después de seleccionar
     if (Platform.OS === "android") {
-      setShowDatePicker(false);
+      setShowStartDatePicker(false);
+      setShowEndDatePicker(false);
     }
 
     if (date) {
-      //gestionamos posible evento nulo de Android
-      const selectedDate = date || new Date();
-      setSelectedDate(selectedDate);
+      if (pickerType === "start") {
+        setStartDate(date);
+      } else {
+        setEndDate(date);
+      }
     }
   };
 
-  const openDatePicker = () => {
+  // Función para abrir el selector específico en Android
+  const openDatePicker = (pickerType) => {
     if (Platform.OS === "android") {
-      setShowDatePicker(true);
+      if (pickerType === "start") {
+        setShowStartDatePicker(true);
+        setShowEndDatePicker(false);
+      } else {
+        setShowStartDatePicker(false);
+        setShowEndDatePicker(true);
+      }
     }
+
+    setActiveDatePicker(pickerType);
   };
+
+  // Componente para mostrar un selector de fecha con etiqueta
+  const DatePickerWithLabel = ({ label, date, pickerType }) => (
+    <View className="w-[40%]">
+      <Text className="mb-1 text-base text-white ">{label}</Text>
+      <TouchableOpacity
+        onPress={() => openDatePicker(pickerType)}
+        className="flex-row items-center bg-[#1e273a] p-3 py-5 rounded-xl w-full"
+      >
+        <View className="flex-row items-center gap-2">
+          <Calendar size={16} color="#6366ff" />
+          <Text className="text-white">{date.toLocaleDateString()}</Text>
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <SafeAreaView className="flex-1 w-full bg-primary">
@@ -150,73 +215,134 @@ const ChatsHistory = () => {
         </Text>
       </View>
 
-      {/*Buscador de un chat en base a la fecha*/}
-      <View className="flex flex-row gap-4 justify-between items-center flex-wrap w-[90%] self-center">
-        <Text className="text-lg text-white">Selecciona la fecha del chat</Text>
-
-        {Platform.OS === "android" && ( //Renderizamos el botón en caso de android, en caso de apple ya viene renderizado con el propio picker
-          <TouchableOpacity onPress={openDatePicker} className="w-full">
-            <View className="bg-[#1e273a] p-4 rounded-xl">
-              <Text className="text-center text-white">
-                {selectedDate.toLocaleDateString()}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        )}
-
-        {(Platform.OS === "ios" || showDatePicker) && ( //Si estamos en ios renderizamos su picker y showDatePicker esta en false
-          //En caso de que showDatePicker este en true y el SO sea android lo abrimos tambien y gestionamos
-          <DateTimePicker
-            value={selectedDate}
-            mode="date"
-            display={Platform.OS === "ios" ? "compact" : "default"}
-            textColor="white"
-            themeVariant="dark" //Forzamos el tema oscuro para ios
-            maximumDate={new Date()} //Máxima fecha a la que el user puede seleccionar para la búsqqueda de chats
-            onChange={handleDateChange}
-          />
-        )}
-
-        <TouchableOpacity
-          className="bg-[#6366ff] p-4 rounded-xl w-full"
-          onPress={handleSearchByDate}
-        >
-          <Text className="text-base font-semibold text-center text-white">
-            Buscar
+      {/*Buscador de chats por rango de fechas*/}
+      {/*Si existe algún chat asociado al user enseñamos el componente de selección de chats mediante rango de fechas*/}
+      {history.length > 0 && (
+        <View className="w-[90%] self-center bg-[#1e2a47] p-4 rounded-xl mb-4">
+          <Text className="mb-3 text-lg font-semibold text-white ">
+            Buscar chats por rango de fechas
           </Text>
-        </TouchableOpacity>
-      </View>
 
-      {/*Renderizamos el chat filtrado en base a la fecha seleccionada si el user le ha dado a buscar (hasSearched = True)*/}
-      {hasSearched && (
-        <View className="w-[90%] self-center mt-6">
-          {/*En caso de que haya un chat filtrado mostramos su contenido: name y date.
-              En otro caso lo que hacemos es mostrar un mensaje de error diciendo al user que no se ha encontrado un chat con la fecha que esta buscando*/}
-          {filteredChats.length > 0 ? (
-            <TouchableOpacity
-              onPress={() => handleChatPress(filteredChats[0])}
-              disabled={isSelectionMode}
-            >
-              <View className="bg-[#1e273a] w-full flex flex-col justify-between p-6 rounded-lg">
-                <Text className="mb-2 text-xl font-bold text-white">
-                  {filteredChats[0].name}
-                </Text>
-                <Text className="text-[#6366ff]">{filteredChats[0].date}</Text>
-              </View>
-            </TouchableOpacity>
-          ) : (
-            <View className="flex items-center justify-center py-4">
-              <Text className="text-base text-center text-white">
-                No se ha encontrado un chat correspondiente a este día
-              </Text>
+          <View className="flex-row items-center justify-between w-full">
+            <DatePickerWithLabel
+              label="Desde"
+              date={startDate}
+              pickerType="start"
+            />
+
+            <ArrowRight size={20} color="#6366ff" />
+
+            <DatePickerWithLabel
+              label="Hasta"
+              date={endDate}
+              pickerType="end"
+            />
+          </View>
+
+          {/* Mostrar DateTimePicker según plataforma y estado */}
+          {Platform.OS === "ios" && (
+            <View className="my-2">
+              {activeDatePicker === "start" && (
+                <DateTimePicker
+                  value={startDate}
+                  mode="date"
+                  display="inline"
+                  textColor="white"
+                  themeVariant="dark"
+                  maximumDate={new Date()}
+                  onChange={(event, date) =>
+                    handleDateChange(event, date, "start")
+                  }
+                />
+              )}
+              {activeDatePicker === "end" && (
+                <DateTimePicker
+                  value={endDate}
+                  mode="date"
+                  display="inline"
+                  textColor="white"
+                  themeVariant="dark"
+                  maximumDate={new Date()}
+                  onChange={(event, date) =>
+                    handleDateChange(event, date, "end")
+                  }
+                />
+              )}
             </View>
           )}
+
+          {(showStartDatePicker || showEndDatePicker) &&
+            Platform.OS === "android" && (
+              <DateTimePicker
+                value={showStartDatePicker ? startDate : endDate}
+                mode="date"
+                display="default"
+                maximumDate={new Date()}
+                onChange={(event, date) =>
+                  handleDateChange(
+                    event,
+                    date,
+                    showStartDatePicker ? "start" : "end"
+                  )
+                }
+              />
+            )}
+
+          <TouchableOpacity
+            className="bg-[#6366ff] p-4 rounded-xl w-full"
+            onPress={handleSearchByDateRange}
+          >
+            <Text className="text-base font-semibold text-center text-white">
+              Buscar
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/*Renderizamos los chats filtrados por rango de fechas*/}
+      {hasSearched && filteredChats.length > 0 && (
+        <View className="w-[90%] self-center mb-4">
+          <Text className="mb-2 text-lg font-semibold text-white">
+            Resultados de búsqueda ({filteredChats.length})
+          </Text>
+          <FlatList
+            data={filteredChats}
+            keyExtractor={(item) => item.id.toString()}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={() => handleChatPress(item)}
+                className="mb-3"
+                disabled={isSelectionMode}
+              >
+                <ChatItem
+                  item={item}
+                  isSelectionMode={isSelectionMode}
+                  isSelected={selectedChats.some((chat) => chat.id === item.id)}
+                />
+              </TouchableOpacity>
+            )}
+            ListEmptyComponent={null}
+            scrollEnabled={filteredChats.length > 3}
+            contentContainerStyle={{
+              maxHeight: 300,
+              paddingBottom: 10,
+            }}
+          />
+        </View>
+      )}
+
+      {/* Mensaje de no resultados */}
+      {hasSearched && filteredChats.length === 0 && (
+        <View className="w-[90%] self-center mb-4 bg-[#1e273a] p-4 rounded-xl">
+          <Text className="text-base text-center text-white">
+            No se encontraron chats en el rango de fechas seleccionado
+          </Text>
         </View>
       )}
 
       {/*Renderizamos los últimos chats recientes en base a los últimos x días*/}
       <View
-        className={`w-[90%] flex flex-col flex-1 gap-4 self-center mt-8
+        className={`w-[90%] flex flex-col flex-1 gap-4 self-center
         ${history.length > 0 ? "justify-start" : "justify-center"}
         `}
       >
@@ -329,7 +455,7 @@ const ChatsHistory = () => {
               <View className="flex-row items-center gap-2 mt-2">
                 <MessagesSquare size={16} color="#6366ff" />
                 <Text className="text-sm text-[#6366ff]">
-                  También puedes buscar chats por fecha
+                  Podrás buscar chats por rango de fechas
                 </Text>
               </View>
             </View>

@@ -1,4 +1,4 @@
-import { View, Text, Image } from "react-native";
+import { View, Text, Image, Animated } from "react-native";
 import { Tabs, Redirect } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import {
@@ -9,6 +9,7 @@ import {
   ClipboardList,
   UserRound,
 } from "lucide-react-native";
+import React, { useRef, useEffect } from "react";
 import icons from "../../constants/icons";
 
 import { ShieldQuestion } from "lucide-react-native";
@@ -19,9 +20,27 @@ const TabIcon = ({
   name,
   focused,
 }) => {
+  // Referencia para animación del icono
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+
+  // Efecto para animar el icono cuando cambia el foco
+  useEffect(() => {
+    Animated.spring(scaleAnim, {
+      toValue: focused ? 1.1 : 1,
+      friction: 8,
+      tension: 40,
+      useNativeDriver: true,
+    }).start();
+  }, [focused]);
+
   return (
     //Damos estilo a nuestros iconos del tab junto a sus correspondientes nombres
-    <View className="flex items-center justify-center gap-1 mt-6">
+    <Animated.View
+      className="flex items-center justify-center gap-1 mt-6"
+      style={{
+        transform: [{ scale: scaleAnim }],
+      }}
+    >
       <IconParameter color={color} size={24} />
       <Text
         className={`${focused ? "font-psemibold" : "font-pregular"} text-xs`}
@@ -29,7 +48,7 @@ const TabIcon = ({
       >
         {name}
       </Text>
-    </View>
+    </Animated.View>
   );
 };
 
