@@ -25,12 +25,12 @@ const getNumDays = () => {
 };
 
 const ChatContributionGraph = () => {
-  const { last3MonthsChats, getLast3MonthsChats } = useChat();
+  const { last3MonthsChats, getLast3MonthsChats, history } = useChat();
 
   useEffect(() => {
     // Llamamos a la función para obtener los chats de los últimos 3 meses
     getLast3MonthsChats();
-  }, []);
+  }, [history]);
 
   return (
     <View>

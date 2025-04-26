@@ -6,51 +6,88 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-  Keyboard, //para cerrar el teclado despues de enviar un mensaje tenemos que usar la API de Keyboard
+  Keyboard,
+  Pressable,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import { Menu } from "lucide-react-native";
+import { Menu, Calendar, MessagesSquare } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import useChat from "../../hooks/useChat";
 import TypingIndicator from "../../components/TypingIndicator";
 import { useAuthContext } from "../../context/AuthContext";
 import { router } from "expo-router";
 import LoadingBanner from "../../components/LoadingBanner";
+import { useLocalSearchParams } from "expo-router/build/hooks";
 
 const Chat = () => {
   //recuperamos las funcionalidades y estados del hook de chat
-  const { messages, postRequest, isToday, getTodayChat, isAiWriting } =
-    useChat();
+  const {
+    messages,
+    postRequest,
+    isToday,
+    getTodayChat,
+    isAiWriting,
+    getConversationChat,
+    getHasChatToday,
+  } = useChat();
   //Input que guarda el mensaje que se quiere enviar
   const [newMessage, setNewMessage] = useState("");
   // Estado para controlar si los mensajes se están cargando
   const [initializing, setInitializing] = useState(true);
+  //Estado para saber si el chat puede hacer un chat nuevo o no
+  const [canCreateNewChat, setCanCreateNewChat] = useState(false);
 
   //Tenemos que recuperar el nombre del user para enseñarlo en el mensaje inicial que se pone en el chat antes de iniciar la conversación
   const { userInfo } = useAuthContext();
 
-  // Al montar el componente, intentamos cargar el chat de hoy
+  /*
+   * Cuando importamos en un componente el uso de un hook, este tiene su propio contexto y no se comparte entre componentes.
+   * Por eso cuando en History cuando caragamos el chat y si cambian los mensajes no se actualizan en el componente de Chat.
+   *
+   * Lo que tenemos que hacer es que history cuando se clicke encima de un chat se pasará por parámetro el id del chat
+   * y solucionamos el problema mediante rutas dinámicas.
+   *
+   * Si el chatId existe, significa que venimos de History y tenemos que cargar ese chat.
+   * Si no existe, significa que venimos de la pantalla principal y tenemos que cargar el chat de hoy.
+   */
+  const { chatId, showTomorrowMessage } = useLocalSearchParams();
   useEffect(() => {
-    const initialize = async () => {
+    let mounted = true;
+
+    const load = async () => {
       try {
-        /*
-         * Solo cargamos del servidor si no hay mensajes guardados
-         * asi si cargamos un chat del historial no se hará una nueva petición al servidor sobre ese chat ya que esto ya se hace
-         * cuando presionamos en el chat del historial
-         * */
-        if (messages.length === 0) {
-          await getTodayChat();
+        //Si es la primera vez que entramos en la pestaña tenemos que recuperar la bandera de si el user ha hecho un chat hoy
+        const hasChatToday = await getHasChatToday();
+
+        // Si venimos de eliminar el chat en el que estábamos y se debe mostrar el mensaje de "vuelve mañana" en caso de que el user haya borrado el chat de hoy también
+        if (showTomorrowMessage === "true" || hasChatToday) {
+          setCanCreateNewChat(false);
+          setInitializing(false);
+          return;
         }
-      } catch (error) {
-        console.error("Error en la inicialización:", error);
+
+        if (chatId) {
+          // Caso especial si venimos de eliminar el chat en el que estábamos y en caso de que exista el chatId, lo cargamos también está reservado para el caso de que cargemos una conversación de un chat seleccionado del historial
+          await getConversationChat(chatId);
+        } else {
+          //Estamos en el caso de que el user haya eliminado el chat en el que está y se intenta recuperar el de hoy (Primera ejecución del useEffect o le dejamos crear un nuevo chat si no ha creado uno en el día de hoy)
+          await getTodayChat();
+          setCanCreateNewChat(true);
+        }
+      } catch (err) {
+        console.error("Error cargando chat:", err);
       } finally {
-        // Marcamos como inicializado después de intentar cargar
-        setInitializing(false);
+        if (mounted) setInitializing(false);
       }
     };
 
-    initialize();
-  }, []);
+    load();
+
+    // Limpiamos el efecto para evitar fugas de memoria, se ejecuta cuando desmontamos el componente
+    return () => {
+      mounted = false;
+    };
+  }, [chatId, showTomorrowMessage]);
 
   // Mostramos logs de depuración
   useEffect(() => {
@@ -112,8 +149,9 @@ const Chat = () => {
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
-        <View className="flex flex-row items-center justify-start gap-4 p-4">
+        <View className="flex flex-row items-center justify-start gap-4 p-4 android:pt-6">
           <TouchableOpacity
             //Cuando pinchemos en el menú hamburguesa se abre el modal
             onPress={toggleModal}
@@ -160,21 +198,73 @@ const Chat = () => {
             </View>
           </View>
         ) : messages.length === 0 ? (
-          // Pantalla de bienvenida para iniciar la conversación
-          <View className="items-center justify-center flex-1">
-            <View className="items-center justify-center flex-1">
-              <Text className="text-center text-[#6366ff] text-3xl font-bold mb-2">
-                Hola, {userInfo?.name || "User"}!
-              </Text>
-              <Text className="text-lg italic text-center text-white">
-                ¿Coméntame sobre tu sueño de hoy y te ayudaré a comprenderlo?
-              </Text>
+          canCreateNewChat ? (
+            // Pantalla de bienvenida si no hay mensajes en el caso de que se abra el teclado y el user quiera cerrarlo tenemos que englobar esta vista en un Pressable para que se cierre el teclado
+            <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
+              <View className="items-center justify-center flex-1 android:px-6">
+                <View className="items-center justify-center flex-1">
+                  <Text className="text-center text-[#6366ff] text-3xl font-bold mb-2">
+                    Hola, {userInfo?.name || "User"}!
+                  </Text>
+                  <Text className="text-lg italic text-center text-white">
+                    ¿Coméntame sobre tu sueño de hoy y te ayudaré a
+                    comprenderlo?
+                  </Text>
+                </View>
+              </View>
+            </Pressable>
+          ) : (
+            // Pantalla mejorada para cuando el usuario no puede crear un nuevo chat hoy
+            <View className="items-center justify-center flex-1 px-6 android:px-4">
+              <View className="w-full bg-[#1e2a47] rounded-xl p-8 border border-[#323d4f]">
+                <View className="flex-row w-full">
+                  <View className="w-2 h-full bg-[#6366ff]" />
+                  <View className="items-center flex-1">
+                    <View className="bg-[#6366ff]/10 p-4 rounded-full mb-4">
+                      <Calendar size={32} color="#6366ff" />
+                    </View>
+                    <Text className="mb-3 text-xl font-bold text-white">
+                      ¡Hola, {userInfo?.name || "User"}!
+                    </Text>
+                    <Text className="text-base text-center text-[#8a94a6] px-4 mb-3">
+                      Has completado tu análisis de sueños para hoy. Vuelve
+                      mañana para continuar mejorando tu descanso con ZzzTime
+                      AI.
+                    </Text>
+
+                    <View className="mt-2 mb-4 w-full bg-[#283347] p-4 rounded-lg">
+                      <Text className="mb-1 text-base font-medium text-white">
+                        ZzzTime AI - Tu diario de sueños
+                      </Text>
+                      <Text className="text-sm text-[#8a94a6]">
+                        ZzzTime funciona como un diario personal, permitiéndote
+                        registrar y analizar un sueño cada día. Esta metodología
+                        diaria está diseñada para ayudarte a construir un
+                        historial de patrones de sueño y que puedas ver como
+                        evoluciona tu descanso.
+                      </Text>
+                    </View>
+
+                    <TouchableOpacity
+                      onPress={() => router.push("../ChatsHistory")}
+                      className="mt-2 bg-[#6366ff] px-6 py-3 rounded-xl flex-row items-center"
+                    >
+                      <View className="flex-row items-center justify-center gap-2">
+                        <MessagesSquare size={16} color="#ffffff" />
+                        <Text className="font-medium text-white">
+                          Ver historial de chats
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
             </View>
-          </View>
+          )
         ) : (
           // Lista de mensajes si hay conversación
           <FlatList
-            className="flex-1 px-4"
+            className="flex-1 px-4 android:px-3"
             data={messages}
             keyExtractor={(item) => item.id.toString()}
             renderItem={renderMessage}
@@ -186,8 +276,9 @@ const Chat = () => {
 
         {isToday ? (
           //Si no se ha inicializado ocultamos el input y el botón de enviar
-          !initializing && (
-            <View className="flex-row items-center p-4 pb-0 border-t border-gray-700">
+          !initializing &&
+          canCreateNewChat && (
+            <View className="flex-row items-center p-4 pb-0 border-t border-gray-700 ios:mb-0 android:mb-2">
               <TextInput
                 className="flex-1 bg-[#323d4f] text-white p-3 rounded-xl mr-2"
                 value={newMessage}
@@ -204,17 +295,19 @@ const Chat = () => {
 
               <TouchableOpacity
                 className={`${
-                  isAiWriting ? "bg-[#6366ff]/60" : "bg-[#6366ff]"
+                  isAiWriting || newMessage.trim() === ""
+                    ? "bg-[#323d4f]"
+                    : "bg-[#6366ff]"
                 } p-3 rounded-xl`}
                 onPress={handleSendMessage}
-                disabled={isAiWriting}
+                disabled={isAiWriting || newMessage.trim() === ""}
               >
                 <Text className="font-semibold text-white">Enviar</Text>
               </TouchableOpacity>
             </View>
           )
         ) : messages.length > 0 ? (
-          <View className="p-4 pb-0 border-t border-gray-700">
+          <View className="p-4 pb-0 border-t border-gray-700 ios:mb-0 android:mb-2">
             <Text className="p-3 text-center text-gray-400">
               Este chat no es de hoy por lo que está en modo lectura. No puedes
               enviar nuevos mensajes.

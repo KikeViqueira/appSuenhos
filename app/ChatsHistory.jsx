@@ -19,6 +19,7 @@ import {
   AlertCircle,
   Calendar,
   ArrowRight,
+  SquarePen,
 } from "lucide-react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { xorBy } from "lodash";
@@ -34,6 +35,8 @@ const ChatsHistory = () => {
   const [endDate, setEndDate] = useState(new Date()); // Por defecto hoy
   const [filteredChats, setFilteredChats] = useState([]); //Guardaremos el chat filtrado en base a la fecha seleccionada
   const [hasSearched, setHasSearched] = useState(false);
+  //Estado para saber si el user puede hacer un chat o no
+  const [hasDoneChat, setHasDoneChat] = useState(false); // Por defecto indicamos que el user no ha hecho un chat hoy
 
   // Estados para controlar la visualización de los selectores de fecha
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
@@ -52,7 +55,13 @@ const ChatsHistory = () => {
   const selectionBarOpacity = useRef(new Animated.Value(0)).current;
 
   //Importamos del hook de chat lo que nos interesa
-  const { getHistory, getConversationChat, history, deleteChats } = useChat();
+  const {
+    getHistory,
+    getConversationChat,
+    history,
+    deleteChats,
+    getHasChatToday,
+  } = useChat();
 
   // Animar la entrada y salida de la barra de selección
   useEffect(() => {
@@ -63,9 +72,15 @@ const ChatsHistory = () => {
     }).start();
   }, [isSelectionMode]);
 
+  const loadHistoryData = async () => {
+    await getHistory(); //Recuperamos el historial de chats
+    const hasChat = await getHasChatToday(); //Recuperamos el estado de si el user puede hacer un nuevo chat o no
+    setHasDoneChat(hasChat); //Guardamos el estado de si el user ha hecho un chat hoy o no
+  };
+
   useEffect(() => {
-    //Esto se va a ejecutar cuando se monte el componente por primera vez*/
-    getHistory();
+    //Cargamos la información necesaria al iniciar el componente
+    loadHistoryData();
   }, []);
 
   const handleChatPress = async (chat) => {
@@ -74,21 +89,19 @@ const ChatsHistory = () => {
       setSelectedChats(xorBy(selectedChats, [chat], "id"));
     } else {
       console.log("Seleccionando chat para ver:", chat.id, chat.name);
-      try {
-        //En caso de que el user haya pinchado en el chat para ver la conversación, llamamos a la función que se encarga de recuperar la conversación del chat
-        const success = await getConversationChat(chat.id); //Esperamos a que se recupere la conversación del chat
-
-        if (success) {
-          console.log("Navegando de regreso a la pantalla de chat");
-          // Esperamos un poco para asegurar que AsyncStorage se ha actualizado
-          setTimeout(() => {
-            router.back();
-          }, 100);
-        }
-      } catch (error) {
-        console.error("Error al cargar la conversación:", error);
-        // Podríamos mostrar una alerta aquí
-      }
+      console.log("Navegando de regreso a la pantalla de chat");
+      // Esperamos un poco para asegurar que AsyncStorage se ha actualizado
+      setTimeout(() => {
+        /*
+         * Tenemos que reemplazar el chat actual por el que ha seleccionado el user
+         * Y mandarle por params el id del chat seleccionado
+         * para que se dispare el useEffect del componente de chat y cargar así la conversación de dicho chat
+         */
+        router.replace({
+          pathname: "./(tabs)/Chat",
+          params: { chatId: chat.id.toString() },
+        });
+      }, 100);
     }
   };
 
@@ -106,14 +119,59 @@ const ChatsHistory = () => {
 
   //Función para confirmar la eliminación de los chats que han sido seleccionados
   const confirmDeletion = async () => {
-    console.log(
-      "Eliminando los siguientes chats: " +
-        selectedChats.map((chat) => chat.name).join(", ") //Enseñamos los name de los chats que han sido eliminados separados mediante comas
-    );
-    //llamamos al endpoint de eliminar chats pasandole los ids de los chats seleccionados
-    deleteChats(selectedChats.map((chat) => chat.id));
-    setSelectedChats([]); //Limpiamos los tips seleccionados
-    setIsSelectionMode(false);
+    if (selectedChats.length === 0) return;
+
+    try {
+      // Mostrar los chats que se van a eliminar en la consola para depuración
+      console.log(
+        "Eliminando chats: " + selectedChats.map((chat) => chat.name).join(", ")
+      );
+
+      // Llamamos a la función de eliminar chats y esperamos su resultado
+      const result = await deleteChats(selectedChats.map((chat) => chat.id));
+      console.log("Resultado de eliminación:", result);
+
+      // Limpiamos la selección y desactivamos el modo de selección
+      setSelectedChats([]);
+      setIsSelectionMode(false);
+
+      // Si se eliminó el chat que estaba abierto, necesitamos navegar
+      if (result.deletedOpenChat) {
+        if (result.nextChatId) {
+          // Si hay un chat disponible (normalmente el de hoy), navegamos a él
+          console.log("Navegando al chat con ID:", result.nextChatId);
+          router.replace({
+            pathname: "./(tabs)/Chat",
+            params: { chatId: result.nextChatId.toString() },
+          });
+        } else if (!result.hasChatToday) {
+          // Si no hay un chat de hoy disponible, navegamos a la pantalla principal sin chatId
+          // Esto mostrará la pantalla de bienvenida para crear un nuevo chat
+          console.log("Navegando a pantalla principal para crear nuevo chat");
+          router.replace({
+            pathname: "./(tabs)/Chat",
+            params: { chatId: undefined },
+          });
+        } else {
+          // El usuario ya ha hecho un chat hoy pero lo ha borrado,
+          // mostrará la pantalla de "vuelve mañana"
+          console.log("Navegando a pantalla de 'vuelve mañana'");
+          router.replace({
+            pathname: "./(tabs)/Chat",
+            params: { showTomorrowMessage: "true" },
+          });
+        }
+      } else {
+        // Si no se eliminó el chat abierto, recargamos la lista de chats para actualizar la UI
+        await loadHistoryData();
+      }
+    } catch (error) {
+      console.error("Error en la eliminación de chats:", error);
+      Alert.alert(
+        "Error",
+        "Ocurrió un problema al eliminar los chats seleccionados."
+      );
+    }
   };
 
   // Función para formatear fecha a YYYY-MM-DD
@@ -213,6 +271,15 @@ const ChatsHistory = () => {
         >
           Historial de Chats
         </Text>
+        {/*Botón que se eneseñará cuando el user no haya hecho un chat en el día de hoy*/}
+        {!hasDoneChat && (
+          <TouchableOpacity
+            onPress={() => router.replace("./(tabs)/Chat")}
+            className="absolute right-5 bg-[#6366ff] p-3 rounded-full"
+          >
+            <SquarePen size={24} color="white" />
+          </TouchableOpacity>
+        )}
       </View>
 
       {/*Buscador de chats por rango de fechas*/}
