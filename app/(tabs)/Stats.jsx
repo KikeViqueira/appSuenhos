@@ -393,19 +393,19 @@ const Estadisticas = () => {
         return <FitbitUserGraphs />;
       case "drmSection":
         return (
-          <View className="flex flex-col w-full gap-6 mt-4">
+          <View className="flex flex-col gap-6 mt-4 w-full">
             <Text className="mb-2 ml-2 text-lg font-semibold text-white">
               Dream Reality Monitoring
             </Text>
 
             {/* Card layout for DRM buttons */}
-            <View className="flex-row justify-between w-full gap-4">
+            <View className="flex-row gap-4 justify-between w-full">
               {/* Questionnaire Card */}
               <TouchableOpacity
-                className="flex-1 bg-gradient-to-br from-[#323d4f] to-[#1e273a] p-5 rounded-xl border border-[#6366ff]/20 shadow-lg overflow-hidden"
+                className="flex-1 p-5 rounded-xl border border-[#6366ff]/20"
                 onPress={() => router.push("/DRM")}
               >
-                <View className="items-center justify-center">
+                <View className="justify-center items-center">
                   <View className="bg-[#6366ff]/20 p-3 rounded-full mb-4">
                     <ClipboardList color="#6366ff" size={30} />
                   </View>
@@ -420,10 +420,10 @@ const Estadisticas = () => {
 
               {/* Report Card */}
               <TouchableOpacity
-                className="flex-1 bg-gradient-to-br from-[#323d4f] to-[#1e273a] p-5 rounded-xl border border-[#6366ff]/20 shadow-lg overflow-hidden"
+                className="flex-1  p-5 rounded-xl border border-[#6366ff]/20"
                 onPress={() => router.push("/DrmReport")}
               >
-                <View className="items-center justify-center">
+                <View className="justify-center items-center">
                   <View className="bg-[#6366ff]/20 p-3 rounded-full mb-4">
                     <File color="#6366ff" size={30} />
                   </View>
@@ -475,7 +475,7 @@ const Estadisticas = () => {
 
         <View className="flex w-[95%] gap-6 px-4 py-5 rounded-lg bg-[#1e2a47]">
           {/* Título de la sección */}
-          <View className="flex flex-row justify-start gap-4">
+          <View className="flex flex-row gap-4 justify-start">
             <Bed size={24} color="white" />
             <Text
               className="text-center font-bold color-[#6366ff]"
@@ -496,7 +496,7 @@ const Estadisticas = () => {
           )}
 
           {/* Botones para registrar las horas de sueño y abrir el modal de preguntas */}
-          <View className="flex flex-col justify-between w-full gap-4">
+          <View className="flex flex-col gap-4 justify-between w-full">
             <TouchableOpacity
               onPress={calculateSleepStart}
               className={`flex flex-row items-center justify-start p-4 gap-4 

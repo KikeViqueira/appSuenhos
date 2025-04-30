@@ -26,7 +26,6 @@ import ChangePasswordModal from "../../components/ChangePasswordModal";
 import ChatContributionGraph from "../../components/ChatContributionGraph";
 import { useAuthContext } from "../../context/AuthContext";
 import useUser from "../../hooks/useUser";
-import { uploadImage } from "../../services/Cloudinary";
 
 const Profile = () => {
   //Hacemos states tanto para guardar la foto como para controlar que el modal de opciones de cámara este desplegado o no
@@ -36,11 +35,13 @@ const Profile = () => {
   const [showModalLogOut, setshowModalLogOut] = useState(false);
   const [showModalChangePassword, setshowModalChangePassword] = useState(false);
   const [isSwitchEnabled, setIsSwitchEnabled] = useState(false);
+  //Estado para saber si el user tiene una foto de perfil propia o tiene el placeholder
+  const [hasCustomImage, setHasCustomImage] = useState(false);
 
   //Recuperamos la info del user que se ha logueado en la app mediante el contexto de Auth y la función para cerrar sesión
   const { userInfo, logout } = useAuthContext();
   //Importamos la llamada al endpoint de updateUser
-  const { updateUser } = useUser();
+  const { deleteProfilePicture, updateProfilePicture } = useUser();
 
   //Cuando carguemos la pantalla tenemos que cargar la foto de perfil que el user tenga en la BD
   /*
@@ -53,6 +54,7 @@ const Profile = () => {
     //Como el user siempre tiene foto de perfil ya que cuando crea la cuenta se le asigna directamente el placeholder (image), tenemos que mirar si la imagen es distinta a la de placeholder
     if (userInfo.profilePicture !== image.uri)
       setImage({ uri: userInfo.profilePicture });
+    setHasCustomImage(true);
   }, []);
 
   //TODO:AQUI ES DONDE TENEMOS QUE HACER EL COMPORTAMIENTO DE LA FUNCIÓN QUE SE ENCARGARÁ DE ACTIVAR/DESACTIVAR LAS NOTIFICACIONES
@@ -71,7 +73,7 @@ const Profile = () => {
       try {
         await ImagePicker.requestMediaLibraryPermissionsAsync();
         result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ["images"], // El contenido que dejamos seleccionar de la galería son las fotos
+          mediaTypes: ["image/*"],
           allowsEditing: true,
           aspect: [4, 3],
           quality: 1,
@@ -104,6 +106,13 @@ const Profile = () => {
 
     //Comprobamos que el resultado no haya sido cancelado y guardamos la foto
     if (!result.canceled) {
+      if (result.assets[0].fileSize > 20 * 1024 * 1024) {
+        Alert.alert(
+          "Imagen demasiado grande",
+          "El archivo no puede superar los 20MB."
+        );
+        return;
+      }
       savePicture({ imagen: result.assets[0].uri });
     }
   };
@@ -111,8 +120,14 @@ const Profile = () => {
   //Función para borrar la foto que el user tiene de perfil
   const deletePicture = async () => {
     try {
-      setImage(placeholderImage);
-      setshowModal(false);
+      //Si el user tiene una foto de perfil personalizada, la borramos y le asignamos el placeholder
+      if (hasCustomImage) {
+        await deleteProfilePicture();
+        setImage(placeholderImage);
+        setHasCustomImage(false);
+        setshowModal(false);
+      }
+      //TODO: DECIRLE AL USER QUE ES LO QUE ESTA PASANDO SI ESO
     } catch (error) {
       Alert.alert(
         "Error",
@@ -121,16 +136,32 @@ const Profile = () => {
     }
   };
 
+  //Función para saber el type de la foto
+  const getFileType = (uri) => {
+    const extension = uri.split(".").pop();
+    const mimeType = `image/${extension === "jpg" ? "jpeg" : extension}`;
+    return { extension, mimeType };
+  };
+
   //Función para guardar la foto en el estado que hemos definido y a mayores guardarla en la base de datos
   const savePicture = async ({ imagen }) => {
     try {
-      //Guardamos la imagen en un servicio de nube para que nos genere una url pública y así tener en varios dispositivos la misma imagen
-      const imageUrl = await uploadImage(imagen);
-      //Llamamos a la función de updateUser que se encargará de hacer el patch a la API para guardar la url pública de la imagen
-      await updateUser("/profilePicture", imageUrl);
-      //Como estamos guardando una foto dinámica, tenemos que pasarla a un URI y asi pasar el objeto y que react sepa que es una foto que no está en el proyecto
+      const { extension, mimeType } = getFileType(imagen);
+      const sanitizedUserName = userInfo.name
+        ?.replace(/\s+/g, "_")
+        .toLowerCase();
+      //Hacemos el objeto que espera la api que se le pase
+      const form = new FormData();
+      form.append("file", {
+        uri: imagen,
+        type: mimeType,
+        name: `profilePicture-${sanitizedUserName}.${extension}`,
+      });
+      await updateProfilePicture(form);
+      //Como estamos guardando una   foto dinámica, tenemos que pasarla a un URI y asi pasar el objeto y que react sepa que es una foto que no está en el proyecto
       //Y de esta manera puede cargarla como imagen en la aplicación
       setImage({ uri: imagen });
+      setHasCustomImage(true);
       setshowModal(false);
     } catch (error) {
       Alert.alert(
@@ -142,7 +173,7 @@ const Profile = () => {
 
   return (
     <SafeAreaView className="w-full h-full bg-primary">
-      <View className="flex flex-col w-full h-full gap-4 px-4 mt-4 ">
+      <View className="flex flex-col gap-4 px-4 mt-4 w-full h-full">
         {/* Header */}
         <Text
           className="text-center font-bold text-[#6366ff] py-4 "
@@ -185,7 +216,7 @@ const Profile = () => {
           />
           {/*GRÁFICA QUE MUESTRA CUANTOS DÍAS DEL MES EL USER HA INTERACCIONADO CON EL CHAT Y HA HABLADO SOBRE SUS SUEÑOS*/}
           <View className="flex flex-col items-center bg-[#1e2a47] rounded-xl p-4 mb-4">
-            <View className="flex flex-row items-center gap-2 mb-2">
+            <View className="flex flex-row gap-2 items-center mb-2">
               <BadgeCheck size={20} color="#fff" />
               <Text
                 className="text-lg font-bold color-[#6366ff]"
@@ -205,7 +236,7 @@ const Profile = () => {
 
           {/* Personal Information */}
           <View className="bg-[#1e2a47] rounded-xl p-4">
-            <View className="flex-row items-center justify-between mb-4">
+            <View className="flex-row justify-between items-center mb-4">
               <Text className="text-white font-pmedium">
                 Correo Electrónico
               </Text>
@@ -224,7 +255,7 @@ const Profile = () => {
 
           {/* Disable Notifications Switch */}
           <View className="bg-[#1e2a47] p-4 rounded-xl flex-row justify-between">
-            <View className="flex-row items-center gap-2">
+            <View className="flex-row gap-2 items-center">
               <BellRing color="white" />
               <Text className="text-lg text-white font-psemibold">
                 Notificaciones Activas
@@ -246,7 +277,7 @@ const Profile = () => {
             //Cuando pinchamos en el botón tenemos que enseñar el modal de cambiar la contraseña
             onPress={() => setshowModalChangePassword(true)}
           >
-            <View className="flex-row items-center gap-2">
+            <View className="flex-row gap-2 items-center">
               <LockKeyhole color="white" />
               <Text className="text-lg text-white font-psemibold">
                 Cambiar Contraseña
@@ -271,7 +302,7 @@ const Profile = () => {
             //Cuando presionamos el botón tenemos que navegar a la pantalla de mis tips favoritos
             onPress={() => router.push("../FavTips")}
           >
-            <View className="flex-row items-center gap-2">
+            <View className="flex-row gap-2 items-center">
               <BookmarkCheck color="white" />
               <Text className="text-lg text-white font-psemibold">
                 Mis Tips Favoritos
@@ -284,7 +315,7 @@ const Profile = () => {
             className="bg-[#1e2a47] p-4 rounded-xl items-start"
             //TODO: Tenemos que hacer una panatlla donde el user pueda recibir ayuda en caso de problemas
           >
-            <View className="flex-row items-center gap-2">
+            <View className="flex-row gap-2 items-center">
               <HelpCircle color="white" />
               <Text className="text-lg text-white font-psemibold">Ayuda</Text>
             </View>

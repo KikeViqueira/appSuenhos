@@ -1,7 +1,6 @@
 import { View, Text, Modal, TouchableOpacity } from "react-native";
 import React from "react";
 import { Camera, Image, Trash2, X } from "lucide-react-native";
-import Icon from "react-native-vector-icons/FontAwesome";
 
 const PictureOptions = ({
   visible,

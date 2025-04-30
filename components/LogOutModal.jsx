@@ -3,6 +3,13 @@ import React from "react";
 import { X } from "lucide-react-native";
 
 const LogOutModal = ({ visible, setModalVisible, logOut }) => {
+
+  //Función para cerrar la visibilidad del modal y la sesión
+  const closeLogOutModal = () => {
+    setModalVisible(false);
+    logOut();
+  };
+
   return (
     <Modal
       animationType="fade"
@@ -27,7 +34,7 @@ const LogOutModal = ({ visible, setModalVisible, logOut }) => {
             </TouchableOpacity>
             <TouchableOpacity
               className="bg-[#ff6b6b] p-3 rounded-xl w-[45%]"
-              onPress={logOut}
+              onPress={closeLogOutModal}
             >
               <Text className="text-center text-white font-psemibold">
                 Confirmar

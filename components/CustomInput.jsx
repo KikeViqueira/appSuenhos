@@ -8,9 +8,9 @@ const CustomInput = ({ name, inputType, handleChangeText, placeholder }) => {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <View className="flex flex-col items-start w-full gap-2 mb-4">
-      <Text className="text-lg text-center color-white">{name}</Text>
-      <View className="w-full flex-row items-center bg-[#f5f5f5] rounded-xl px-4 py-3">
+    <View className="flex flex-col gap-2 items-start mb-4 w-full">
+      <Text className="text-lg text-center color-white font-medium">{name}</Text>
+      <View className="w-full flex-row items-center bg-[#f5f5f5] rounded-xl px-4 py-3 shadow-sm">
         <TextInput
           value={inputType}
           placeholder={placeholder}
@@ -29,13 +29,31 @@ const CustomInput = ({ name, inputType, handleChangeText, placeholder }) => {
               : ""
           }`}
           placeholderTextColor="#9ca3af"
-          //Si el input es el de email permitimos que se complete con el gestor de contraseñas del dispositivo
-          autoComplete={name === "Email" ? "email" : undefined}
-          textContentType={name === "Email" ? "emailAddress" : undefined}
+          //Configuración para permitir que el gestor de contraseñas funcione correctamente
+          autoComplete={
+            name === "Email" 
+              ? "email" 
+              : name === "Contraseña" 
+                ? "password" 
+                : name === "Confirmar Contraseña" 
+                  ? "password-new" 
+                  : "name"
+          }
+          textContentType={
+            name === "Email" 
+              ? "emailAddress" 
+              : name === "Contraseña" 
+                ? "password" 
+                : name === "Confirmar Contraseña" 
+                  ? "newPassword" 
+                  : name === "Nombre" 
+                    ? "name" 
+                    : undefined
+          }
           //Añadimos el tipo de teclado y que se escriba en minusculas si es el de email
           keyboardType={name === "Email" ? "email-address" : "default"}
           autoCapitalize={name === "Email" ? "none" : "sentences"}
-          style={{ minHeight: 24 }} // Se recomienda usar minHeight en lugar de height fija
+          style={{ minHeight: 26 }} // Aumentamos ligeramente la altura mínima para mejor usabilidad
         />
 
         {/*Si estamos en el input del form que es una contraseña ponemos un botón que simula un ojo para ver la contraseña o taparla*/}

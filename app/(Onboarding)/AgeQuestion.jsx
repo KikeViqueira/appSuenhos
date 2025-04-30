@@ -106,7 +106,7 @@ export default function Question3({
   };
 
   return (
-    <SafeAreaView className="flex items-center justify-center w-full h-full bg-primary">
+    <SafeAreaView className="flex justify-center items-center w-full h-full bg-primary">
       <View
         className="flex flex-col w-[90%] justify-center items-center gap-8"
         style={{
@@ -162,22 +162,41 @@ export default function Question3({
         <View className="flex flex-row justify-between w-full">
           {/* Botón de Volver */}
           <TouchableOpacity
-            //Cuando se presiona el botón tenemos que volver a la pregunta anterior, indicandole al componente padre puede volver a la pregunta anterior
             onPress={previousQuestion}
-            className="flex flex-row items-center gap-4 px-8 py-4 bg-[#323d4f] rounded-3xl"
+            className="flex flex-row gap-4 items-center px-6 py-4 rounded-xl"
+            style={{
+              backgroundColor: "#323d4f",
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.2,
+              shadowRadius: 3,
+              elevation: 3,
+            }}
           >
-            <Icon name="arrow-left" size={24} color="white" />
-            <Text className="text-lg text-center color-white">Volver</Text>
+            <CircleArrowLeft size={24} color="white" />
+            <Text className="text-lg font-semibold text-center color-white">
+              Volver
+            </Text>
           </TouchableOpacity>
           {/* Botón de Continuar */}
           <TouchableOpacity
             onPress={handleSelection}
-            //Si no hay una opción seleccionada el botón se muestra deshabilitado
             disabled={!selected}
-            className="flex flex-row items-center gap-4 px-8 py-4 bg-[#323d4f] rounded-3xl"
+            className="flex flex-row gap-4 items-center px-6 py-4 rounded-xl"
+            style={{
+              backgroundColor: "#6366ff",
+              opacity: selected ? 1 : 0.3,
+              shadowColor: "#6366ff",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 5,
+              elevation: 6,
+            }}
           >
-            <Text className="text-lg text-center color-white">Continuar</Text>
-            <Icon name="arrow-right" size={24} color="white" />
+            <Text className="text-lg font-bold text-center color-white">
+              Continuar
+            </Text>
+            <CircleArrowRight size={24} color="white" />
           </TouchableOpacity>
         </View>
       </View>

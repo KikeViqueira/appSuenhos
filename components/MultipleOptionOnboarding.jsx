@@ -4,9 +4,9 @@ import {
   SafeAreaView,
   FlatList,
   View,
+  StatusBar,
 } from "react-native";
 import React, { useState } from "react";
-
 import { CircleArrowLeft, CircleArrowRight } from "lucide-react-native";
 
 const MultipleOptionOnboarding = ({
@@ -49,9 +49,9 @@ const MultipleOptionOnboarding = ({
   };
 
   return (
-    <SafeAreaView className="flex items-center justify-center w-full h-full bg-primary">
+    <SafeAreaView className="flex justify-center items-center w-full h-full bg-primary">
       <View
-        className="flex flex-col w-[90%] justify-center items-center gap-8"
+        className="flex flex-col w-[90%] justify-center items-center gap-10"
         style={{
           height: "auto",
         }}
@@ -67,51 +67,65 @@ const MultipleOptionOnboarding = ({
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            gap: 8,
+            gap: 12,
+            paddingVertical: 10,
           }}
           style={{ width: "100%" }}
           data={options}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
             <TouchableOpacity
-              /*Al presionar un botón se selecciona la respuesta y se guarda en el estado el id de ella.
-                      Tenemos que llamar así a la función para que se ejecute al presionar el botón y no al renderizar el componente*/
               onPress={() => setSelected(item.id)}
-              className="flex flex-row items-center w-full gap-4 px-8 py-4 rounded-2xl"
+              className="flex flex-row gap-4 items-center px-6 py-4 w-full rounded-xl"
               style={{
                 backgroundColor: selected === item.id ? "#162030" : "#1a2c46",
+                borderWidth: selected === item.id ? 1 : 0,
+                borderColor: "#6366ff",
+                shadowColor: selected === item.id ? "#6366ff" : "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: selected === item.id ? 0.3 : 0.1,
+                shadowRadius: 5,
+                elevation: selected === item.id ? 4 : 2,
               }}
             >
-              {
-                //la opción que se haya seleccionado se muestra en color morado para que el usuario sepa visualmente que opción tiene seleccionada
-                selected === item.id ? (
-                  <Text className="text-lg text-center color-[#6366ff] w-full">
-                    {item.option}
-                  </Text>
-                ) : (
-                  <Text className="w-full text-lg text-center color-white">
-                    {item.option}
-                  </Text>
-                )
-              }
+              {selected === item.id ? (
+                <Text
+                  className="text-lg text-center color-[#6366ff] w-full font-bold"
+                  style={{ letterSpacing: 0.5 }}
+                >
+                  {item.option}
+                </Text>
+              ) : (
+                <Text className="w-full text-lg text-center color-white">
+                  {item.option}
+                </Text>
+              )}
             </TouchableOpacity>
           )}
         />
 
         {/* Dependiendo de si la pregunta es la primera o no tendremos que reenderizar un botón de solo continuar, o dos 
-        (uno para continuar y otro para retroceder) respectivamente */}
+          (uno para continuar y otro para retroceder) respectivamente */}
         {first ? (
           //Boton de Continuar unicamente
           <TouchableOpacity
             onPress={handleSelection}
             //Si no hay una opción seleccionada el botón se muestra deshabilitado
             disabled={!selected}
-            className="flex flex-row items-center gap-4 px-8 py-4 bg-[#323d4f] rounded-3xl"
+            className="flex flex-row gap-4 items-center px-8 py-4 rounded-xl"
             style={{
+              backgroundColor: "#6366ff",
               opacity: selected ? 1 : 0.3,
+              shadowColor: "#6366ff",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 5,
+              elevation: 6,
             }}
           >
-            <Text className="text-lg text-center color-white">Continuar</Text>
+            <Text className="text-lg font-bold text-center color-white">
+              Continuar
+            </Text>
             <CircleArrowRight size={24} color="white" />
           </TouchableOpacity>
         ) : (
@@ -120,28 +134,44 @@ const MultipleOptionOnboarding = ({
             <TouchableOpacity
               //Cuando se presiona el botón tenemos que volver a la pregunta anterior, indicandole al componente padre puede volver a la pregunta anterior
               onPress={previousQuestion}
-              className="flex flex-row items-center gap-4 px-8 py-4 bg-[#323d4f] rounded-3xl"
+              className="flex flex-row gap-4 items-center px-6 py-4 rounded-xl"
+              style={{
+                backgroundColor: "#323d4f",
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.2,
+                shadowRadius: 3,
+                elevation: 3,
+              }}
             >
               <CircleArrowLeft size={24} color="white" />
-              <Text className="text-lg text-center color-white">Volver</Text>
+              <Text className="text-lg font-semibold text-center color-white">
+                Volver
+              </Text>
             </TouchableOpacity>
             {/* Botón de Continuar */}
             <TouchableOpacity
               onPress={handleSelection}
               //Si no hay una opción seleccionada el botón se muestra deshabilitado
               disabled={!selected}
-              className="flex flex-row items-center gap-4 px-8 py-4 bg-[#323d4f] rounded-3xl"
+              className="flex flex-row gap-4 items-center px-6 py-4 rounded-xl"
               style={{
+                backgroundColor: "#6366ff",
                 opacity: selected ? 1 : 0.3,
+                shadowColor: "#6366ff",
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 5,
+                elevation: 6,
               }}
             >
               {/*Dependiendo de si la pregunta es la de mitad de las que preguntamos o es la última, ponemos un texto u otro */}
               {final ? (
-                <Text className="text-lg text-center color-white">
+                <Text className="text-lg font-bold text-center color-white">
                   Finalizar
                 </Text>
               ) : (
-                <Text className="text-lg text-center color-white">
+                <Text className="text-lg font-bold text-center color-white">
                   Continuar
                 </Text>
               )}

@@ -6,6 +6,7 @@ import { useAuthContext } from "../context/AuthContext";
 const useUser = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  //Estado para saber si el usuario ha eliminado la foto de perfil
   //Recuperamos lo que nos interesa del contexto de Auth
   const { userId, accessToken, getUser } = useAuthContext();
 
@@ -61,7 +62,67 @@ const useUser = () => {
     }
   };
 
-  return { updateUser, loading, error };
+  /*
+   * Endpoint para permitir al user cambiar su foto de perfil
+   */
+  const updateProfilePicture = async (file) => {
+    setError(null);
+    setLoading(true);
+    try {
+      const response = await apiClient.put(
+        `${API_BASE_URL}/users/${userId}/profile-picture`,
+        file,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+          transformRequest: (data) => data, //Le decimos a axios que no transforme el request
+        }
+      );
+      console.log("Foto de perfil actualizada: ", response.data);
+      getUser();
+    } catch (error) {
+      setError(error);
+      console.error("Error al actualizar la foto de perfil: ", error);
+      console.log(error.message);
+      console.log(error.response?.status, error.response?.data);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /*
+   * Endpoint para permitir al user eliminar su foto de perfil
+   */
+  const deleteProfilePicture = async () => {
+    setError(null);
+    setLoading(true);
+    try {
+      const response = await apiClient.delete(
+        `${API_BASE_URL}/users/${userId}/profile-picture`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+      console.log("Foto de perfil eliminada: ", response.data);
+      getUser();
+    } catch (error) {
+      setError(error);
+      console.error("Error al eliminar la foto de perfil: ", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    updateUser,
+    loading,
+    error,
+    deleteProfilePicture,
+    updateProfilePicture,
+  };
 };
 
 export default useUser;
