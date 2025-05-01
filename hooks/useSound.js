@@ -91,15 +91,12 @@ const useSound = () => {
       //Hacemos la llamada a la API para recuperar los sonidos estáticos
       const response = await apiClient.post(
         `${API_BASE_URL}/sounds/${userId}`,
-        {
-          name: sound.name,
-          source: sound.source,
-        },
+        sound,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
           },
+          transformRequest: (data) => data,
         }
       );
 

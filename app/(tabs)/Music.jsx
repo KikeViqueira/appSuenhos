@@ -26,7 +26,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Slider from "@react-native-community/slider";
 import * as DocumentPicker from "expo-document-picker";
 import useSound from "../../hooks/useSound";
-import { uploadSoundToCloudinary } from "../../services/Cloudinary";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Music = () => {
@@ -312,7 +311,7 @@ const Music = () => {
 
         const status = await soundRef.current.getStatusAsync(); //Obtener estado actualizado
 
-        setIsPlaying(false); //Asegurar que React detecta el cambio
+        setIsPlaying(false); //Asegurar que React detecte el cambio
         setProgress(status.positionMillis); //Guardamos la posición actual
 
         // Pausar el temporizador sin cancelarlo, manteniendo el tiempo restante
@@ -437,7 +436,7 @@ const Music = () => {
         currentSound?.id === item.id ? "border-[#8a8cff]" : "border-[#323d4f]"
       } shadow-md mb-1`}
     >
-      <View className="flex-row items-center justify-between mb-3">
+      <View className="flex-row justify-between items-center mb-3">
         <Text
           className={`text-lg font-semibold ${
             currentSound?.id === item.id ? "text-white" : "text-gray-200"
@@ -446,7 +445,7 @@ const Music = () => {
           {item.name}
         </Text>
 
-        <View className="flex-row items-center gap-4">
+        <View className="flex-row gap-4 items-center">
           {/* Botón para repetir o no el audio */}
           <TouchableOpacity
             className={`p-2 rounded-full ${
@@ -505,7 +504,7 @@ const Music = () => {
 
       {/* Control y visualización del reproductor */}
       {currentSound?.id === item.id && (
-        <View className="w-full mt-1">
+        <View className="mt-1 w-full">
           <Slider
             minimumValue={0}
             maximumValue={duration}
@@ -575,31 +574,23 @@ const Music = () => {
 
         //TODO: Mostrar un mensaje de carga
 
-        //Antes de guardar el sonido en la BD tenemos que guardarlo en la nube para poder obtenerlo en cualquier dispositivo
-        const cloudinaryUrl = await uploadSoundToCloudinary({
-          uri: result.assets[0].uri,
-          name: result.assets[0].name,
-        });
+        const { extension, mimeType } = getFileType(result.assets[0].uri);
 
-        if (!cloudinaryUrl) {
-          Alert.alert(
-            "Error al subir",
-            "No se pudo subir el archivo a la nube. Inténtalo de nuevo."
-          );
-          return;
-        }
+        //Limpiamos el nombre del audio, nos quedamos con lo que haya antes del punto
+        const fileName = result.assets[0].name.split(".")[0];
 
         //Creamos el objeto que vamos a guardar en la bd
-        const newSound = {
-          /**
-           * Creamos la estructura del objeto sound que espera la api
-           * en el método postSound para que no sucedan errores al llamar al endpoint
-           */
-          name: result.assets[0].name,
-          source: cloudinaryUrl, //URI para que la función createAsync funcione
-        };
+        const newSound = new FormData();
+        newSound.append("file", {
+          uri: result.assets[0].uri,
+          name: `${fileName}.${extension}`,
+          type: mimeType,
+        });
 
-        console.log(newSound);
+        console.log(
+          "SONIDO QUE EL USER QUIERES SUBIR A LA BASE DE DATOS: ",
+          newSound
+        );
         //llamamos al endpoint encargado de subir el sonido en la app
         await postSound(newSound);
         //Una vez subido el sonido por parte del user tenemos que llamar a la función que recupera los sonidos del user
@@ -613,6 +604,13 @@ const Music = () => {
         `No se pudo subir el sonido: ${error.message || "Error desconocido"}`
       );
     }
+  };
+
+  //Función para saber el type del audio que el user quiere subir
+  const getFileType = (uri) => {
+    const extension = uri.split(".").pop();
+    const mimeType = `audio/${extension === "mp3" ? "mpeg" : extension}`;
+    return { extension, mimeType };
   };
 
   return (
@@ -631,7 +629,7 @@ const Music = () => {
           } w-full self-center flex p-6 gap-4 rounded-3xl border border-[#323d4f]`}
           onPress={uploadSound}
         >
-          <View className="flex-row items-center justify-between">
+          <View className="flex-row justify-between items-center">
             <Text className="text-lg text-white font-psemibold">
               {userSounds.length >= maxSounds
                 ? "Elimina sonidos para subir nuevos"
@@ -659,7 +657,7 @@ const Music = () => {
             onPress={() => setTimerModalVisible(true)}
             className="bg-[#1e273a] p-4 rounded-xl shadow border border-[#323d4f] overflow-hidden"
           >
-            <View className="flex-row items-center justify-between">
+            <View className="flex-row justify-between items-center">
               <View className="flex-row items-center">
                 <View className="bg-[#6366ff]/20 p-2 rounded-full mr-3">
                   <Timer color="#6366ff" size={20} />
@@ -768,9 +766,9 @@ const Music = () => {
         visible={timerModalVisible}
         onRequestClose={() => setTimerModalVisible(false)}
       >
-        <View className="items-center justify-center flex-1 bg-black/60">
+        <View className="flex-1 justify-center items-center bg-black/60">
           <View className="w-[85%] bg-[#1e2a47] p-6 rounded-2xl">
-            <View className="flex-row items-center justify-between mb-5">
+            <View className="flex-row justify-between items-center mb-5">
               <Text className="text-xl font-bold text-white">Temporizador</Text>
               <TouchableOpacity
                 onPress={() => setTimerModalVisible(false)}

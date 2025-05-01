@@ -7,12 +7,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
 } from "react-native";
 import React, { useState } from "react";
 import { router } from "expo-router";
 import CustomInput from "../../components/CustomInput";
-import { Alert } from "react-native";
 import { useAuthContext } from "../../context/AuthContext";
+import Icon from "react-native-vector-icons/FontAwesome";
 
 const signUp = () => {
   const { loading, error, registerUser } = useAuthContext();
@@ -49,7 +50,7 @@ const signUp = () => {
 
   return (
     <SafeAreaView className="flex items-center w-full h-full bg-primary">
-      <View className="flex justify-around items-center h-[90%] w-[85%]">
+      <View className="flex justify-around items-center h-[90%] w-[90%]">
         <Image
           //usamos require() para importar la imagen correctamente
           source={require("../../assets/images/Logo.png")}
@@ -62,6 +63,7 @@ const signUp = () => {
         >
           Regístrate en Zzztime
         </Text>
+
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={50}
@@ -75,15 +77,17 @@ const signUp = () => {
             contentContainerStyle={{
               flexGrow: 1,
               justifyContent: "center",
+              paddingVertical: 20,
             }}
             showsVerticalScrollIndicator={false}
           >
             {/*Cuerpo del formulario*/}
-            <View className="flex flex-col justify-center w-full gap-6">
+            <View className="flex flex-col justify-center w-full gap-3">
               <CustomInput
                 name="Email"
                 inputType={form.email}
                 placeholder="Introduce tu email"
+                icon="envelope"
                 handleChangeText={(e) => setForm({ ...form, email: e })}
               />
 
@@ -91,6 +95,7 @@ const signUp = () => {
                 name="Nombre"
                 inputType={form.name}
                 placeholder="Introduce tu nombre"
+                icon="user"
                 handleChangeText={(e) => setForm({ ...form, name: e })}
               />
 
@@ -98,6 +103,7 @@ const signUp = () => {
                 name="Contraseña"
                 inputType={form.password}
                 placeholder="Introduce tu contraseña"
+                icon="lock"
                 handleChangeText={(e) => setForm({ ...form, password: e })}
               />
 
@@ -105,19 +111,28 @@ const signUp = () => {
                 name="Confirmar Contraseña"
                 inputType={form.confirmPassword}
                 placeholder="Confirma tu contraseña"
+                icon="shield"
                 handleChangeText={(e) =>
                   setForm({ ...form, confirmPassword: e })
                 }
               />
 
-              {/*Boton para iniciar sesión*/}
+              {/*Boton para registrarse*/}
               <TouchableOpacity
                 onPress={submit}
-                className="flex w-full justify-center items-center flex-row gap-4 px-8 py-4 bg-[#323d4f] rounded-3xl mt-2"
+                className="flex w-full justify-center items-center flex-row gap-4 px-8 py-4 bg-[#6366ff] rounded-2xl shadow-md mt-4"
+                style={{
+                  shadowColor: "#6366ff",
+                  shadowOffset: { width: 0, height: 4 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 5,
+                  elevation: 5,
+                }}
               >
                 <Text className="text-lg font-semibold color-white">
-                  Registrarse
+                  Crear cuenta
                 </Text>
+                <Icon name="user-plus" size={18} color="#ffffff" />
               </TouchableOpacity>
             </View>
           </ScrollView>

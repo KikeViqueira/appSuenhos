@@ -12,17 +12,12 @@ import React, { useEffect, useState } from "react";
 import { router } from "expo-router";
 import CustomInput from "../../components/CustomInput";
 import { useAuthContext } from "../../context/AuthContext";
+import Icon from "react-native-vector-icons/FontAwesome";
 
 const signIn = () => {
   //Recuperamos las dunciones y estados del hook de useAuth
-  const {
-    accessToken,
-    loading,
-    error,
-    LoginRequest,
-    setError,
-    onboardingCompleted,
-  } = useAuthContext();
+  const { accessToken, error, LoginRequest, onboardingCompleted } =
+    useAuthContext();
 
   //Definimos un estado para saber los valores que el usuario introduce en los campos del formulario
   const [form, setForm] = useState({
@@ -77,27 +72,30 @@ const signIn = () => {
     <SafeAreaView className="flex items-center w-full h-full bg-primary">
       <View className="flex justify-start items-center h-[90%] w-[85%]">
         <Image
-          //usamos require() para importar la imagen correctamente
           source={require("../../assets/images/Logo.png")}
-          className="self-center w-40 h-40"
+          className="self-center mt-8 w-32 h-32"
           resizeMode="contain"
+          style={{ opacity: 0.9 }}
         />
+
         <Text
           className="font-bold color-[#6366ff] mt-12 mb-12  self-start"
           style={{ fontSize: 24 }}
         >
           Inicia sesión en Zzztime
         </Text>
+
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className="min-h-[250px]"
+          className="min-h-[220px]"
         >
           {/*Cuerpo del formulario*/}
-          <View className="flex flex-col items-start justify-center w-full gap-6">
+          <View className="flex flex-col gap-3 justify-center items-start w-full">
             <CustomInput
               name="Email"
               inputType={form.email}
               placeholder="Introduce tu email"
+              icon="envelope"
               //Dejamos todo como antes y solo cambiamos de valor el atributo que queramos
               handleChangeText={(e) => setForm({ ...form, email: e })}
             />
@@ -106,6 +104,7 @@ const signIn = () => {
               name="Contraseña"
               inputType={form.password}
               placeholder="Introduce tu contraseña"
+              icon="lock"
               //Dejamos todo como antes y solo cambiamos de valor el atributo que queramos
               handleChangeText={(e) => setForm({ ...form, password: e })}
             />
@@ -113,15 +112,24 @@ const signIn = () => {
         </KeyboardAvoidingView>
 
         {/*Boton para iniciar sesión o ir a la pantalla de registro*/}
-        <View className="flex flex-col items-center w-full gap-6">
+        <View className="flex flex-col gap-6 items-center mt-8 w-full">
           <TouchableOpacity
             onPress={submit}
-            className="flex w-full justify-center items-center flex-row  gap-4 px-8 py-4 bg-[#323d4f] rounded-3xl"
+            className="flex w-full justify-center items-center flex-row gap-4 px-8 py-4 bg-[#6366ff] rounded-2xl "
+            style={{
+              shadowColor: "#6366ff",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 5,
+              elevation: 5,
+            }}
           >
             <Text className="text-lg font-semibold color-white">
               Iniciar Sesión
             </Text>
+            <Icon name="arrow-right" size={18} color="#ffffff" />
           </TouchableOpacity>
+
           {/*Info por si el usuario no tiene una cuenta*/}
           <View className="flex flex-row gap-2">
             <Text className="text-lg text-center color-white">

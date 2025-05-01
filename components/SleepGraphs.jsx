@@ -1,6 +1,20 @@
-import { View, Text, ScrollView, TouchableOpacity, Dimensions } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Dimensions,
+} from "react-native";
 import React, { useState, useEffect } from "react";
-import { Bed, Boxes, Info, TrendingUp, Award, AlertTriangle, BarChart } from "lucide-react-native";
+import {
+  Bed,
+  Boxes,
+  Info,
+  TrendingUp,
+  Award,
+  AlertTriangle,
+  BarChart,
+} from "lucide-react-native";
 import FirstLineChart from "./FirstLineChart";
 import SleepPieChart from "./SleepPieChart";
 import { useAuthContext } from "../context/AuthContext";
@@ -19,7 +33,7 @@ const SleepGraphs = () => {
     sleepDeficit: 0,
     daysAboveRecommended: 0,
     daysBelowRecommended: 0,
-    sleepData: [] // Añadir los datos de sueño para la gráfica
+    sleepData: [], // Añadir los datos de sueño para la gráfica
   });
 
   useEffect(() => {
@@ -28,36 +42,49 @@ const SleepGraphs = () => {
   }, []);
 
   useEffect(() => {
-    if (sleepLogsDuration && Object.keys(sleepLogsDuration).length > 0 && userInfo) {
+    if (
+      sleepLogsDuration &&
+      Object.keys(sleepLogsDuration).length > 0 &&
+      userInfo
+    ) {
       // Obtener recomendaciones según la edad del usuario
       const userAge = userInfo.age || 30; // Valor por defecto si no hay edad
       const recommendation = getSleepRecommendationByAge(userAge);
-      
+
       // Procesar datos de sueño
-      const sleepData = Object.entries(sleepLogsDuration).map(([day, duration]) => {
-        // Convertir minutos a horas
-        const hours = Number(duration) / 60;
-        return { day, hours };
-      });
-      
+      const sleepData = Object.entries(sleepLogsDuration).map(
+        ([day, duration]) => {
+          // Convertir minutos a horas
+          const hours = Number(duration) / 60;
+          return { day, hours };
+        }
+      );
+
       // Calcular estadísticas
       const totalSleep = sleepData.reduce((sum, day) => sum + day.hours, 0); //la suma debe empezar en cero, para cada uno de los objetos del mapa se suma el valor de hours
       const averageSleep = totalSleep / sleepData.length;
-      
+
       // Encontrar mejor y peor día
-      const bestDay = sleepData.reduce((best, current) => 
-        current.hours > best.hours ? current : best, { day: "", hours: 0 });
-      
-      const worstDay = sleepData.reduce((worst, current) => 
-        (worst.hours === 0 || current.hours < worst.hours) ? current : worst, { day: "", hours: Number.MAX_VALUE });
-      
+      const bestDay = sleepData.reduce(
+        (best, current) => (current.hours > best.hours ? current : best),
+        { day: "", hours: 0 }
+      );
+
+      const worstDay = sleepData.reduce(
+        (worst, current) =>
+          worst.hours === 0 || current.hours < worst.hours ? current : worst,
+        { day: "", hours: Number.MAX_VALUE }
+      );
+
       // Calcular déficit de sueño (diferencia entre promedio y recomendado ideal)
       const sleepDeficit = recommendation.ideal - averageSleep;
-      
+
       // Contar días por encima y por debajo de lo recomendado
-      const daysAboveRecommended = sleepData.filter(day => day.hours >= recommendation.min).length;
+      const daysAboveRecommended = sleepData.filter(
+        (day) => day.hours >= recommendation.min
+      ).length;
       const daysBelowRecommended = sleepData.length - daysAboveRecommended;
-      
+
       // Determinar calidad del sueño
       let sleepQuality = "Buena";
       if (averageSleep < recommendation.min) {
@@ -65,18 +92,21 @@ const SleepGraphs = () => {
       } else if (averageSleep < recommendation.ideal) {
         sleepQuality = "Regular";
       }
-      
+
       // Actualizar estado
       setSleepStats({
         averageSleep,
         bestDay,
-        worstDay: { day: worstDay.day, hours: worstDay.hours === Number.MAX_VALUE ? 0 : worstDay.hours },
+        worstDay: {
+          day: worstDay.day,
+          hours: worstDay.hours === Number.MAX_VALUE ? 0 : worstDay.hours,
+        },
         recommendation,
         sleepQuality,
         sleepDeficit,
         daysAboveRecommended,
         daysBelowRecommended,
-        sleepData // Añadir los datos de sueño para la gráfica
+        sleepData, // Añadir los datos de sueño para la gráfica
       });
     }
   }, [sleepLogsDuration, userInfo]);
@@ -85,8 +115,8 @@ const SleepGraphs = () => {
   const getSleepRecommendationByAge = (age) => {
     // Encontrar el rango de edad correspondiente
     for (const rec of sleepRecommendations.sleepRecommendations) {
-      const range = rec.ageRange.split('-');
-      
+      const range = rec.ageRange.split("-");
+
       /*
        * En base a la edad del user conseguimos la recomendación de sueño
        */
@@ -94,12 +124,12 @@ const SleepGraphs = () => {
       if (range.length === 2) {
         const minAge = parseInt(range[0]);
         const maxAge = parseInt(range[1]);
-        
+
         if (age >= minAge && age <= maxAge) {
           return {
             min: rec.hours.minHours,
             ideal: rec.hours.idealHours,
-            max: rec.hours.maxHours
+            max: rec.hours.maxHours,
           };
         }
       } else if (rec.ageRange === "65+") {
@@ -107,12 +137,12 @@ const SleepGraphs = () => {
           return {
             min: rec.hours.minHours,
             ideal: rec.hours.idealHours,
-            max: rec.hours.maxHours
+            max: rec.hours.maxHours,
           };
         }
       }
     }
-    
+
     // Valor por defecto para adultos si no se encuentra un rango específico
     return { min: 7, ideal: 8, max: 9 };
   };
@@ -139,8 +169,6 @@ const SleepGraphs = () => {
           <FirstLineChart />
         </View>
 
-        
-
         {/* Estadísticas de sueño */}
         <View className="mt-4">
           <View className="flex flex-row gap-4 justify-start mb-4">
@@ -156,8 +184,10 @@ const SleepGraphs = () => {
           {/* Tarjetas de estadísticas */}
           <View className="flex flex-row flex-wrap justify-between">
             {/* Promedio de sueño */}
-            <View className="bg-[#162030] p-4 rounded-xl mb-4 w-[48%]">
-              <Text className="text-sm color-[#a0b0c7] mb-1">Promedio diario</Text>
+            <View className="bg-[#0e172a] p-4 rounded-xl mb-4 w-[48%] border border-[#6366ff]">
+              <Text className="text-sm color-[#a0b0c7] mb-1">
+                Promedio diario
+              </Text>
               <View className="flex flex-row items-center">
                 <Text className="mr-2 text-xl font-bold color-white">
                   {formatHours(sleepStats.averageSleep)}h
@@ -169,14 +199,14 @@ const SleepGraphs = () => {
                 )}
               </View>
               <Text className="text-xs color-[#a0b0c7] mt-1">
-                {sleepStats.sleepDeficit > 0 
-                  ? `${sleepStats.sleepDeficit.toFixed(1)}h menos de lo ideal` 
+                {sleepStats.sleepDeficit > 0
+                  ? `${sleepStats.sleepDeficit.toFixed(1)}h menos de lo ideal`
                   : "Por encima de lo recomendado"}
               </Text>
             </View>
 
             {/* Recomendado para tu edad */}
-            <View className="bg-[#162030] p-4 rounded-xl mb-4 w-[48%]">
+            <View className="bg-[#0e172a] p-4 rounded-xl mb-4 w-[48%] border border-[#6366ff]">
               <Text className="text-sm color-[#a0b0c7] mb-1">Recomendado</Text>
               <Text className="text-xl font-bold color-white">
                 {sleepStats.recommendation.min}-{sleepStats.recommendation.max}h
@@ -187,26 +217,28 @@ const SleepGraphs = () => {
             </View>
 
             {/* Mejor día */}
-            <View className="bg-[#162030] p-4 rounded-xl mb-4 w-[48%]">
+            <View className="bg-[#0e172a] p-4 rounded-xl mb-4 w-[48%] border border-[#6366ff]">
               <Text className="text-sm color-[#a0b0c7] mb-1">Mejor día</Text>
               <Text className="text-xl font-bold color-white">
-                {sleepStats.bestDay.hours > 0 ? formatHours(sleepStats.bestDay.hours) + 'h' : 'N/A'}
+                {sleepStats.bestDay.hours > 0
+                  ? formatHours(sleepStats.bestDay.hours) + "h"
+                  : "N/A"}
               </Text>
               <Text className="text-xs color-[#a0b0c7] mt-1">
-                {sleepStats.bestDay.day || 'Sin datos'}
+                {sleepStats.bestDay.day || "Sin datos"}
               </Text>
             </View>
 
             {/* Calidad del sueño */}
-            <View className="bg-[#162030] p-4 rounded-xl mb-4 w-[48%]">
+            <View className="bg-[#0e172a] p-4 rounded-xl mb-4 w-[48%] border border-[#6366ff]">
               <Text className="text-sm color-[#a0b0c7] mb-1">Calidad</Text>
-              <Text 
+              <Text
                 className={`text-xl font-bold ${
-                  sleepStats.sleepQuality === "Buena" 
-                    ? "color-[#4ade80]" 
-                    : sleepStats.sleepQuality === "Regular" 
-                      ? "color-[#fbbf24]" 
-                      : "color-[#ff6b6b]"
+                  sleepStats.sleepQuality === "Buena"
+                    ? "color-[#4ade80]"
+                    : sleepStats.sleepQuality === "Regular"
+                    ? "color-[#fbbf24]"
+                    : "color-[#ff6b6b]"
                 }`}
               >
                 {sleepStats.sleepQuality}
@@ -218,16 +250,24 @@ const SleepGraphs = () => {
           </View>
 
           {/* Consejos personalizados */}
-          <View className="bg-[#162030] p-4 rounded-xl mt-2">
+          <View className="bg-[#0e172a] p-4 rounded-xl mt-2 border border-[#6366ff]">
             <View className="flex flex-row items-center mb-2">
               <Info size={18} color="#6366ff" style={{ marginRight: 8 }} />
-              <Text className="font-bold color-white">Consejo personalizado</Text>
+              <Text className="font-bold color-white">
+                Consejo personalizado
+              </Text>
             </View>
             <Text className="color-[#a0b0c7] text-sm">
               {sleepStats.sleepDeficit > 1
-                ? `Estás durmiendo considerablemente menos de lo recomendado para tu edad. Intenta acostarte ${Math.round(sleepStats.sleepDeficit)} hora(s) antes para alcanzar las ${sleepStats.recommendation.ideal} horas ideales.`
+                ? `Estás durmiendo considerablemente menos de lo recomendado para tu edad. Intenta acostarte ${Math.round(
+                    sleepStats.sleepDeficit
+                  )} hora(s) antes para alcanzar las ${
+                    sleepStats.recommendation.ideal
+                  } horas ideales.`
                 : sleepStats.sleepDeficit > 0
-                ? `Estás cerca del tiempo de sueño recomendado. Intenta acostarte ${Math.round(sleepStats.sleepDeficit * 60)} minutos antes para optimizar tu descanso.`
+                ? `Estás cerca del tiempo de sueño recomendado. Intenta acostarte ${Math.round(
+                    sleepStats.sleepDeficit * 60
+                  )} minutos antes para optimizar tu descanso.`
                 : `¡Excelente! Estás durmiendo el tiempo recomendado para tu edad. Mantén esta rutina para seguir beneficiándote de un buen descanso.`}
             </Text>
           </View>
