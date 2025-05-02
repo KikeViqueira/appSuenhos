@@ -1,29 +1,13 @@
-import {
-  View,
-  Dimensions,
-  Modal,
-  Text,
-  TouchableOpacity,
-  ActivityIndicator,
-} from "react-native";
+import { View, Dimensions, Modal, Text, TouchableOpacity } from "react-native";
 import React, { useState, useEffect } from "react";
 import { LineChart } from "react-native-chart-kit";
 import Icon from "react-native-vector-icons/FontAwesome";
-import useSleep from "../hooks/useSleep";
 
-const FirstLineChart = () => {
+const WeeklySleepChart = ({ sleepLogsDuration }) => {
   // Estado para controlar la visibilidad del popup y la información seleccionada
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedPoint, setSelectedPoint] = useState(null);
   const [formattedSleepData, setFormattedSleepData] = useState([]);
-
-  // Obtenemos los datos del hook useSleep
-  const { getSleepLogEndpoint, sleepLogsDuration, loading, error } = useSleep();
-
-  // Al cargar el componente, obtenemos los datos de sueño de la última semana
-  useEffect(() => {
-    getSleepLogEndpoint("7");
-  }, []);
 
   // Cuando tenemos los datos, los formateamos para el gráfico
   useEffect(() => {
@@ -72,18 +56,7 @@ const FirstLineChart = () => {
     return `${hours}:${minutes.toString().padStart(2, "0")}`;
   };
 
-  if (loading) {
-    return (
-      <View className="items-center justify-center w-full h-[220px]">
-        <ActivityIndicator size="large" color="#6366ff" />
-        <Text className="mt-2 text-center color-white">
-          Cargando datos de sueño...
-        </Text>
-      </View>
-    );
-  }
-
-  if (error || formattedSleepData.length === 0) {
+  if (formattedSleepData.length === 0) {
     return (
       <View className="items-center justify-center w-full h-[220px]">
         <Text className="text-center color-white">
@@ -136,14 +109,14 @@ const FirstLineChart = () => {
         onRequestClose={() => setModalVisible(false)}
       >
         <TouchableOpacity
-          className="items-center justify-center flex-1 bg-black/50"
+          className="flex-1 justify-center items-center bg-black/50"
           activeOpacity={1}
           onPress={() => setModalVisible(false)}
         >
           <View className="bg-[#1e2a47] p-6 rounded-xl w-[80%] max-w-[300px]">
             {selectedPoint && (
               <>
-                <View className="flex-row items-center justify-between mb-4">
+                <View className="flex-row justify-between items-center mb-4">
                   <Text className="text-lg font-bold color-[#6366ff]">
                     Detalles del sueño
                   </Text>
@@ -169,4 +142,4 @@ const FirstLineChart = () => {
   );
 };
 
-export default FirstLineChart;
+export default WeeklySleepChart;

@@ -25,6 +25,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import { router } from "expo-router";
 import useSleep from "../../hooks/useSleep";
+import { useAuthContext } from "../../context/AuthContext";
 
 /**
  *  Función que lo que hace es quitarle el offset de la fecha para poder trabajar con fechas locales del user y que se guarden correctamente en la BD de manera coherente
@@ -148,13 +149,10 @@ const Estadisticas = () => {
   const scrollIndicatorOpacity = useRef(new Animated.Value(1)).current;
   const [showScrollIndicator, setShowScrollIndicator] = useState(true);
 
-  const {
-    createSleepLog,
-    getSleepLogEndpoint,
-    getDailySleepLog,
-    sleepLog,
-    loading,
-  } = useSleep();
+  const { userInfo, loading } = useAuthContext();
+
+  const { createSleepLog, getSleepLogEndpoint, getDailySleepLog, sleepLog } =
+    useSleep();
 
   //Función para saber si el user ha hecho hoy el registro de sueño
   const checkDailySleepLog = async () => {
@@ -388,7 +386,20 @@ const Estadisticas = () => {
   const renderComponent = () => {
     switch (activeSection) {
       case "sleepGraphs":
-        return <SleepGraphs />;
+        if (loading || !userInfo) {
+          return (
+            <View className="flex justify-center items-center h-[300px] bg-[#1e2a47] rounded-lg flex-col gap-4">
+              <Moon size={40} color="#6366ff" />
+              <Text className="text-lg font-medium text-white">
+                Cargando información del sueño
+              </Text>
+              <Text className="px-6 text-sm text-center text-gray-400">
+                Estamos preparando tus estadísticas personalizadas
+              </Text>
+            </View>
+          );
+        }
+        return <SleepGraphs userInfo={userInfo} />;
       case "fitbitGraphs":
         return <FitbitUserGraphs />;
       case "drmSection":

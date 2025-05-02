@@ -1,10 +1,4 @@
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Dimensions,
-} from "react-native";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import React, { useState, useEffect } from "react";
 import {
   Bed,
@@ -13,17 +7,17 @@ import {
   TrendingUp,
   Award,
   AlertTriangle,
-  BarChart,
+  Heart,
 } from "lucide-react-native";
-import FirstLineChart from "./FirstLineChart";
+import WeeklySleepChart from "./WeeklySleepChart";
 import SleepPieChart from "./SleepPieChart";
-import { useAuthContext } from "../context/AuthContext";
 import useSleep from "../hooks/useSleep";
 import sleepRecommendations from "../utils/sleepRecommendations";
+import UserSleepVsRecommended from "./UserSleepVsRecommended";
 
-const SleepGraphs = () => {
-  const { userInfo } = useAuthContext();
-  const { sleepLogsDuration, getSleepLogEndpoint, loading } = useSleep();
+const SleepGraphs = ({ userInfo }) => {
+  const { sleepLogsDuration, getSleepLogEndpoint } = useSleep();
+  const [loading, setLoading] = useState(true);
   const [sleepStats, setSleepStats] = useState({
     averageSleep: 0,
     bestDay: { day: "", hours: 0 },
@@ -108,6 +102,7 @@ const SleepGraphs = () => {
         daysBelowRecommended,
         sleepData, // Añadir los datos de sueño para la gráfica
       });
+      setLoading(false);
     }
   }, [sleepLogsDuration, userInfo]);
 
@@ -166,7 +161,7 @@ const SleepGraphs = () => {
         </View>
         <View className="flex items-center">
           {/* Gráfica de horas de sueño semanales */}
-          <FirstLineChart />
+          <WeeklySleepChart sleepLogsDuration={sleepLogsDuration} />
         </View>
 
         {/* Estadísticas de sueño */}
@@ -271,6 +266,23 @@ const SleepGraphs = () => {
                 : `¡Excelente! Estás durmiendo el tiempo recomendado para tu edad. Mantén esta rutina para seguir beneficiándote de un buen descanso.`}
             </Text>
           </View>
+        </View>
+
+        {/* Gráfica que compara lo que ha dormido el user vs lo que debería de dormir vs un user ideal de su rango de edad */}
+        <View className="flex flex-row gap-4 justify-start mt-4">
+          <Heart size={24} color="#fff" />
+          <Text
+            className="text-center font-bold color-[#6366ff]"
+            style={{ fontSize: 24 }}
+          >
+            Tu sueño vs Recomendado
+          </Text>
+        </View>
+        <View className="flex items-center">
+          <UserSleepVsRecommended
+            sleepLogsDuration={sleepLogsDuration}
+            userAge={userInfo.age}
+          />
         </View>
 
         {/* Fases del sueño */}

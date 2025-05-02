@@ -10,6 +10,7 @@ import {
 // Crear la instancia de axios con la URL base
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 10000, // timeout de 10 segundos
 });
 
 // Interceptor para manejar errores de autenticación y refresh token

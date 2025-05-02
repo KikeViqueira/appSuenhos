@@ -4,8 +4,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_BASE_URL } from "../config/config";
 import { useAuthContext } from "../context/AuthContext";
 
-const CURRENT_MESSAGES_KEY = "current_chat_messages";
-const CURRENT_CHAT_EDITABLE_KEY = "current_chat_editable";
 const CURRENT_CHAT_ID_KEY = "current_chat_id";
 
 const useChat = () => {
@@ -17,67 +15,6 @@ const useChat = () => {
   const [isAiWriting, setIsAiWriting] = useState(false); // Estado para controlar cuando la IA está escribiendo
   const { accessToken, userId } = useAuthContext();
   const [last3MonthsChats, setLast3MonthsChats] = useState([]); // Almacena los chats de los últimos tres meses
-
-  // Al iniciar el componente, recuperamos los mensajes del AsyncStorage
-  useEffect(() => {
-    /**
-     * Esta función se encarga de cargar los mensajes y el estado de edición guardados en AsyncStorage.
-     *
-     * ¿Por qué necesitamos guardar los mensajes en AsyncStorage?
-     *
-     * 1. Problema de persistencia entre navegaciones:
-     *    - En React Native, cuando navegamos entre pantallas, los estados se reinician al volver a montar los componentes
-     *    - Si el usuario navega a la pantalla de historial y luego regresa, los mensajes se perderían sin esta persistencia
-     *
-     * 2. Problema con la carga del chat:
-     *    - La API devuelve correctamente los mensajes, pero el sistema de navegación puede causar que el estado de mensajes
-     *      se reinicie cuando el usuario regresa a la pantalla de chat desde el historial
-     *    - Al guardar en AsyncStorage, garantizamos que los mensajes persistan independientemente de si la navegación
-     *      reinicia el estado del componente
-     *
-     * 3. Experiencia de usuario:
-     *    - El usuario espera que los mensajes permanezcan visibles cuando regresa a la pantalla de chat
-     *    - Sin esta persistencia, la conversación se mostraría vacía cada vez que el usuario regresa, lo que resulta confuso
-     *
-     * 4. Optimización de rendimiento:
-     *    - Evitamos hacer llamadas innecesarias a la API cada vez que el usuario navega entre pantallas
-     *    - Los mensajes se cargan desde el almacenamiento local mucho más rápido que hacer una petición al servidor
-     */
-    const loadSavedMessages = async () => {
-      try {
-        //await clearCurrentChat();
-        const savedMessagesJson = await AsyncStorage.getItem(
-          CURRENT_MESSAGES_KEY
-        );
-        const savedIsEditable = await AsyncStorage.getItem(
-          CURRENT_CHAT_EDITABLE_KEY
-        );
-
-        if (savedMessagesJson) {
-          const savedMessages = JSON.parse(savedMessagesJson);
-          console.log("Recuperando mensajes guardados:", savedMessages.length);
-          setMessages(savedMessages);
-        }
-
-        if (savedIsEditable) {
-          setIsToday(savedIsEditable === "true");
-          console.log(
-            "Recuperando estado editable guardado:",
-            savedIsEditable === "true"
-          );
-        }
-      } catch (error) {
-        console.error("Error al cargar mensajes guardados:", error);
-      }
-    };
-
-    //loadSavedMessages();
-    //AsyncStorage.removeItem(CURRENT_MESSAGES_KEY); // Limpiamos el AsyncStorage para evitar problemas de carga de mensajes
-    //AsyncStorage.removeItem(CURRENT_CHAT_EDITABLE_KEY); // Limpiamos el AsyncStorage para evitar problemas de carga de mensajes
-    //AsyncStorage.removeItem(CURRENT_CHAT_ID_KEY); // Limpiamos el AsyncStorage para evitar problemas de carga de mensajes
-    //AsyncStorage.removeItem("chatId"); // Limpiamos el AsyncStorage para evitar problemas de carga de mensajes
-    //AsyncStorage.removeItem("hasChatToday"); // Limpiamos la bandera de chat de hoy para evitar problemas de carga de mensajes
-  }, []);
 
   /*
    * Funciones internas para guardar el chatId en el AsyncStorage junto a una marca temporal de cuando se ha hecho el chat,
@@ -245,7 +182,7 @@ const useChat = () => {
 
       console.log("id del chat que acabamos de crear: ", response.data.id);
 
-      /**
+      /*
        * IMPORTANTE: La respuesta de la API puede variar dependiendo de si se ha creado un nuevo chat o se ha enviado un mensaje a uno existente.
        * Si se ha creado un nuevo chat, la respuesta incluirá el DTO de creación.
        * Si se ha enviado un mensaje a un chat existente, la respuesta devuelve el mensaje de la IA.
@@ -434,9 +371,6 @@ const useChat = () => {
         if (isDeletingOpenChat) {
           console.log("El chat abierto ha sido eliminado.");
 
-          // Limpiamos las referencias
-          await AsyncStorage.removeItem(CURRENT_CHAT_ID_KEY);
-
           //Limpiamos info del chat actual
           await clearCurrentChat();
 
@@ -511,18 +445,6 @@ const useChat = () => {
           );
         }
 
-        // Guardamos en AsyncStorage antes de actualizar los estados
-        /* if (chatMessages.length > 0) {
-          await AsyncStorage.setItem(
-            CURRENT_MESSAGES_KEY,
-            JSON.stringify(chatMessages)
-          );
-        }
-        await AsyncStorage.setItem(
-          CURRENT_CHAT_EDITABLE_KEY,
-          String(chatEditable)
-        );*/
-
         // Actualizamos los estados
         setIsToday(chatEditable);
         setMessages(chatMessages);
@@ -587,18 +509,9 @@ const useChat = () => {
     }
   };
 
-  /**
-   * Función para limpiar los mensajes actuales y resetear el estado del chat
-   *
-   * Casos de uso:
-   * 1.
-   */
   const clearCurrentChat = async () => {
     try {
-      // Limpiar mensajes del AsyncStorage
-      await AsyncStorage.removeItem(CURRENT_MESSAGES_KEY);
-      await AsyncStorage.removeItem(CURRENT_CHAT_EDITABLE_KEY);
-
+      await AsyncStorage.removeItem(CURRENT_CHAT_ID_KEY);
       // Resetear los estados en memoria
       setMessages([]);
       setIsToday(true); // Permitimos que se pueda escribir
