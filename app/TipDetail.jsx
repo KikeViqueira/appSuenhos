@@ -9,35 +9,22 @@ import {
 } from "react-native";
 import React, { useEffect, useState, useRef } from "react";
 import { router, useLocalSearchParams } from "expo-router";
-import {
-  ChevronLeft,
-  Bookmark,
-  BookmarkCheck,
-  Shield,
-  Bed,
-  Activity,
-  Apple,
-  AlertCircle,
-  Book,
-  Music,
-  Heart,
-  ChevronDown,
-} from "lucide-react-native";
+import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import useTips from "../hooks/useTips";
 import NotFound from "../components/NotFound";
 import LoadingBanner from "../components/LoadingBanner";
 
-// Mapa de iconos disponibles
+// Mapa de iconos disponibles usando exclusivamente Feather
 const iconMap = {
-  shield: Shield,
-  sleep: Bed,
-  fitness: Activity,
-  food: Apple,
-  alert: AlertCircle,
-  book: Book,
-  music: Music,
-  heart: Heart,
+  shield: (props) => <Feather name="shield" {...props} />,
+  sleep: (props) => <Feather name="moon" {...props} />,
+  fitness: (props) => <Feather name="activity" {...props} />,
+  food: (props) => <Feather name="coffee" {...props} />,
+  alert: (props) => <Feather name="alert-circle" {...props} />,
+  book: (props) => <Feather name="book" {...props} />,
+  music: (props) => <Feather name="music" {...props} />,
+  heart: (props) => <Feather name="heart" {...props} />,
 };
 
 /*De la lista de tips, al seleccionar uno se accede a este componente y se muestra la información del tip seleccionado,
@@ -59,7 +46,7 @@ const TipDetail = () => {
 
   // Función para obtener el icono según su nombre
   const getIcon = (iconName) => {
-    return iconMap[iconName] || Shield; // Si no se encuentra, usamos Shield como fallback
+    return iconMap[iconName] || ((props) => <Feather name="shield" {...props} />); // Si no se encuentra, usamos Shield como fallback
   };
 
   useEffect(() => {
@@ -166,23 +153,23 @@ const TipDetail = () => {
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1 bg-primary">
-        <View className="flex flex-row items-center justify-between px-8 pt-3">
+        <View className="flex flex-row justify-between items-center px-8 pt-3">
           <TouchableOpacity
             onPress={() => router.back()}
-            className="flex flex-row items-center gap-2 py-4"
+            className="flex flex-row gap-2 items-center py-4"
           >
-            <ChevronLeft size={24} color="white" />
+            <Feather name="chevron-left" size={24} color="white" />
             <Text className="text-lg font-semibold color-white">
               Volver a la lista de tips
             </Text>
           </TouchableOpacity>
         </View>
 
-        <View className="items-center justify-center flex-1 px-6">
+        <View className="flex-1 justify-center items-center px-6">
           <View className="w-full bg-[#1e2a47] rounded-xl p-8">
             <View className="flex-row w-full">
               <View className="w-2 h-full bg-[#6366ff]" />
-              <View className="items-center flex-1">
+              <View className="flex-1 items-center">
                 <LoadingBanner />
                 <Text className="mb-2 text-xl font-bold text-white">
                   Cargando información del tip
@@ -192,7 +179,7 @@ const TipDetail = () => {
                   tu calidad de sueño.
                 </Text>
 
-                <View className="flex flex-row justify-center w-full gap-2 mt-2">
+                <View className="flex flex-row gap-2 justify-center mt-2 w-full">
                   <View className="h-2 w-2 rounded-full bg-[#6366ff] opacity-30" />
                   <View className="h-2 w-2 rounded-full bg-[#6366ff] opacity-50" />
                   <View className="h-2 w-2 rounded-full bg-[#6366ff] opacity-70" />
@@ -209,7 +196,7 @@ const TipDetail = () => {
   // Si no hay datos del tip después de la carga, mostrar un mensaje de error
   if (!tipSelectedDetail || Object.keys(tipSelectedDetail).length === 0) {
     return (
-      <SafeAreaView className="items-center justify-center flex-1 bg-primary">
+      <SafeAreaView className="flex-1 justify-center items-center bg-primary">
         <NotFound />
         <Text className="mb-2 text-lg font-bold text-center text-white">
           No se pudo cargar la información del tip
@@ -230,25 +217,33 @@ const TipDetail = () => {
   const IconComponent = getIcon(tipSelectedDetail.icon);
 
   return (
-    <SafeAreaView className="flex-1 w-full h-full pt-3 bg-primary">
+    <SafeAreaView className="flex-1 pt-3 w-full h-full bg-primary">
       {/* En caso de que el contenido se desborde de la pantalla, se desplazara hacia arriba gracias a flexGrow y ScrollView */}
 
       {/* Botón de volver junto con el icono de bookmark */}
-      <View className="flex flex-row items-center justify-between px-8">
+      <View className="flex flex-row justify-between items-center px-8">
         <TouchableOpacity
           onPress={() => router.back()}
-          className="flex flex-row items-center gap-2 py-4"
+          className="flex flex-row gap-2 items-center py-4"
         >
-          <ChevronLeft size={24} color="white" />
+          <Feather name="chevron-left" size={24} color="white" />
           <Text className="text-lg font-semibold color-white">
             Volver a la lista de tips
           </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={toggleFavorite} disabled={isLoading}>
           {isFavorite ? (
-            <BookmarkCheck size={28} color="#6366ff" />
+            <MaterialCommunityIcons
+              name="bookmark-check-outline"
+              size={28}
+              color="#6366ff"
+            />
           ) : (
-            <Bookmark size={28} color="white" />
+            <MaterialCommunityIcons
+              name="bookmark-outline"
+              size={28}
+              color="white"
+            />
           )}
         </TouchableOpacity>
       </View>
@@ -263,7 +258,7 @@ const TipDetail = () => {
           {/* Contenido */}
           <View className="flex flex-col gap-6 justify-center items-center w-[90%] self-center">
             {/* Icono y Título */}
-            <View className="flex flex-row items-end justify-center gap-4">
+            <View className="flex flex-row gap-4 justify-center items-end">
               {IconComponent && (
                 <IconComponent
                   color={tipSelectedDetail.color || "#6366ff"}
@@ -335,7 +330,7 @@ const TipDetail = () => {
             }}
           />
           <View className="bg-[#6366ff] p-2 rounded-full absolute bottom-10">
-            <ChevronDown size={24} color="white" />
+            <Feather name="chevron-down" size={24} color="white" />
           </View>
         </Animated.View>
       )}

@@ -1,6 +1,6 @@
 import { View, Text, Modal, TouchableOpacity } from "react-native";
 import React from "react";
-import { Camera, Image, Trash2, X } from "lucide-react-native";
+import { Feather, AntDesign } from "@expo/vector-icons";
 
 const PictureOptions = ({
   visible,
@@ -25,7 +25,7 @@ const PictureOptions = ({
               Opciones de Foto
             </Text>
             <TouchableOpacity onPress={() => setModalVisible(false)}>
-              <X size={24} color="#fff" />
+              <AntDesign name="close" size={24} color="#fff" />
             </TouchableOpacity>
           </View>
 
@@ -37,7 +37,7 @@ const PictureOptions = ({
                 uploadPicture({ mode: "photo" });
               }}
             >
-              <Camera size={24} color="white" className="mr-3" />
+              <Feather name="camera" size={24} color="white" className="mr-3" />
               <Text className="text-white font-psemibold">Tomar Foto</Text>
             </TouchableOpacity>
 
@@ -48,7 +48,7 @@ const PictureOptions = ({
                 uploadPicture({ mode: "gallery" });
               }}
             >
-              <Image size={24} color="white" className="mr-3" />
+              <Feather name="image" size={24} color="white" className="mr-3" />
               <Text className="text-white font-psemibold">
                 Elegir de Galería
               </Text>
@@ -61,7 +61,12 @@ const PictureOptions = ({
                 deletePicture();
               }}
             >
-              <Trash2 size={24} color="white" className="mr-3" />
+              <Feather
+                name="trash-2"
+                size={24}
+                color="white"
+                className="mr-3"
+              />
               <Text className="text-white font-psemibold">Eliminar Foto</Text>
             </TouchableOpacity>
           </View>

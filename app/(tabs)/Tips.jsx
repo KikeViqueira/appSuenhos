@@ -12,42 +12,29 @@ import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import TipItem from "../../components/TipItem";
 import { xorBy } from "lodash";
-import {
-  Shield,
-  Bed,
-  Activity,
-  Apple,
-  AlertCircle,
-  Book,
-  Music,
-  Heart,
-  Trash2,
-  Check,
-  X,
-  LightbulbOff,
-  PieChart,
-} from "lucide-react-native";
+import { Feather, Entypo, AntDesign } from "@expo/vector-icons";
 import useTips from "../../hooks/useTips";
 
-//Declaramos el mapeo entre los iconos que se pueden usar en el tip y su correspondiente icono de lucide react-native
+//Declaramos el mapeo entre los iconos que se pueden usar en el tip y su correspondiente icono de Feather
 const iconMap = {
-  shield: Shield,
-  sleep: Bed,
-  fitness: Activity,
-  food: Apple,
-  alert: AlertCircle,
-  book: Book,
-  music: Music,
-  heart: Heart,
+  shield: (props) => <Feather name="shield" {...props} />,
+  sleep: (props) => <Feather name="moon" {...props} />,
+  fitness: (props) => <Feather name="activity" {...props} />,
+  food: (props) => <Feather name="coffee" {...props} />,
+  alert: (props) => <Feather name="alert-circle" {...props} />,
+  book: (props) => <Feather name="book" {...props} />,
+  music: (props) => <Feather name="music" {...props} />,
+  heart: (props) => <Feather name="heart" {...props} />,
 };
 
 /**
- * Función que servirá para mappear los iconos del objeto tip que se reciben en String en su correspondiente icono de lucide react-native
+ * Función que servirá para mappear los iconos del objeto tip que se reciben en String en su correspondiente icono de Feather
  * @param {string} iconName - Nombre del icono que se quiere mapear
  * @returns {React.Component} - Icono correspondiente al nombre pasado por parámetro
  */
 const getIcon = (iconName) => {
-  const IconComponent = iconMap[iconName] || Shield; // Si no se encuentra el icono, se usa un icono por defecto
+  const IconComponent =
+    iconMap[iconName] || ((props) => <Feather name="shield" {...props} />); // Si no se encuentra el icono, se usa un icono por defecto
   return IconComponent;
 };
 
@@ -171,8 +158,8 @@ const Tips = () => {
       </View>
 
       {/* Foreground content */}
-      <View className="z-10 flex flex-col items-center justify-center gap-6 px-8">
-        <LightbulbOff color="#6366ff" size={80} strokeWidth={1.5} />
+      <View className="flex z-10 flex-col gap-6 justify-center items-center px-8">
+        <Entypo name="light-bulb" color="#6366ff" size={80} />
         <View className="items-center">
           <Text className="text-2xl font-bold text-[#6366ff] mb-2 text-center">
             No tienes tips disponibles
@@ -192,8 +179,8 @@ const Tips = () => {
           onPress={() => router.push("./Stats")}
           className="mt-6 bg-[#6366ff] px-12 py-4 rounded-full flex flex-row items-center justify-center"
         >
-          <View className="flex flex-row items-center justify-center gap-4">
-            <PieChart color="white" size={20} />
+          <View className="flex flex-row gap-4 justify-center items-center">
+            <Feather name="pie-chart" color="white" size={20} />
             <Text className="text-lg text-white font-psemibold">
               Ir a Estadísticas
             </Text>
@@ -205,7 +192,7 @@ const Tips = () => {
 
   return (
     <SafeAreaView className="w-full h-full bg-primary">
-      <View className="flex flex-col items-center self-center justify-start w-full h-full gap-4 mt-3">
+      <View className="flex flex-col gap-4 justify-start items-center self-center mt-3 w-full h-full">
         {/*Header*/}
         <View className="flex-row items-center justify-between w-[90%]">
           <Text
@@ -224,7 +211,7 @@ const Tips = () => {
               onPress={handleDeletePress}
               className="bg-[#1e273a] p-2 rounded-full"
             >
-              <Trash2 color="#ff6b6b" size={24} />
+              <Feather name="trash-2" color="#ff6b6b" size={24} />
             </TouchableOpacity>
           )}
         </View>
@@ -249,7 +236,7 @@ const Tips = () => {
             <View className="flex-row items-center justify-between bg-[#1e273a] p-3 rounded-xl border border-[#323d4f]">
               <View className="flex-row items-center">
                 <View className="bg-[#ff6b6b]/10 p-2 rounded-full mr-3">
-                  <AlertCircle color="#ff6b6b" size={20} />
+                  <Feather name="alert-circle" color="#ff6b6b" size={20} />
                 </View>
                 <Text className="text-base text-white">
                   {selectedTips.length}{" "}
@@ -264,7 +251,7 @@ const Tips = () => {
                   onPress={disableSelection}
                   className="bg-[#323d4f] p-2 rounded-lg"
                 >
-                  <X color="white" size={20} />
+                  <AntDesign name="close" color="white" size={20} />
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={confirmDeletion}
@@ -272,7 +259,7 @@ const Tips = () => {
                   disabled={selectedTips.length === 0}
                   style={{ opacity: selectedTips.length === 0 ? 0.5 : 1 }}
                 >
-                  <Check color="white" size={20} />
+                  <Feather name="check" color="white" size={20} />
                 </TouchableOpacity>
               </View>
             </View>

@@ -1,9 +1,12 @@
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import React, { useEffect } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ChevronLeft, BookmarkCheck, Lightbulb } from "lucide-react-native";
+import {
+  Feather,
+  MaterialCommunityIcons,
+  FontAwesome5,
+} from "@expo/vector-icons";
 import { router } from "expo-router";
-import { tips } from "../constants/tips";
 import useTips from "../hooks/useTips";
 
 const FavTips = () => {
@@ -31,9 +34,9 @@ const FavTips = () => {
           /*Volvemos a la página anterior, expo sabe de donde venimos por lo que no le supone un problemas retroceder
         evitando asi tener que hacer nosotros comprobaciones manuales*/
           onPress={() => router.back()}
-          className="flex-row items-center gap-2"
+          className="flex-row gap-2 items-center"
         >
-          <ChevronLeft size={24} color="white" />
+          <Feather name="chevron-left" size={24} color="white" />
           <Text className="text-lg text-white font-psemibold">
             Volver al perfil
           </Text>
@@ -42,7 +45,12 @@ const FavTips = () => {
 
       {favoriteTips.length === 0 ? (
         <View className="flex-1 items-center justify-center gap-4 px-8 max-h-[75%]">
-          <Lightbulb color="#6366ff" size={80} strokeWidth={1.5} />
+          <FontAwesome5
+            name="lightbulb"
+            color="#6366ff"
+            size={80}
+            strokeWidth={1.5}
+          />
           <Text className="text-2xl font-bold text-[#6366ff] mb-2 text-center">
             No tienes tips favoritos
           </Text>
@@ -84,7 +92,11 @@ const FavTips = () => {
               >
                 {tip.title}
               </Text>
-              <BookmarkCheck color="#6366ff" size={24} />
+              <MaterialCommunityIcons
+                name="bookmark-check-outline"
+                size={24}
+                color="#6366ff"
+              />
             </TouchableOpacity>
           ))}
         </ScrollView>

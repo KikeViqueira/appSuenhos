@@ -9,14 +9,7 @@ import {
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  Camera,
-  BookmarkCheck,
-  HelpCircle,
-  LockKeyhole,
-  BellRing,
-  BadgeCheck,
-} from "lucide-react-native";
+import { Feather, MaterialCommunityIcons, Octicons } from "@expo/vector-icons";
 import placeholderImage from "../../assets/images/placeholder.png";
 import * as ImagePicker from "expo-image-picker";
 import PictureOptions from "../../components/PictureOptions";
@@ -199,7 +192,7 @@ const Profile = () => {
                 // Cuando hagamos click en el botón de la cámara tenemos que enseñar el modal con las diferentes opciones al usuario
                 onPress={() => setshowModal(true)}
               >
-                <Camera size={20} color="white" />
+                <Feather name="camera" size={20} color="white" />
               </TouchableOpacity>
             </View>
             <Text className="mt-4 text-xl text-white font-psemibold">
@@ -217,7 +210,7 @@ const Profile = () => {
           {/*GRÁFICA QUE MUESTRA CUANTOS DÍAS DEL MES EL USER HA INTERACCIONADO CON EL CHAT Y HA HABLADO SOBRE SUS SUEÑOS*/}
           <View className="flex flex-col items-center bg-[#1e2a47] rounded-xl p-4 mb-4">
             <View className="flex flex-row gap-2 items-center mb-2">
-              <BadgeCheck size={20} color="#fff" />
+              <Octicons name="verified" size={20} color="#fff" />
               <Text
                 className="text-lg font-bold color-[#6366ff]"
                 style={{ fontSize: 18 }}
@@ -256,7 +249,7 @@ const Profile = () => {
           {/* Disable Notifications Switch */}
           <View className="bg-[#1e2a47] p-4 rounded-xl flex-row justify-between">
             <View className="flex-row gap-2 items-center">
-              <BellRing color="white" />
+              <Feather name="bell" color="white" size={20} />
               <Text className="text-lg text-white font-psemibold">
                 Notificaciones Activas
               </Text>
@@ -278,7 +271,7 @@ const Profile = () => {
             onPress={() => setshowModalChangePassword(true)}
           >
             <View className="flex-row gap-2 items-center">
-              <LockKeyhole color="white" />
+              <Feather name="lock" color="white" size={20} />
               <Text className="text-lg text-white font-psemibold">
                 Cambiar Contraseña
               </Text>
@@ -303,7 +296,11 @@ const Profile = () => {
             onPress={() => router.push("../FavTips")}
           >
             <View className="flex-row gap-2 items-center">
-              <BookmarkCheck color="white" />
+              <MaterialCommunityIcons
+                name="bookmark-outline"
+                color="white"
+                size={24}
+              />
               <Text className="text-lg text-white font-psemibold">
                 Mis Tips Favoritos
               </Text>
@@ -316,7 +313,7 @@ const Profile = () => {
             //TODO: Tenemos que hacer una panatlla donde el user pueda recibir ayuda en caso de problemas
           >
             <View className="flex-row gap-2 items-center">
-              <HelpCircle color="white" />
+              <Feather name="help-circle" color="white" size={24} />
               <Text className="text-lg text-white font-psemibold">Ayuda</Text>
             </View>
           </TouchableOpacity>

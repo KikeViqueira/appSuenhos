@@ -13,7 +13,7 @@ import { questions } from "../assets/DRMQuestions.json";
 import SliderQuestion from "../components/SliderQuestion";
 import OptionQuestion from "../components/OptionQuestion";
 import TextQuestion from "../components/TextQuestion";
-import { ChevronLeft } from "lucide-react-native";
+import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { getDailyReportFlag } from "../hooks/useDRM";
 import useDRM from "../hooks/useDRM";
@@ -104,13 +104,13 @@ const DRM = () => {
 
   return (
     <SafeAreaView className="flex-1 w-full h-full bg-primary">
-      <View className="flex flex-row items-center justify-start gap-4 p-4">
+      <View className="flex flex-row gap-4 justify-start items-center p-4">
         <TouchableOpacity
           //Dejamos que el user pueda volver a las gráficas en caso de que haya entrado sin querer en la pestaña
           onPress={() => router.back()}
-          className="flex flex-row items-center gap-2 py-2"
+          className="flex flex-row gap-2 items-center py-2"
         >
-          <ChevronLeft size={24} color="white" />
+          <Feather name="chevron-left" size={24} color="white" />
         </TouchableOpacity>
         <Text
           className="text-center font-bold text-[#6366ff] py-2"
@@ -183,7 +183,7 @@ const DRM = () => {
           })}
           {/*Botón para generar el informe detallado*/}
           <TouchableOpacity
-            className={`${getButtonStyle()} py-4 rounded-xl items-center w-full`}
+            className={`items-center py-4 w-full rounded-xl ${getButtonStyle()}`}
             onPress={submit}
             disabled={
               reportButtonState === "generating" ||

@@ -1,4 +1,4 @@
-import { AlarmClock, Bed, Moon, Coffee, Lightbulb } from "lucide-react-native";
+import { Feather } from "@expo/vector-icons";
 
 export const tips = [
   {
@@ -6,7 +6,7 @@ export const tips = [
     title: "Rutina Consistente",
     description:
       "Acuéstate y despiértate a la misma hora todos los días para regular tu reloj biológico.",
-    icon: AlarmClock,
+    icon: (props) => <Feather name="clock" {...props} />,
     color: "red",
     details: {
       fullDescription:
@@ -29,7 +29,7 @@ export const tips = [
     title: "Ambiente Ideal",
     description:
       "Mantén tu habitación oscura, fresca y silenciosa para favorecer un sueño profundo.",
-    icon: Bed,
+    icon: (props) => <Feather name="moon" {...props} />,
     color: "green",
     details: {
       fullDescription:
@@ -53,7 +53,7 @@ export const tips = [
     title: "Evita la Cafeína",
     description:
       "No consumas cafeína al menos 6 horas antes de dormir para evitar insomnio.",
-    icon: Coffee,
+    icon: (props) => <Feather name="coffee" {...props} />,
     color: "white",
     details: {
       fullDescription:
@@ -76,7 +76,7 @@ export const tips = [
     title: "Luz Azul, No Gracias",
     description:
       "Reduce el uso de pantallas antes de dormir para no alterar la producción de melatonina.",
-    icon: Lightbulb,
+    icon: (props) => <Feather name="tv" {...props} />,
     color: "yellow",
     details: {
       fullDescription:
@@ -100,7 +100,7 @@ export const tips = [
     title: "Relájate Antes de Dormir",
     description:
       "Crea una rutina relajante como leer o meditar para preparar tu cuerpo para el descanso.",
-    icon: Moon,
+    icon: (props) => <Feather name="moon" {...props} />,
     color: "purple",
     details: {
       fullDescription:

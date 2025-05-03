@@ -10,7 +10,7 @@ import {
   Pressable,
 } from "react-native";
 import React, { useEffect, useState } from "react";
-import { Menu, Calendar, MessagesSquare } from "lucide-react-native";
+import { Feather } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import useChat from "../../hooks/useChat";
 import TypingIndicator from "../../components/TypingIndicator";
@@ -151,12 +151,12 @@ const Chat = () => {
         className="flex-1"
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
-        <View className="flex flex-row items-center justify-start gap-4 p-4 android:pt-6">
+        <View className="flex flex-row gap-4 justify-start items-center p-4 android:pt-6">
           <TouchableOpacity
             //Cuando pinchemos en el menú hamburguesa se abre el modal
             onPress={toggleModal}
           >
-            <Menu size={32} color="#6366ff" />
+            <Feather name="menu" size={32} color="#6366ff" />
           </TouchableOpacity>
 
           <Text
@@ -173,11 +173,11 @@ const Chat = () => {
          */}
         {initializing ? (
           // Pantalla de carga profesional mientras inicializamos
-          <View className="items-center justify-center flex-1 px-6">
+          <View className="flex-1 justify-center items-center px-6">
             <View className="w-full bg-[#1e2a47] rounded-xl p-8">
               <View className="flex-row w-full">
                 <View className="w-2 h-full bg-[#6366ff]" />
-                <View className="items-center flex-1">
+                <View className="flex-1 items-center">
                   <LoadingBanner />
                   <Text className="mb-2 text-xl font-bold text-white">
                     Cargando entorno de ZzzTime AI
@@ -187,7 +187,7 @@ const Chat = () => {
                     tus sueños y mejorar tu descanso.
                   </Text>
 
-                  <View className="flex flex-row justify-center w-full gap-2 mt-2">
+                  <View className="flex flex-row gap-2 justify-center mt-2 w-full">
                     <View className="h-2 w-2 rounded-full bg-[#6366ff] opacity-30" />
                     <View className="h-2 w-2 rounded-full bg-[#6366ff] opacity-50" />
                     <View className="h-2 w-2 rounded-full bg-[#6366ff] opacity-70" />
@@ -201,8 +201,8 @@ const Chat = () => {
           canCreateNewChat ? (
             // Pantalla de bienvenida si no hay mensajes en el caso de que se abra el teclado y el user quiera cerrarlo tenemos que englobar esta vista en un Pressable para que se cierre el teclado
             <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
-              <View className="items-center justify-center flex-1 android:px-6">
-                <View className="items-center justify-center flex-1">
+              <View className="flex-1 justify-center items-center android:px-6">
+                <View className="flex-1 justify-center items-center">
                   <Text className="text-center text-[#6366ff] text-3xl font-bold mb-2">
                     Hola, {userInfo?.name || "User"}!
                   </Text>
@@ -215,13 +215,13 @@ const Chat = () => {
             </Pressable>
           ) : (
             // Pantalla mejorada para cuando el usuario no puede crear un nuevo chat hoy
-            <View className="items-center justify-center flex-1 px-6 android:px-4">
+            <View className="flex-1 justify-center items-center px-6 android:px-4">
               <View className="w-full bg-[#1e2a47] rounded-xl p-8 border border-[#323d4f]">
                 <View className="flex-row w-full">
                   <View className="w-2 h-full bg-[#6366ff]" />
-                  <View className="items-center flex-1">
+                  <View className="flex-1 items-center">
                     <View className="bg-[#6366ff]/10 p-4 rounded-full mb-4">
-                      <Calendar size={32} color="#6366ff" />
+                      <Feather name="calendar" size={32} color="#6366ff" />
                     </View>
                     <Text className="mb-3 text-xl font-bold text-white">
                       ¡Hola, {userInfo?.name || "User"}!
@@ -249,8 +249,12 @@ const Chat = () => {
                       onPress={() => router.push("../ChatsHistory")}
                       className="mt-2 bg-[#6366ff] px-6 py-3 rounded-xl flex-row items-center"
                     >
-                      <View className="flex-row items-center justify-center gap-2">
-                        <MessagesSquare size={16} color="#ffffff" />
+                      <View className="flex-row gap-2 justify-center items-center">
+                        <Feather
+                          name="message-square"
+                          size={16}
+                          color="#ffffff"
+                        />
                         <Text className="font-medium text-white">
                           Ver historial de chats
                         </Text>

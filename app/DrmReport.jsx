@@ -8,14 +8,7 @@ import {
   Animated,
 } from "react-native";
 import React, { useEffect, useState, useRef } from "react";
-import {
-  ChevronLeft,
-  Download,
-  ChevronDown,
-  ClipboardList,
-  AlertTriangle,
-  Info,
-} from "lucide-react-native";
+import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import { router } from "expo-router";
 import useDRM from "../hooks/useDRM";
 import { useAuthContext } from "../context/AuthContext";
@@ -248,13 +241,13 @@ const DrmReport = () => {
   return (
     <SafeAreaView className="flex-1 w-full h-full bg-primary">
       <View className="flex flex-row items-center justify-between py-4 w-[90%] self-center">
-        <View className="flex flex-row items-center justify-start gap-4">
+        <View className="flex flex-row gap-4 justify-start items-center">
           <TouchableOpacity
             //Dejamos que el user pueda volver a las gráficas en caso de que haya entrado sin querer en la pestaña
             onPress={() => router.back()}
-            className="flex flex-row items-center gap-2 py-2"
+            className="flex flex-row gap-2 items-center py-2"
           >
-            <ChevronLeft size={24} color="white" />
+            <Feather name="chevron-left" size={24} color="white" />
           </TouchableOpacity>
           <Text
             className="text-center font-bold text-[#6366ff] py-2"
@@ -264,12 +257,12 @@ const DrmReport = () => {
           </Text>
         </View>
         {hasReportData && (
-          <View className="flex-row items-center gap-4">
+          <View className="flex-row gap-4 items-center">
             <TouchableOpacity
               //Cuando pinchemos en el botón de descargar el informe llamamos a la función para pasarlo a PDF
               onPress={createPDF}
             >
-              <Download size={24} color="white" />
+              <Feather name="download" size={24} color="white" />
             </TouchableOpacity>
           </View>
         )}
@@ -317,14 +310,14 @@ const DrmReport = () => {
                     }}
                   />
                   <View className="bg-[#6366ff] p-2 rounded-full">
-                    <ChevronDown size={24} color="white" />
+                    <Feather name="chevron-down" size={24} color="white" />
                   </View>
                 </Animated.View>
               )}
             </View>
 
             <TouchableOpacity
-              className={`py-4 rounded-xl items-center w-full ${getButtonStyle()}`}
+              className={`items-center py-4 w-full rounded-xl ${getButtonStyle()}`}
               //Si el botón esta en default llamamos a crear tip, si este ya está creado navegamos a la pestaña de tips
               onPress={
                 tipButtonState === "default"
@@ -346,13 +339,13 @@ const DrmReport = () => {
             </TouchableOpacity>
           </>
         ) : (
-          <View className="items-center justify-center flex-1 w-full">
+          <View className="flex-1 justify-center items-center w-full">
             <View className="w-full items-center justify-center p-8 bg-[#1e2a47] rounded-xl flex gap-5">
               <View className="flex-row w-full">
                 <View className="w-2 h-full bg-[#ff4757]" />
                 <View className="flex-1">
                   <View className="p-4 mb-4 rounded-full bg-[#2a2a4a] self-center">
-                    <AlertTriangle size={60} color="#ff4757" />
+                    <Feather name="alert-triangle" size={60} color="#ff4757" />
                   </View>
                   <Text className="mb-2 text-2xl font-bold text-center text-white">
                     No hay informe DRM disponible
@@ -365,9 +358,13 @@ const DrmReport = () => {
                 </View>
               </View>
 
-              <View className="w-full p-4 rounded-xl">
+              <View className="p-4 w-full rounded-xl">
                 <View className="flex-row items-center mb-3">
-                  <ClipboardList size={22} color="#6366ff" />
+                  <FontAwesome5
+                    name="clipboard-list"
+                    size={22}
+                    color="#6366ff"
+                  />
                   <Text className="ml-2 text-xl font-semibold text-[#6366ff]">
                     ¿Qué necesitas hacer?
                   </Text>
@@ -404,7 +401,7 @@ const DrmReport = () => {
               <View className="w-full bg-[#232e45] p-4 rounded-xl border border-[#3d4a69]">
                 <View className="flex-row items-start">
                   <View className="bg-[#6366ff]/10 p-2 rounded-full mr-3">
-                    <Info size={20} color="#6366ff" />
+                    <Feather name="info" size={20} color="#6366ff" />
                   </View>
                   <View className="flex-1">
                     <Text className="text-base font-semibold text-[#6366ff] mb-1">

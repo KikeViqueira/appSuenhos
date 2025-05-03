@@ -1,6 +1,6 @@
 import { View, Text } from "react-native";
 import React from "react";
-import { Square, CheckSquare, MessageSquare } from "lucide-react-native";
+import { Feather } from "@expo/vector-icons";
 /*
  * Recibimos si el chat está seleccionado o no en el modo de selección múltiple y si este último está ativado o no
  */
@@ -11,14 +11,15 @@ const ChatItem = ({ item, isSelectionMode, isSelected }) => {
         isSelected ? "border-[#ff6b6b]" : "border-[#323d4f]"
       }`}
     >
-      <View className="flex-row items-center justify-between p-5">
-        <View className="flex-row items-center flex-1">
+      <View className="flex-row justify-between items-center p-5">
+        <View className="flex-row flex-1 items-center">
           <View
             className={`w-10 h-10 rounded-full mr-3 items-center justify-center ${
               isSelected ? "bg-[#ff6b6b]/20" : "bg-[#6366ff]/20"
             }`}
           >
-            <MessageSquare
+            <Feather
+              name="message-square"
               color={isSelected ? "#ff6b6b" : "#6366ff"}
               size={20}
             />
@@ -43,9 +44,9 @@ const ChatItem = ({ item, isSelectionMode, isSelected }) => {
             }`}
           >
             {isSelected ? (
-              <CheckSquare color="#ff6b6b" size={24} />
+              <Feather name="check-square" color="#ff6b6b" size={24} />
             ) : (
-              <Square color="white" size={24} />
+              <Feather name="square" color="white" size={24} />
             )}
           </View>
         )}

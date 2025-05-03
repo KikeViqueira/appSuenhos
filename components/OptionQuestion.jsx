@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity } from "react-native";
 import React, { useState } from "react";
-import { CheckCircle } from "lucide-react-native";
+import { Feather } from "@expo/vector-icons";
 
 /* Options question object example
  *    "id": "drm_question2",
@@ -18,7 +18,7 @@ const OptionQuestion = ({ question, onAnswer }) => {
   const [selectedOption, setSelectedOption] = useState(null);
 
   return (
-    <View className="w-full mb-4">
+    <View className="mb-4 w-full">
       <Text className="mb-4 text-xl font-semibold text-[#6366ff]">
         {question.title}
       </Text>
@@ -49,7 +49,7 @@ const OptionQuestion = ({ question, onAnswer }) => {
             </Text>
 
             {selectedOption === item.id && (
-              <CheckCircle color="#6366ff" size={20} />
+              <Feather name="check-circle" color="#6366ff" size={20} />
             )}
           </TouchableOpacity>
         ))}

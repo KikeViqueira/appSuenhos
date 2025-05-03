@@ -11,16 +11,11 @@ import {
 } from "react-native";
 import React, { useEffect, useState, useRef } from "react";
 import {
-  X,
-  Trash2,
-  Check,
-  MessageSquareOff,
-  MessagesSquare,
-  AlertCircle,
-  Calendar,
-  ArrowRight,
-  SquarePen,
-} from "lucide-react-native";
+  Feather,
+  AntDesign,
+  Entypo,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { xorBy } from "lodash";
 import ChatItem from "../components/ChatItem";
@@ -246,13 +241,13 @@ const ChatsHistory = () => {
   // Componente para mostrar un selector de fecha con etiqueta
   const DatePickerWithLabel = ({ label, date, pickerType }) => (
     <View className="w-[40%]">
-      <Text className="mb-1 text-base text-white ">{label}</Text>
+      <Text className="mb-1 text-base text-white">{label}</Text>
       <TouchableOpacity
         onPress={() => openDatePicker(pickerType)}
         className="flex-row items-center bg-[#1e273a] p-3 py-5 rounded-xl w-full"
       >
-        <View className="flex-row items-center gap-2">
-          <Calendar size={16} color="#6366ff" />
+        <View className="flex-row gap-2 items-center">
+          <Feather name="calendar" size={16} color="#6366ff" />
           <Text className="text-white">{date.toLocaleDateString()}</Text>
         </View>
       </TouchableOpacity>
@@ -261,9 +256,9 @@ const ChatsHistory = () => {
 
   return (
     <SafeAreaView className="flex-1 w-full bg-primary">
-      <View className="flex flex-row items-center justify-start gap-4 p-4">
+      <View className="flex flex-row gap-4 justify-start items-center p-4">
         <TouchableOpacity onPress={() => router.back()}>
-          <X size={32} color={"#6366ff"} />
+          <AntDesign name="close" size={32} color={"#6366ff"} />
         </TouchableOpacity>
         <Text
           className="text-center font-bold text-[#6366ff] py-4"
@@ -277,7 +272,7 @@ const ChatsHistory = () => {
             onPress={() => router.replace("./(tabs)/Chat")}
             className="absolute right-5 bg-[#6366ff] p-3 rounded-full"
           >
-            <SquarePen size={24} color="white" />
+            <Entypo name="new-message" size={24} color="white" />
           </TouchableOpacity>
         )}
       </View>
@@ -286,18 +281,18 @@ const ChatsHistory = () => {
       {/*Si existe algún chat asociado al user enseñamos el componente de selección de chats mediante rango de fechas*/}
       {history.length > 0 && (
         <View className="w-[90%] self-center bg-[#1e2a47] p-4 rounded-xl mb-4">
-          <Text className="mb-3 text-lg font-semibold text-white ">
+          <Text className="mb-3 text-lg font-semibold text-white">
             Buscar chats por rango de fechas
           </Text>
 
-          <View className="flex-row items-center justify-between w-full">
+          <View className="flex-row justify-between items-center w-full">
             <DatePickerWithLabel
               label="Desde"
               date={startDate}
               pickerType="start"
             />
 
-            <ArrowRight size={20} color="#6366ff" />
+            <Feather name="arrow-right" size={20} color="#6366ff" />
 
             <DatePickerWithLabel
               label="Hasta"
@@ -415,7 +410,7 @@ const ChatsHistory = () => {
       >
         {history.length > 0 ? (
           <>
-            <View className="flex-row items-center justify-between mb-4">
+            <View className="flex-row justify-between items-center mb-4">
               <Text className="mb-2 text-xl font-bold text-white">
                 Chats Recientes
               </Text>
@@ -428,7 +423,7 @@ const ChatsHistory = () => {
                   onPress={handleDeletePress}
                   className="bg-[#1e273a] p-2 rounded-full"
                 >
-                  <Trash2 color="#ff6b6b" size={24} />
+                  <Feather name="trash-2" color="#ff6b6b" size={24} />
                 </TouchableOpacity>
               )}
             </View>
@@ -453,7 +448,11 @@ const ChatsHistory = () => {
                   <View className="flex-row items-center justify-between bg-gradient-to-r from-[#1e273a] to-[#252e40] p-3 rounded-xl border border-[#323d4f]">
                     <View className="flex-row items-center">
                       <View className="bg-[#ff6b6b]/10 p-2 rounded-full mr-3">
-                        <AlertCircle color="#ff6b6b" size={20} />
+                        <Feather
+                          name="alert-circle"
+                          color="#ff6b6b"
+                          size={20}
+                        />
                       </View>
                       <Text className="text-base text-white">
                         {selectedChats.length}{" "}
@@ -468,7 +467,7 @@ const ChatsHistory = () => {
                         onPress={disableSelection}
                         className="bg-[#323d4f] p-2 rounded-lg"
                       >
-                        <X color="white" size={20} />
+                        <AntDesign name="close" color="white" size={20} />
                       </TouchableOpacity>
                       <TouchableOpacity
                         onPress={confirmDeletion}
@@ -478,7 +477,7 @@ const ChatsHistory = () => {
                           opacity: selectedChats.length === 0 ? 0.5 : 1,
                         }}
                       >
-                        <Check color="white" size={20} />
+                        <Feather name="check" color="white" size={20} />
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -504,10 +503,14 @@ const ChatsHistory = () => {
             />
           </>
         ) : (
-          <View className="flex items-center justify-center px-6 py-10">
+          <View className="flex justify-center items-center px-6 py-10">
             <View className="bg-gradient-to-b from-[#1e273a] to-[#101520] p-8 rounded-2xl border border-[#323d4f] w-full items-center">
               <View className="bg-[#6366ff]/10 p-5 rounded-full mb-4">
-                <MessageSquareOff size={40} color="#6366ff" />
+                <MaterialCommunityIcons
+                  name="message-off-outline"
+                  size={40}
+                  color="#6366ff"
+                />
               </View>
 
               <Text className="mb-3 text-xl font-bold text-center text-white">
@@ -519,8 +522,8 @@ const ChatsHistory = () => {
                 facilitarte el acceso a ellos.
               </Text>
 
-              <View className="flex-row items-center gap-2 mt-2">
-                <MessagesSquare size={16} color="#6366ff" />
+              <View className="flex-row gap-2 items-center mt-2">
+                <Feather name="message-square" size={16} color="#6366ff" />
                 <Text className="text-sm text-[#6366ff]">
                   Podrás buscar chats por rango de fechas
                 </Text>

@@ -8,15 +8,7 @@ import {
   StatusBar,
 } from "react-native";
 import React from "react";
-import {
-  AlertTriangle,
-  Clock,
-  MoonStar,
-  Hourglass,
-  ArrowLeft,
-  Coffee,
-  Sun,
-} from "lucide-react-native";
+import { MaterialCommunityIcons, Feather, AntDesign } from "@expo/vector-icons";
 
 const SleepLogResponses = ({ isVisible, onClose, sleepLog }) => {
   const formatTime = (timeString) => {
@@ -78,9 +70,9 @@ const SleepLogResponses = ({ isVisible, onClose, sleepLog }) => {
   const getQuestionIcon = (answerId) => {
     switch (answerId) {
       case "answer1":
-        return <Sun size={22} color="#6366ff" />;
+        return <Feather name="sun" size={22} color="#6366ff" />;
       case "answer2":
-        return <Coffee size={22} color="#6366ff" />;
+        return <Feather name="coffee" size={22} color="#6366ff" />;
       default:
         return null;
     }
@@ -99,7 +91,7 @@ const SleepLogResponses = ({ isVisible, onClose, sleepLog }) => {
               className="p-2 mr-3 bg-[#1e2a47] rounded-full"
               activeOpacity={0.7}
             >
-              <ArrowLeft size={24} color="#6366ff" />
+              <Feather name="arrow-left" size={24} color="#6366ff" />
             </TouchableOpacity>
             <View className="flex-row items-center">
               <View className="w-2 h-14 mr-3 bg-[#6366ff] rounded-full" />
@@ -126,8 +118,12 @@ const SleepLogResponses = ({ isVisible, onClose, sleepLog }) => {
                   <View className="flex-row">
                     <View className="w-2 h-full bg-[#4834d4]" />
                     <View className="flex-1 p-5">
-                      <View className="flex-row items-center gap-2 mb-3">
-                        <MoonStar size={22} color="#6366ff" />
+                      <View className="flex-row gap-2 items-center mb-3">
+                        <MaterialCommunityIcons
+                          name="sleep"
+                          size={22}
+                          color="#6366ff"
+                        />
                         <Text className="text-xl font-bold color-[#6366ff]">
                           Hora de dormir
                         </Text>
@@ -144,8 +140,8 @@ const SleepLogResponses = ({ isVisible, onClose, sleepLog }) => {
                   <View className="flex-row">
                     <View className="w-2 h-full bg-[#ff6b6b]" />
                     <View className="flex-1 p-5">
-                      <View className="flex-row items-center gap-2 mb-3">
-                        <Clock size={22} color="#6366ff" />
+                      <View className="flex-row gap-2 items-center mb-3">
+                        <Feather name="clock" size={22} color="#6366ff" />
                         <Text className="text-xl font-bold color-[#6366ff]">
                           Hora de despertar
                         </Text>
@@ -162,8 +158,8 @@ const SleepLogResponses = ({ isVisible, onClose, sleepLog }) => {
                   <View className="flex-row">
                     <View className="w-2 h-full bg-[#feca57]" />
                     <View className="flex-1 p-5">
-                      <View className="flex-row items-center gap-2 mb-3">
-                        <Hourglass size={22} color="#6366ff" />
+                      <View className="flex-row gap-2 items-center mb-3">
+                        <AntDesign name="hourglass" size={22} color="#6366ff" />
                         <Text className="text-xl font-bold color-[#6366ff]">
                           Duración del sueño
                         </Text>
@@ -189,7 +185,7 @@ const SleepLogResponses = ({ isVisible, onClose, sleepLog }) => {
                       <View className="flex-row">
                         <View className="w-2 h-full bg-[#1dd1a1]" />
                         <View className="flex-1 p-5">
-                          <View className="flex-row items-center gap-2 mb-3">
+                          <View className="flex-row gap-2 items-center mb-3">
                             {getQuestionIcon(key)}
                             <Text className="text-xl font-bold color-[#6366ff]">
                               {getQuestionText(key)}
@@ -207,7 +203,7 @@ const SleepLogResponses = ({ isVisible, onClose, sleepLog }) => {
             ) : (
               <View className="w-full items-center justify-center p-8 bg-[#1e2a47] rounded-xl mt-4">
                 <View className="p-4 mb-4 rounded-full bg-[#2a2a4a]">
-                  <AlertTriangle size={60} color="#ff4757" />
+                  <Feather name="alert-triangle" size={60} color="#ff4757" />
                 </View>
                 <Text className="mb-2 text-2xl font-bold text-center color-white">
                   No hay datos disponibles

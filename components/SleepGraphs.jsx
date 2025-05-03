@@ -1,14 +1,6 @@
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import React, { useState, useEffect } from "react";
-import {
-  Bed,
-  Boxes,
-  Info,
-  TrendingUp,
-  Award,
-  AlertTriangle,
-  Heart,
-} from "lucide-react-native";
+import { MaterialIcons, FontAwesome6, Feather } from "@expo/vector-icons";
 import WeeklySleepChart from "./WeeklySleepChart";
 import SleepPieChart from "./SleepPieChart";
 import useSleep from "../hooks/useSleep";
@@ -151,7 +143,7 @@ const SleepGraphs = ({ userInfo }) => {
     <ScrollView>
       <View className="flex justify-center w-full gap-6 px-4 py-5 rounded-lg bg-[#1e2a47] mb-6">
         <View className="flex flex-row gap-4 justify-start">
-          <Bed size={24} color="#fff" />
+          <MaterialIcons name="bed" size={24} color="#fff" />
           <Text
             className="text-center font-bold color-[#6366ff]"
             style={{ fontSize: 24 }}
@@ -167,7 +159,7 @@ const SleepGraphs = ({ userInfo }) => {
         {/* Estadísticas de sueño */}
         <View className="mt-4">
           <View className="flex flex-row gap-4 justify-start mb-4">
-            <TrendingUp size={24} color="#fff" />
+            <Feather name="trending-up" size={24} color="#fff" />
             <Text
               className="text-center font-bold color-[#6366ff]"
               style={{ fontSize: 24 }}
@@ -188,9 +180,9 @@ const SleepGraphs = ({ userInfo }) => {
                   {formatHours(sleepStats.averageSleep)}h
                 </Text>
                 {sleepStats.sleepDeficit > 0 ? (
-                  <AlertTriangle size={16} color="#ff6b6b" />
+                  <Feather name="alert-triangle" size={16} color="#ff6b6b" />
                 ) : (
-                  <Award size={16} color="#4ade80" />
+                  <Feather name="award" size={16} color="#4ade80" />
                 )}
               </View>
               <Text className="text-xs color-[#a0b0c7] mt-1">
@@ -247,7 +239,12 @@ const SleepGraphs = ({ userInfo }) => {
           {/* Consejos personalizados */}
           <View className="bg-[#0e172a] p-4 rounded-xl mt-2 border border-[#6366ff]">
             <View className="flex flex-row items-center mb-2">
-              <Info size={18} color="#6366ff" style={{ marginRight: 8 }} />
+              <Feather
+                name="info"
+                size={18}
+                color="#6366ff"
+                style={{ marginRight: 8 }}
+              />
               <Text className="font-bold color-white">
                 Consejo personalizado
               </Text>
@@ -270,7 +267,7 @@ const SleepGraphs = ({ userInfo }) => {
 
         {/* Gráfica que compara lo que ha dormido el user vs lo que debería de dormir vs un user ideal de su rango de edad */}
         <View className="flex flex-row gap-4 justify-start mt-4">
-          <Heart size={24} color="#fff" />
+          <Feather name="heart" size={24} color="#fff" />
           <Text
             className="text-center font-bold color-[#6366ff]"
             style={{ fontSize: 24 }}
@@ -287,7 +284,7 @@ const SleepGraphs = ({ userInfo }) => {
 
         {/* Fases del sueño */}
         <View className="flex flex-row gap-4 justify-start mt-4">
-          <Boxes size={24} color="#fff" />
+          <FontAwesome6 name="boxes-stacked" size={24} color="#fff" />
           <Text
             className="text-center font-bold color-[#6366ff]"
             style={{ fontSize: 24 }}

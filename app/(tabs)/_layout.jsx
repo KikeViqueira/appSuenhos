@@ -1,25 +1,10 @@
-import { View, Text, Image, Animated } from "react-native";
-import { Tabs, Redirect } from "expo-router";
+import { Text, Animated, View } from "react-native";
+import { Tabs } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import {
-  ChartColumn,
-  CirclePlay,
-  MessageCircleMore,
-  Lightbulb,
-  ClipboardList,
-  UserRound,
-} from "lucide-react-native";
+import { Entypo, Feather } from "@expo/vector-icons";
 import React, { useRef, useEffect } from "react";
-import icons from "../../constants/icons";
 
-import { ShieldQuestion } from "lucide-react-native";
-
-const TabIcon = ({
-  icon: IconParameter = ShieldQuestion,
-  color,
-  name,
-  focused,
-}) => {
+const TabIcon = ({ icon: IconName = "help-circle", color, name, focused }) => {
   // Referencia para animación del icono
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
@@ -34,14 +19,21 @@ const TabIcon = ({
   }, [focused]);
 
   return (
-    //Damos estilo a nuestros iconos del tab junto a sus correspondientes nombres
     <Animated.View
-      className="flex items-center justify-center gap-1 mt-6"
+      className="flex gap-2 justify-center items-center mt-4 mb-1"
       style={{
         transform: [{ scale: scaleAnim }],
+        width: 60, // Ancho fijo para evitar que se corten los iconos
+        height: 50, // Altura fija para mantener consistencia
       }}
     >
-      <IconParameter color={color} size={24} />
+      <View style={{ padding: 2 }}>
+        {IconName === "light-bulb" ? (
+          <Entypo name={IconName} color={color} size={24} />
+        ) : (
+          <Feather name={IconName} color={color} size={24} />
+        )}
+      </View>
       <Text
         className={`${focused ? "font-psemibold" : "font-pregular"} text-xs`}
         style={{ color: color }}
@@ -65,9 +57,11 @@ const Tabslayout = () => {
           //Establecemos ahora los colores de fondo de la caja que agrupa a los tabs
           tabBarStyle: {
             backgroundColor: "#323d4f",
-            borderTopCWidth: 1,
+            borderTopWidth: 1,
             borderTopColor: "#1e2a47",
-            height: 84,
+            height: 90, // Aumentamos la altura para dar más espacio
+            paddingTop: 6, // Añadimos padding superior
+            paddingBottom: 10, // Añadimos padding inferior
           },
         }}
       >
@@ -83,7 +77,7 @@ const Tabslayout = () => {
             title: "Estadísticas de Sueño",
             tabBarIcon: ({ color, focused }) => (
               <TabIcon
-                icon={ChartColumn}
+                icon="bar-chart-2"
                 color={color}
                 name="Stats"
                 focused={focused}
@@ -99,7 +93,7 @@ const Tabslayout = () => {
             headerShown: false,
             tabBarIcon: ({ color, focused }) => (
               <TabIcon
-                icon={CirclePlay}
+                icon="play-circle"
                 color={color}
                 name="Music"
                 focused={focused}
@@ -115,7 +109,7 @@ const Tabslayout = () => {
             headerShown: false,
             tabBarIcon: ({ color, focused }) => (
               <TabIcon
-                icon={MessageCircleMore}
+                icon="message-circle"
                 color={color}
                 name="Chat"
                 focused={focused}
@@ -131,7 +125,7 @@ const Tabslayout = () => {
             headerShown: false,
             tabBarIcon: ({ color, focused }) => (
               <TabIcon
-                icon={Lightbulb}
+                icon="light-bulb"
                 color={color}
                 name="Tips"
                 focused={focused}
@@ -147,7 +141,7 @@ const Tabslayout = () => {
             headerShown: false,
             tabBarIcon: ({ color, focused }) => (
               <TabIcon
-                icon={UserRound}
+                icon="user"
                 color={color}
                 name="Profile"
                 focused={focused}
@@ -156,6 +150,7 @@ const Tabslayout = () => {
           }}
         />
       </Tabs>
+      <StatusBar style="light" />
     </>
   );
 };

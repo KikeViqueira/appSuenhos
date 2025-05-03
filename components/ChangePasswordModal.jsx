@@ -8,7 +8,7 @@ import {
   Alert,
 } from "react-native";
 import React, { useState } from "react";
-import { X } from "lucide-react-native";
+import { AntDesign } from "@expo/vector-icons";
 import PasswordInputModal from "./PasswordInputModal";
 import useUser from "../hooks/useUser";
 
@@ -57,14 +57,14 @@ const ChangePasswordModal = ({
       visible={visible}
       onRequestClose={() => setModalVisible(false)}
     >
-      <View className="items-center justify-center flex-1 bg-black/50">
+      <View className="flex-1 justify-center items-center bg-black/50">
         <View className="bg-[#1e2a47] p-6 rounded-xl w-[85%] max-w-[500px] flex-col gap-4">
-          <View className="flex-row items-center justify-between">
+          <View className="flex-row justify-between items-center">
             <Text className="text-lg font-bold text-center color-white">
               Cambiar Contraseña
             </Text>
             <TouchableOpacity onPress={() => setModalVisible(false)}>
-              <X size={28} color="white" />
+              <AntDesign name="close" color="white" size={28} />
             </TouchableOpacity>
           </View>
 
@@ -99,7 +99,7 @@ const ChangePasswordModal = ({
             />
           </KeyboardAvoidingView>
 
-          <View className="flex-row items-center justify-between gap-4 mt-4">
+          <View className="flex-row gap-4 justify-between items-center mt-4">
             <TouchableOpacity
               onPress={() => setModalVisible(false)}
               className="bg-[#6366ff] p-3 rounded-xl w-[45%]"

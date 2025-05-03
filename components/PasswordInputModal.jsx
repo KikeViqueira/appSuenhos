@@ -1,6 +1,6 @@
-import { View, Text, TextInput, TouchableOpacity } from "react-native";
+import { View, TextInput, TouchableOpacity } from "react-native";
 import React, { useState } from "react";
-import { Eye, EyeOff } from "lucide-react-native";
+import { Feather } from "@expo/vector-icons";
 
 const PasswordInputModal = ({
   value,
@@ -30,9 +30,9 @@ const PasswordInputModal = ({
       >
         {/*Dependiendo del estado de la variable para saber si enseñamos la contraseña o no, tenemos que mostrar un icono u otro */}
         {showPassword ? (
-          <Eye size={20} color="white" />
+          <Feather name="eye" size={20} color="white" />
         ) : (
-          <EyeOff size={20} color="white" />
+          <Feather name="eye-off" size={20} color="white" />
         )}
       </TouchableOpacity>
     </View>

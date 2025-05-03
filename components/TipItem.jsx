@@ -1,14 +1,13 @@
 import { View, Text } from "react-native";
 import React from "react";
-import { ShieldQuestion } from "lucide-react-native";
-import { Square, CheckSquare } from "lucide-react-native";
+import { Feather } from "@expo/vector-icons";
 
 //Componente que representa un tip, recibe el título del tip y una breve descripción, más adelante podrá recibir un icono al lado del título lo que lo hace más llamativo visualmente
 //En caso de que no se pase porparátros un icono para el tip, ponemos un emoticono de ?
 const TipItem = ({
   title,
   description,
-  icon: IconParameter = ShieldQuestion,
+  icon: IconParameter = (props) => <Feather name="shield" {...props} />,
   color,
   isSelectionMode,
   isSelected,
@@ -20,10 +19,10 @@ const TipItem = ({
         isSelected ? " border-[#ff6b6b]" : " border-[#323d4f]"
       } `}
     >
-      <View className="flex-row items-center justify-between">
-        <View className="flex-row items-center flex-1 gap-6">
+      <View className="flex-row justify-between items-center">
+        <View className="flex-row flex-1 gap-6 items-center">
           {/*Gap que equivale a los mismos px del p del contenedor asi tenemos el icono centrado y bien distanciado */}
-          <View className={`items-center justify-center`}>
+          <View className={`justify-center items-center`}>
             <IconParameter color={color} size={20} />
           </View>
           <View className="flex-1">
@@ -40,9 +39,9 @@ const TipItem = ({
             }`}
           >
             {isSelected ? (
-              <CheckSquare color="#ff6b6b" size={24} />
+              <Feather name="check-square" color="#ff6b6b" size={24} />
             ) : (
-              <Square color="white" size={24} />
+              <Feather name="square" color="white" size={24} />
             )}
           </View>
         )}

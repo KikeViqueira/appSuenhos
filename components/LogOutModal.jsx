@@ -1,9 +1,7 @@
 import { View, Text, Modal, TouchableOpacity } from "react-native";
 import React from "react";
-import { X } from "lucide-react-native";
 
 const LogOutModal = ({ visible, setModalVisible, logOut }) => {
-
   //Función para cerrar la visibilidad del modal y la sesión
   const closeLogOutModal = () => {
     setModalVisible(false);

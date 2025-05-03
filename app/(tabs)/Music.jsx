@@ -10,18 +10,7 @@ import {
   Animated,
 } from "react-native";
 import { Audio } from "expo-av";
-import {
-  Play,
-  Pause,
-  Repeat,
-  Upload,
-  Trash2,
-  Ban,
-  Clock,
-  Check,
-  X,
-  Timer,
-} from "lucide-react-native";
+import { Feather, FontAwesome, Ionicons, AntDesign } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Slider from "@react-native-community/slider";
 import * as DocumentPicker from "expo-document-picker";
@@ -457,7 +446,8 @@ const Music = () => {
               currentSound?.id === item.id ? toggleLooping() : null
             }
           >
-            <Repeat
+            <Feather
+              name="repeat"
               color={
                 currentSound?.id === item.id
                   ? currentSound?.isLooping
@@ -481,9 +471,10 @@ const Music = () => {
             }
           >
             {currentSound?.id === item.id && isPlaying ? (
-              <Pause color="white" size={20} />
+              <Feather name="pause" color="white" size={20} />
             ) : (
-              <Play
+              <Feather
+                name="play"
                 color={currentSound?.id === item.id ? "white" : "#6366ff"}
                 size={20}
               />
@@ -496,7 +487,7 @@ const Music = () => {
               className="p-2 rounded-full bg-[#ff6b6b]/20"
               onPress={() => deleteUserSound(item.id)}
             >
-              <Trash2 color="#ff6b6b" size={20} />
+              <Feather name="trash-2" color="#ff6b6b" size={20} />
             </TouchableOpacity>
           )}
         </View>
@@ -636,9 +627,9 @@ const Music = () => {
                 : "Sube sonidos propios"}
             </Text>
             {userSounds.length >= maxSounds ? (
-              <Ban color="white" size={24} className="p-2" />
+              <FontAwesome name="ban" color="white" size={24} className="p-2" />
             ) : (
-              <Upload color="white" size={24} className="p-2" />
+              <Feather name="upload" color="white" size={24} className="p-2" />
             )}
           </View>
         </TouchableOpacity>
@@ -660,7 +651,7 @@ const Music = () => {
             <View className="flex-row justify-between items-center">
               <View className="flex-row items-center">
                 <View className="bg-[#6366ff]/20 p-2 rounded-full mr-3">
-                  <Timer color="#6366ff" size={20} />
+                  <Ionicons name="timer-outline" color="#6366ff" size={20} />
                 </View>
                 <View>
                   <Text className="font-semibold text-white">Temporizador</Text>
@@ -686,7 +677,7 @@ const Music = () => {
                   onPress={cancelTimer}
                   className="bg-[#ff6b6b]/20 p-2 rounded-full"
                 >
-                  <X color="#ff6b6b" size={18} />
+                  <FontAwesome name="times" color="#ff6b6b" size={18} />
                 </TouchableOpacity>
               )}
             </View>
@@ -774,7 +765,7 @@ const Music = () => {
                 onPress={() => setTimerModalVisible(false)}
                 className="p-1"
               >
-                <X color="white" size={24} />
+                <AntDesign name="close" color="white" size={24} />
               </TouchableOpacity>
             </View>
 
@@ -798,7 +789,7 @@ const Music = () => {
                     {option.label}
                   </Text>
                   {timerDuration === option.value && (
-                    <Check color="white" size={20} />
+                    <Feather name="check" color="white" size={20} />
                   )}
                 </TouchableOpacity>
               ))}
@@ -810,7 +801,9 @@ const Music = () => {
                 onPress={() => setTimer(null)}
               >
                 <Text className="font-semibold text-white">Sin límite</Text>
-                {timerDuration === null && <Check color="white" size={20} />}
+                {timerDuration === null && (
+                  <Feather name="check" color="white" size={20} />
+                )}
               </TouchableOpacity>
             </View>
           </View>

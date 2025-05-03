@@ -9,14 +9,10 @@ import {
 import React, { useState, useEffect, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
-  Bed,
-  RefreshCcw,
-  Moon,
-  Sun,
-  ClipboardList,
-  File,
-  ClipboardCheck,
-} from "lucide-react-native";
+  MaterialCommunityIcons,
+  FontAwesome5,
+  Feather,
+} from "@expo/vector-icons";
 import WakeUpForm from "../../components/WakeUpForm";
 import SleepLogResponses from "../../components/SleepLogResponses";
 import SleepGraphs from "../../components/SleepGraphs";
@@ -389,7 +385,7 @@ const Estadisticas = () => {
         if (loading || !userInfo) {
           return (
             <View className="flex justify-center items-center h-[300px] bg-[#1e2a47] rounded-lg flex-col gap-4">
-              <Moon size={40} color="#6366ff" />
+              <Feather name="moon" size={40} color="#6366ff" />
               <Text className="text-lg font-medium text-white">
                 Cargando información del sueño
               </Text>
@@ -418,7 +414,11 @@ const Estadisticas = () => {
               >
                 <View className="justify-center items-center">
                   <View className="bg-[#6366ff]/20 p-3 rounded-full mb-4">
-                    <ClipboardList color="#6366ff" size={30} />
+                    <FontAwesome5
+                      name="clipboard-list"
+                      color="#6366ff"
+                      size={30}
+                    />
                   </View>
                   <Text className="mb-2 text-base font-bold text-center text-white">
                     Cuestionario DRM
@@ -436,7 +436,7 @@ const Estadisticas = () => {
               >
                 <View className="justify-center items-center">
                   <View className="bg-[#6366ff]/20 p-3 rounded-full mb-4">
-                    <File color="#6366ff" size={30} />
+                    <Feather name="file" color="#6366ff" size={30} />
                   </View>
                   <Text className="mb-2 text-base font-bold text-center text-white">
                     Informe DRM
@@ -487,7 +487,7 @@ const Estadisticas = () => {
         <View className="flex w-[95%] gap-6 px-4 py-5 rounded-lg bg-[#1e2a47]">
           {/* Título de la sección */}
           <View className="flex flex-row gap-4 justify-start">
-            <Bed size={24} color="white" />
+            <MaterialCommunityIcons name="bed" size={24} color="white" />
             <Text
               className="text-center font-bold color-[#6366ff]"
               style={{ fontSize: 24 }}
@@ -499,7 +499,7 @@ const Estadisticas = () => {
           {/* Estado visual del registro */}
           {hasDailySleepLog && (
             <View className="flex-row items-center bg-[#2a3952] p-3 rounded-lg">
-              <ClipboardCheck size={18} color="#4cd964" />
+              <FontAwesome5 name="clipboard-check" size={18} color="#4cd964" />
               <Text className="ml-2 color-white">
                 Registro matutino completado
               </Text>
@@ -517,9 +517,9 @@ const Estadisticas = () => {
               disabled={hasDailySleepLog}
             >
               {isSleeping ? (
-                <RefreshCcw size={20} color="#fff" />
+                <Feather name="refresh-cw" size={20} color="#fff" />
               ) : (
-                <Moon size={20} color="#fff" />
+                <Feather name="moon" size={20} color="#fff" />
               )}
 
               <Text className="text-base font-medium text-center color-white">
@@ -527,6 +527,7 @@ const Estadisticas = () => {
               </Text>
             </TouchableOpacity>
 
+            {/* Botón para registrar la hora de despertar */}
             <TouchableOpacity
               onPress={toggleModal}
               className={`flex flex-row items-center justify-start p-4 gap-4 
@@ -538,7 +539,7 @@ const Estadisticas = () => {
                 rounded-xl w-auto`}
               disabled={!isSleeping || hasDailySleepLog}
             >
-              <Sun size={20} color="#fff" />
+              <Feather name="sun" size={20} color="#fff" />
               <Text className="text-base text-center color-white">
                 {hasDailySleepLog
                   ? "Registro matutino completado"
@@ -556,7 +557,7 @@ const Estadisticas = () => {
               disabled={!hasDailySleepLog || isLoadingData}
               onPress={handleViewResponses}
             >
-              <ClipboardList size={20} color="#fff" />
+              <FontAwesome5 name="clipboard-list" size={20} color="#fff" />
               <Text className="text-base font-medium text-center color-white">
                 {isLoadingData
                   ? "Cargando respuestas..."

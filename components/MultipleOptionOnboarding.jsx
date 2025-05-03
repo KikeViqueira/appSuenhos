@@ -7,7 +7,7 @@ import {
   StatusBar,
 } from "react-native";
 import React, { useState } from "react";
-import { CircleArrowLeft, CircleArrowRight } from "lucide-react-native";
+import { Feather } from "@expo/vector-icons";
 
 const MultipleOptionOnboarding = ({
   questionText,
@@ -126,7 +126,7 @@ const MultipleOptionOnboarding = ({
             <Text className="text-lg font-bold text-center color-white">
               Continuar
             </Text>
-            <CircleArrowRight size={24} color="white" />
+            <Feather name="arrow-right-circle" size={24} color="white" />
           </TouchableOpacity>
         ) : (
           <View className="flex flex-row justify-between w-full">
@@ -144,7 +144,7 @@ const MultipleOptionOnboarding = ({
                 elevation: 3,
               }}
             >
-              <CircleArrowLeft size={24} color="white" />
+              <Feather name="arrow-left-circle" size={24} color="white" />
               <Text className="text-lg font-semibold text-center color-white">
                 Volver
               </Text>
@@ -175,7 +175,7 @@ const MultipleOptionOnboarding = ({
                   Continuar
                 </Text>
               )}
-              <CircleArrowRight size={24} color="white" />
+              <Feather name="arrow-right-circle" size={24} color="white" />
             </TouchableOpacity>
           </View>
         )}
