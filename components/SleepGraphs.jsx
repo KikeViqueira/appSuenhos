@@ -1,8 +1,7 @@
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import React, { useState, useEffect } from "react";
-import { MaterialIcons, FontAwesome6, Feather } from "@expo/vector-icons";
+import { MaterialIcons, Feather } from "@expo/vector-icons";
 import WeeklySleepChart from "./WeeklySleepChart";
-import SleepPieChart from "./SleepPieChart";
 import useSleep from "../hooks/useSleep";
 import sleepRecommendations from "../utils/sleepRecommendations";
 import UserSleepVsRecommended from "./UserSleepVsRecommended";
@@ -280,20 +279,6 @@ const SleepGraphs = ({ userInfo }) => {
             sleepLogsDuration={sleepLogsDuration}
             userAge={userInfo.age}
           />
-        </View>
-
-        {/* Fases del sueño */}
-        <View className="flex flex-row gap-4 justify-start mt-4">
-          <FontAwesome6 name="boxes-stacked" size={24} color="#fff" />
-          <Text
-            className="text-center font-bold color-[#6366ff]"
-            style={{ fontSize: 24 }}
-          >
-            Fases del Sueño
-          </Text>
-        </View>
-        <View className="flex items-center">
-          <SleepPieChart />
         </View>
       </View>
     </ScrollView>

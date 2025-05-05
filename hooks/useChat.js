@@ -498,7 +498,6 @@ const useChat = () => {
           await AsyncStorage.removeItem("chatId");
         }
       } else {
-        // no existe el chatId, tenemos que ver si el user ha hecho un chat hoy al largo del día o no y dependiendo de eso devolvemos True o False
         setMessages([]);
       }
     } catch (error) {

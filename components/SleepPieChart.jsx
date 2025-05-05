@@ -1,70 +1,257 @@
-import { View, Text, Dimensions } from "react-native";
-import React from "react";
+import { View, Text, Dimensions, TouchableOpacity } from "react-native";
+import React, { useState, useEffect } from "react";
 import { PieChart } from "react-native-chart-kit";
+import { Feather } from "@expo/vector-icons";
 
-//TODO: Implementar un gráfico de pastel para mostrar las distintas fases del sueño y cuanto ha estado el user en cada una de ellas
-const sleepSummary = {
-  deep: 60,
-  light: 180,
-  rem: 90,
-  wake: 30,
+// Configuración de colores y etiquetas para cada fase del sueño
+const sleepPhaseConfig = {
+  deep: {
+    name: "Sueño Profundo",
+    color: "#7209B7", // Púrpura en lugar de azul
+    description:
+      "Fase más reparadora del sueño, esencial para la recuperación física",
+  },
+  light: {
+    name: "Sueño Ligero",
+    color: "#3A0CA3", // Púrpura más intenso
+    description:
+      "Fase de transición, representa la mayor parte del ciclo de sueño",
+  },
+  rem: {
+    name: "REM",
+    color: "#F72585", // Rosa vibrante
+    description:
+      "Fase asociada con los sueños y la consolidación de la memoria",
+  },
+  wake: {
+    name: "Despierto",
+    color: "#4CC9F0", // Azul claro
+    description: "Períodos breves de vigilia durante la noche",
+  },
 };
 
-//TODO: HACEMOS UN ARRAY DE LOS OBJETOS QUE VAMOS A ENSEÑAR EN EL GRÁFICO, SIGUIENDO EL FORMATO QUE PIDE LA LIBRERÍA
-const pieData = [
-  {
-    name: "Profundo",
-    population: sleepSummary.deep,
-    color: "#003f5c",
-    legendFontColor: "#7F7F7F",
-    legendFontSize: 15,
-  },
-  {
-    name: "Ligero",
-    population: sleepSummary.light,
-    color: "#58508d",
-    legendFontColor: "#7F7F7F",
-    legendFontSize: 15,
-  },
-  {
-    name: "REM",
-    population: sleepSummary.rem,
-    color: "#bc5090",
-    legendFontColor: "#7F7F7F",
-    legendFontSize: 15,
-  },
-  {
-    name: "Despierto",
-    population: sleepSummary.wake,
-    color: "#ff6361",
-    legendFontColor: "#7F7F7F",
-    legendFontSize: 15,
-  },
-];
+const SleepPieChart = ({ sleepData, showAverage = false }) => {
+  const [selectedPhase, setSelectedPhase] = useState(null);
+  const [pieData, setPieData] = useState([]);
+  const [totalSleepMinutes, setTotalSleepMinutes] = useState(0);
 
-const SleepPieChart = () => {
+  useEffect(() => {
+    // Procesamos los datos para el gráfico
+    if (sleepData && sleepData.levels && sleepData.levels.summary) {
+      const summary = sleepData.levels.summary;
+      const total = Object.keys(summary).reduce(
+        (acc, phase) =>
+          acc +
+          (showAverage
+            ? summary[phase].thirtyDayAvgMinutes
+            : summary[phase].minutes),
+        0
+      );
+
+      setTotalSleepMinutes(total);
+
+      // Creamos los datos para el gráfico de pastel
+      const newPieData = Object.keys(summary).map((phase) => ({
+        name: sleepPhaseConfig[phase].name,
+        minutes: showAverage
+          ? summary[phase].thirtyDayAvgMinutes
+          : summary[phase].minutes,
+        population: showAverage
+          ? summary[phase].thirtyDayAvgMinutes
+          : summary[phase].minutes,
+        color: sleepPhaseConfig[phase].color,
+        legendFontColor: "#FFFFFF",
+        legendFontSize: 12,
+        phase,
+      }));
+
+      setPieData(newPieData);
+    }
+  }, [sleepData, showAverage]);
+
+  // Convierte milisegundos a formato "Xh Ym"
+  const formatDuration = (milliseconds) => {
+    if (!milliseconds) return "0h 0m";
+    const totalMinutes = Math.floor(milliseconds / 60000);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${hours}h ${minutes}m`;
+  };
+
+  const formatTime = (minutes) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h ${mins}m`;
+  };
+
+  const calculatePercentage = (minutes) => {
+    return totalSleepMinutes > 0
+      ? Math.round((minutes / totalSleepMinutes) * 100)
+      : 0;
+  };
+
+  const handlePhaseSelect = (phase) => {
+    setSelectedPhase(phase === selectedPhase ? null : phase);
+  };
+
+  // Si no hay datos de sueño, mostramos un mensaje
+  if (!sleepData) {
+    return (
+      <View className="bg-[#1e2a47] rounded-2xl p-4 mx-2.5 my-2.5 shadow-md items-center justify-center" style={{ height: 300 }}>
+        <Text className="text-lg font-bold text-white">Cargando datos de sueño...</Text>
+        <Text className="text-sm text-[#AAAAAA] mt-2">Por favor, espera mientras obtenemos tus datos de sueño.</Text>
+      </View>
+    );
+  }
+
   return (
-    <View>
-      <PieChart
-        data={pieData}
-        width={Dimensions.get("window").width - 20}
-        height={220}
-        chartConfig={{
-          backgroundGradientFrom: "#1e2a47",
-          backgroundGradientTo: "#1e2a47",
-          color: (opacity = 1) => `rgba(134, 65, 244, ${opacity})`,
-          labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-          strokeWidth: 2,
-          useShadowColorFromDataset: false,
-          decimalPlaces: 0, // Solo mostrar números enteros en el eje Y
-        }}
-        //Indicamos el campo de donde el pie chart va a sacar los valores a representar
-        accessor="population"
-        backgroundColor="transparent" //Color de fondo del gráfico
-        paddingLeft="15"
-        absolute
-        style={{ marginVertical: 8, borderRadius: 16, marginHorizontal: 10 }}
-      />
+    <View className="bg-[#1e2a47] rounded-2xl p-4 mx-2.5 my-2.5 shadow-md">
+      <View className="mb-2.5">
+        <Text className="text-lg font-bold text-center text-white">
+          Fases del Sueño
+        </Text>
+        <Text className="text-sm text-[#AAAAAA] text-center mt-1">
+          {showAverage ? "Promedio de 30 días" : "Última noche"}
+        </Text>
+      </View>
+
+      <View className="flex-row justify-between items-center mb-4">
+        <View className="flex-[0.75] items-center">
+          <PieChart
+            data={pieData}
+            width={Dimensions.get("window").width * 0.7}
+            height={220}
+            chartConfig={{
+              backgroundColor: "#1e2a47",
+              backgroundGradientFrom: "#1e2a47",
+              backgroundGradientTo: "#1e2a47",
+              color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+              strokeWidth: 2,
+              useShadowColorFromDataset: false,
+              decimalPlaces: 0,
+            }}
+            accessor="population"
+            backgroundColor="transparent"
+            paddingLeft="15"
+            absolute
+            hasLegend={false}
+            style={{
+              marginVertical: 8,
+              borderRadius: 16,
+            }}
+          />
+        </View>
+
+        {/* Información total a un lado del gráfico */}
+        <View className="flex-[0.25] justify-center items-center">
+          <View className="items-center p-3 w-full rounded-lg bg-white/5">
+            <Text className="text-xs text-[#AAAAAA]">Total</Text>
+            <Text className="text-base font-bold text-white">
+              {formatDuration(sleepData.duration)}
+            </Text>
+            <Text className="text-xs text-[#F72585] mt-0.5">
+              Eficiencia: {sleepData.efficiency}%
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      <View className="mt-2.5">
+        {pieData.map((item) => (
+          <TouchableOpacity
+            key={item.phase}
+            className={`flex-row items-center py-2 px-3 rounded-lg mb-1.5 ${
+              selectedPhase === item.phase ? "bg-white/10" : "bg-white/5"
+            }`}
+            onPress={() => handlePhaseSelect(item.phase)}
+          >
+            <View
+              className="w-3 h-3 rounded-full mr-2.5"
+              style={{ backgroundColor: item.color }}
+            />
+            <View className="flex-1">
+              <Text className="text-sm font-medium text-white">
+                {item.name}
+              </Text>
+              <Text className="text-xs text-[#AAAAAA]">
+                {formatTime(item.minutes)} ({calculatePercentage(item.minutes)}
+                %)
+              </Text>
+            </View>
+            <Feather
+              name={
+                selectedPhase === item.phase ? "chevron-up" : "chevron-down"
+              }
+              size={16}
+              color="#FFFFFF"
+            />
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {selectedPhase && (
+        <View className="mt-2.5 p-3 bg-white/5 rounded-lg">
+          <Text className="mb-1 text-base font-bold text-white">
+            {sleepPhaseConfig[selectedPhase].name}
+          </Text>
+          <Text className="text-sm text-[#DDDDDD] mb-2.5 leading-5">
+            {sleepPhaseConfig[selectedPhase].description}
+          </Text>
+          <View className="flex-row justify-between">
+            <View className="flex-1 items-center">
+              <Text className="text-xs text-[#AAAAAA] mb-0.5">Episodios</Text>
+              <Text className="text-sm font-bold text-white">
+                {sleepData.levels.summary[selectedPhase].count}
+              </Text>
+            </View>
+            <View className="flex-1 items-center">
+              <Text className="text-xs text-[#AAAAAA] mb-0.5">Duración</Text>
+              <Text className="text-sm font-bold text-white">
+                {formatTime(sleepData.levels.summary[selectedPhase].minutes)}
+              </Text>
+            </View>
+            <View className="flex-1 items-center">
+              <Text className="text-xs text-[#AAAAAA] mb-0.5">
+                Promedio 30 días
+              </Text>
+              <Text className="text-sm font-bold text-white">
+                {formatTime(
+                  sleepData.levels.summary[selectedPhase].thirtyDayAvgMinutes
+                )}
+              </Text>
+            </View>
+          </View>
+        </View>
+      )}
+
+      {/* Leyenda explicativa */}
+      <View className="mt-4 p-3 bg-white/[0.03] rounded-lg">
+        <Text className="mb-2 text-base font-bold text-white">Glosario</Text>
+        <View className="mb-2">
+          <Text className="text-sm font-medium text-white">Episodios:</Text>
+          <Text className="text-xs text-[#AAAAAA] leading-5">
+            Número de veces que entraste en esta fase del sueño durante la
+            noche.
+          </Text>
+        </View>
+        <View className="mb-2">
+          <Text className="text-sm font-medium text-white">
+            Promedio 30 días:
+          </Text>
+          <Text className="text-xs text-[#AAAAAA] leading-5">
+            Tiempo promedio que has pasado en esta fase durante los últimos 30
+            días, útil para comparar con tu noche actual.
+          </Text>
+        </View>
+        <View className="mb-2">
+          <Text className="text-sm font-medium text-white">Eficiencia:</Text>
+          <Text className="text-xs text-[#AAAAAA] leading-5">
+            Porcentaje del tiempo en cama que realmente pasaste durmiendo. Por
+            encima del 85% se considera buena eficiencia.
+          </Text>
+        </View>
+      </View>
     </View>
   );
 };
