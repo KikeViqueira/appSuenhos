@@ -15,42 +15,42 @@ const SleepNutritionChart = ({ foodFitbitData, sleepWeeklyFitbitData }) => {
 
     // Obtenemos las claves (días) del objeto sleep
     const days = Object.keys(sleepWeeklyFitbitData.sleep);
-    
+
     // Creamos un array con los datos procesados
-    const processedData = days.map(day => {
+    const processedData = days.map((day) => {
       const sleepMinutes = sleepWeeklyFitbitData.sleep[day] || 0;
       const calories = foodFitbitData.calories[day] || 0;
-      
+
       return {
         day,
         dayShort: day.substring(0, 3),
         sleepMinutes,
         sleepHours: sleepMinutes / 60,
-        calories
+        calories,
       };
     });
-    
+
     setRawData(processedData);
-    
+
     // Extraemos solo los valores para el gráfico
-    const sleepHours = processedData.map(item => item.sleepHours);
-    const caloriesValues = processedData.map(item => item.calories);
-    
+    const sleepHours = processedData.map((item) => item.sleepHours);
+    const caloriesValues = processedData.map((item) => item.calories);
+
     // Normalizamos las calorías para que se ajusten al rango de horas de sueño
     const minCal = Math.min(...caloriesValues);
     const maxCal = Math.max(...caloriesValues);
     const minSleep = Math.min(...sleepHours);
     const maxSleep = Math.max(...sleepHours);
-    
+
     const normalizedCalories = caloriesValues.map((cal) => {
       return (
         ((cal - minCal) / (maxCal - minCal)) * (maxSleep - minSleep) + minSleep
       );
     });
-    
+
     // Creamos los datos para el gráfico
     const newChartData = {
-      labels: processedData.map(item => item.dayShort),
+      labels: processedData.map((item) => item.dayShort),
       datasets: [
         {
           data: sleepHours,
@@ -67,37 +67,44 @@ const SleepNutritionChart = ({ foodFitbitData, sleepWeeklyFitbitData }) => {
       ],
       legend: ["Horas de Sueño", "Calorías"],
     };
-    
+
     setChartData(newChartData);
   }, [foodFitbitData, sleepWeeklyFitbitData]);
-  
+
   const handleDataPointClick = ({ index, dataset }) => {
     const datasetIndex = chartData.datasets.indexOf(dataset);
     const dataPoint = rawData[index];
-    
+
     setSelectedPoint({
       day: dataPoint.day,
       sleepHours: Math.floor(dataPoint.sleepHours),
-      sleepMinutes: Math.round((dataPoint.sleepHours - Math.floor(dataPoint.sleepHours)) * 60),
+      sleepMinutes: Math.round(
+        (dataPoint.sleepHours - Math.floor(dataPoint.sleepHours)) * 60
+      ),
       calories: dataPoint.calories,
-      isCaloriesDataset: datasetIndex === 1
+      isCaloriesDataset: datasetIndex === 1,
     });
-    
+
     setModalVisible(true);
   };
-  
+
   // Si no hay datos, mostramos un mensaje de carga
   if (!chartData) {
     return (
-      <View className="bg-[#1e2a47] rounded-2xl p-4 mx-2.5 my-2.5 shadow-md items-center justify-center" style={{ height: 250 }}>
+      <View
+        className="bg-[#1e2a47] rounded-2xl p-4 mx-2.5 my-2.5 shadow-md items-center justify-center"
+        style={{ height: 250 }}
+      >
         <Text className="text-lg font-bold text-white">Cargando datos...</Text>
-        <Text className="text-sm text-[#AAAAAA] mt-2">Por favor, espera mientras obtenemos tus datos de sueño y nutrición.</Text>
+        <Text className="text-sm text-[#AAAAAA] mt-2">
+          Por favor, espera mientras obtenemos tus datos de sueño y nutrición.
+        </Text>
       </View>
     );
   }
-  
+
   return (
-    <View className="bg-[#1e2a47] rounded-2xl p-4">
+    <View className="flex-col gap-4 self-center">
       <LineChart
         data={chartData}
         width={Dimensions.get("window").width - 40}
@@ -123,32 +130,37 @@ const SleepNutritionChart = ({ foodFitbitData, sleepWeeklyFitbitData }) => {
         }}
         onDataPointClick={handleDataPointClick}
       />
-      
+
       {/* Leyenda explicativa */}
-      <View className="mt-4 p-3 bg-white/[0.03] rounded-lg">
-        <Text className="mb-2 text-base font-bold text-white">Información</Text>
-        <View className="mb-2">
-          <Text className="text-sm font-medium text-white">Sobre esta gráfica:</Text>
-          <Text className="text-xs text-[#AAAAAA] leading-5">
-            Esta visualización muestra la relación entre tus horas de sueño y tu ingesta calórica durante la semana.
-            Los valores de calorías han sido normalizados para facilitar la comparación visual.
-          </Text>
-        </View>
+      <View className="bg-[#0e172a] p-4 rounded-xl flex-col self-center gap-2 border border-[#6366ff]">
+        <Text className="text-base font-bold text-white">Información</Text>
+
+        <Text className="text-sm text-[#a0b0c7] leading-5">
+          Esta visualización muestra la relación entre tus horas de sueño y tu
+          ingesta calórica durante la semana. Los valores de calorías han sido
+          normalizados para facilitar la comparación visual.
+        </Text>
         <View className="flex-row justify-between mt-2">
           <View className="flex-row items-center">
-            <View className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: "rgba(114, 9, 183, 1)" }} />
-            <Text className="text-xs text-white">Horas de sueño</Text>
+            <View
+              className="mr-2 w-3 h-3 rounded-full"
+              style={{ backgroundColor: "rgba(114, 9, 183, 1)" }}
+            />
+            <Text className="text-sm text-white">Horas de sueño</Text>
           </View>
           <View className="flex-row items-center">
-            <View className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: "rgba(247, 37, 133, 1)" }} />
-            <Text className="text-xs text-white">Calorías (normalizado)</Text>
+            <View
+              className="mr-2 w-3 h-3 rounded-full"
+              style={{ backgroundColor: "rgba(247, 37, 133, 1)" }}
+            />
+            <Text className="text-sm text-white">Calorías (normalizado)</Text>
           </View>
         </View>
-        <Text className="text-xs text-[#AAAAAA] mt-3 italic">
+        <Text className="text-sm text-[#a0b0c7] mt-3 italic">
           Pulsa en cualquier punto de la gráfica para ver los datos exactos.
         </Text>
       </View>
-      
+
       {/* Modal para mostrar información detallada */}
       <Modal
         animationType="fade"

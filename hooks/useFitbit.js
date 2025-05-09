@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { apiClient } from "../services/apiClient";
 import { API_BASE_URL } from "../config/config";
+import { useAuthContext } from "../context/AuthContext";
 
 const useFitbit = () => {
   const [loading, setLoading] = useState(false);
@@ -8,6 +9,38 @@ const useFitbit = () => {
   const [sleepTodayFitbitData, setSleepTodayFitbitData] = useState(null); //Guarda la info del sueño del user del día de hoy
   const [foodFitbitData, setFoodFitbitData] = useState(null); //Guarda la info semanal de la comida del user
   const [sleepWeeklyFitbitData, setSleepWeeklyFitbitData] = useState(null); //Guarda la info semanal de sueño del user
+  const [fitbitToken, setFitbitToken] = useState(null); //Guarda el token de fitbit del user
+
+  const { accessToken, userId } = useAuthContext();
+
+  /*
+   * ENDPOINT CORRESPONDIENTE AL LOGIN DEL USER DE NUESTRA APP EN FITBIT
+   */
+
+  const loginFitbit = async () => {
+    setError(null);
+    setLoading(true);
+
+    try {
+      const response = await apiClient.get(
+        `${API_BASE_URL}/fitbitAuth/login`,
+        {
+          userId,
+        },
+        {
+          headers: {
+            Authorization: accessToken,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (response && response.status === 200) setFitbitToken(response.data);
+    } catch (error) {
+      setError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   /*
    * HACEMOS LOS ENDPOINTS CORRESPONDIENTES QUE VAN A DEVOLVER LA DATA DEL USER PAARA USAR EN LAS GRÁFICAS DISEÑADAS ESPECIALMENTE PARA ELLOS

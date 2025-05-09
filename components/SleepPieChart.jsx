@@ -97,67 +97,67 @@ const SleepPieChart = ({ sleepData, showAverage = false }) => {
   // Si no hay datos de sueño, mostramos un mensaje
   if (!sleepData) {
     return (
-      <View className="bg-[#1e2a47] rounded-2xl p-4 mx-2.5 my-2.5 shadow-md items-center justify-center" style={{ height: 300 }}>
-        <Text className="text-lg font-bold text-white">Cargando datos de sueño...</Text>
-        <Text className="text-sm text-[#AAAAAA] mt-2">Por favor, espera mientras obtenemos tus datos de sueño.</Text>
+      <View
+        className="bg-[#1e2a47] rounded-2xl p-4 mx-2.5 my-2.5 shadow-md items-center justify-center"
+        style={{ height: 300 }}
+      >
+        <Text className="text-lg font-bold text-white">
+          Cargando datos de sueño...
+        </Text>
+        <Text className="text-sm text-[#a0b0c7] mt-2">
+          Por favor, espera mientras obtenemos tus datos de sueño.
+        </Text>
       </View>
     );
   }
 
   return (
-    <View className="bg-[#1e2a47] rounded-2xl p-4 mx-2.5 my-2.5 shadow-md">
-      <View className="mb-2.5">
-        <Text className="text-lg font-bold text-center text-white">
-          Fases del Sueño
+    <View className="flex-col gap-4 self-center w-full">
+      <Text className="text-base text-[#a0b0c7] text-center mt-1">
+        {showAverage ? "Promedio de 30 días" : "Última noche"}
+      </Text>
+
+      {/* Información total a un lado del gráfico */}
+      <View className="flex-col justify-center items-center p-3 w-full rounded-lg bg-white/5">
+        <Text className="text-sm text-[#a0b0c7]">Total</Text>
+        <Text className="text-base font-bold text-white">
+          {formatDuration(sleepData.duration)}
         </Text>
-        <Text className="text-sm text-[#AAAAAA] text-center mt-1">
-          {showAverage ? "Promedio de 30 días" : "Última noche"}
+        <Text className="text-sm text-[#F72585] mt-0.5">
+          Eficiencia: {sleepData.efficiency}%
         </Text>
       </View>
 
-      <View className="flex-row justify-between items-center mb-4">
-        <View className="flex-[0.75] items-center">
-          <PieChart
-            data={pieData}
-            width={Dimensions.get("window").width * 0.7}
-            height={220}
-            chartConfig={{
-              backgroundColor: "#1e2a47",
-              backgroundGradientFrom: "#1e2a47",
-              backgroundGradientTo: "#1e2a47",
-              color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-              strokeWidth: 2,
-              useShadowColorFromDataset: false,
-              decimalPlaces: 0,
-            }}
-            accessor="population"
-            backgroundColor="transparent"
-            paddingLeft="15"
-            absolute
-            hasLegend={false}
-            style={{
-              marginVertical: 8,
-              borderRadius: 16,
-            }}
-          />
-        </View>
-
-        {/* Información total a un lado del gráfico */}
-        <View className="flex-[0.25] justify-center items-center">
-          <View className="items-center p-3 w-full rounded-lg bg-white/5">
-            <Text className="text-xs text-[#AAAAAA]">Total</Text>
-            <Text className="text-base font-bold text-white">
-              {formatDuration(sleepData.duration)}
-            </Text>
-            <Text className="text-xs text-[#F72585] mt-0.5">
-              Eficiencia: {sleepData.efficiency}%
-            </Text>
-          </View>
-        </View>
+      <View className="flex-col justify-center items-center">
+        <PieChart
+          data={pieData}
+          width={Dimensions.get("window").width - 100}
+          height={220}
+          chartConfig={{
+            backgroundColor: "#1e2a47",
+            backgroundGradientFrom: "#1e2a47",
+            backgroundGradientTo: "#1e2a47",
+            color: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+            labelColor: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
+            strokeWidth: 2,
+            useShadowColorFromDataset: false,
+            decimalPlaces: 0,
+          }}
+          accessor="population"
+          backgroundColor="transparent"
+          paddingLeft="15"
+          absolute
+          hasLegend={false}
+          //Estilo exclusivo del gráfico
+          style={{
+            marginVertical: 8,
+            borderRadius: 16,
+            paddingLeft: 50,
+          }}
+        />
       </View>
 
-      <View className="mt-2.5">
+      <View>
         {pieData.map((item) => (
           <TouchableOpacity
             key={item.phase}
@@ -174,7 +174,7 @@ const SleepPieChart = ({ sleepData, showAverage = false }) => {
               <Text className="text-sm font-medium text-white">
                 {item.name}
               </Text>
-              <Text className="text-xs text-[#AAAAAA]">
+              <Text className="text-xs text-[#a0b0c7]">
                 {formatTime(item.minutes)} ({calculatePercentage(item.minutes)}
                 %)
               </Text>
@@ -191,28 +191,28 @@ const SleepPieChart = ({ sleepData, showAverage = false }) => {
       </View>
 
       {selectedPhase && (
-        <View className="mt-2.5 p-3 bg-white/5 rounded-lg">
+        <View className="p-4 rounded-lg bg-white/5">
           <Text className="mb-1 text-base font-bold text-white">
             {sleepPhaseConfig[selectedPhase].name}
           </Text>
-          <Text className="text-sm text-[#DDDDDD] mb-2.5 leading-5">
+          <Text className="text-sm text-[#a0b0c7] mb-2.5 leading-5">
             {sleepPhaseConfig[selectedPhase].description}
           </Text>
-          <View className="flex-row justify-between">
+          <View className="flex-row self-start w-full">
             <View className="flex-1 items-center">
-              <Text className="text-xs text-[#AAAAAA] mb-0.5">Episodios</Text>
+              <Text className="text-sm text-[#6366ff] mb-0.5">Episodios</Text>
               <Text className="text-sm font-bold text-white">
                 {sleepData.levels.summary[selectedPhase].count}
               </Text>
             </View>
             <View className="flex-1 items-center">
-              <Text className="text-xs text-[#AAAAAA] mb-0.5">Duración</Text>
+              <Text className="text-sm text-[#6366ff] mb-0.5">Duración</Text>
               <Text className="text-sm font-bold text-white">
                 {formatTime(sleepData.levels.summary[selectedPhase].minutes)}
               </Text>
             </View>
             <View className="flex-1 items-center">
-              <Text className="text-xs text-[#AAAAAA] mb-0.5">
+              <Text className="text-sm text-[#6366ff] mb-0.5">
                 Promedio 30 días
               </Text>
               <Text className="text-sm font-bold text-white">
@@ -226,30 +226,32 @@ const SleepPieChart = ({ sleepData, showAverage = false }) => {
       )}
 
       {/* Leyenda explicativa */}
-      <View className="mt-4 p-3 bg-white/[0.03] rounded-lg">
-        <Text className="mb-2 text-base font-bold text-white">Glosario</Text>
-        <View className="mb-2">
-          <Text className="text-sm font-medium text-white">Episodios:</Text>
-          <Text className="text-xs text-[#AAAAAA] leading-5">
-            Número de veces que entraste en esta fase del sueño durante la
-            noche.
-          </Text>
-        </View>
-        <View className="mb-2">
-          <Text className="text-sm font-medium text-white">
-            Promedio 30 días:
-          </Text>
-          <Text className="text-xs text-[#AAAAAA] leading-5">
-            Tiempo promedio que has pasado en esta fase durante los últimos 30
-            días, útil para comparar con tu noche actual.
-          </Text>
-        </View>
-        <View className="mb-2">
-          <Text className="text-sm font-medium text-white">Eficiencia:</Text>
-          <Text className="text-xs text-[#AAAAAA] leading-5">
-            Porcentaje del tiempo en cama que realmente pasaste durmiendo. Por
-            encima del 85% se considera buena eficiencia.
-          </Text>
+      <View className="bg-[#0e172a] p-4 rounded-xl flex-col self-center gap-3 border border-[#6366ff]">
+        <Text className="text-base font-bold color-[#6366ff]">Glosario</Text>
+        <View className="flex-col gap-5">
+          <View>
+            <Text className="text-sm font-medium text-white">Episodios:</Text>
+            <Text className="text-sm text-[#a0b0c7]">
+              Número de veces que entraste en esta fase del sueño durante la
+              noche.
+            </Text>
+          </View>
+          <View>
+            <Text className="text-sm font-medium text-white">
+              Promedio 30 días:
+            </Text>
+            <Text className="text-sm text-[#a0b0c7]">
+              Tiempo promedio que has pasado en esta fase durante los últimos 30
+              días, útil para comparar con tu noche actual.
+            </Text>
+          </View>
+          <View>
+            <Text className="text-sm font-medium text-white">Eficiencia:</Text>
+            <Text className="text-sm text-[#a0b0c7]">
+              Porcentaje del tiempo en cama que realmente pasaste durmiendo. Por
+              encima del 85% se considera buena eficiencia.
+            </Text>
+          </View>
         </View>
       </View>
     </View>

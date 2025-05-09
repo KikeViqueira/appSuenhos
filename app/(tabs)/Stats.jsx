@@ -402,7 +402,7 @@ const Estadisticas = () => {
         return (
           <View className="flex flex-col gap-6 mt-4 w-full">
             <Text className="mb-2 ml-2 text-lg font-semibold text-white">
-              Dream Reality Monitoring
+              Day Reconstruction Method
             </Text>
 
             {/* Card layout for DRM buttons */}

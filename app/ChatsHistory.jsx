@@ -28,7 +28,6 @@ const ChatsHistory = () => {
     new Date(new Date().setDate(new Date().getDate() - 7))
   ); // Por defecto 7 días atrás
   const [endDate, setEndDate] = useState(new Date()); // Por defecto hoy
-  const [filteredChats, setFilteredChats] = useState([]); //Guardaremos el chat filtrado en base a la fecha seleccionada
   const [hasSearched, setHasSearched] = useState(false);
   //Estado para saber si el user puede hacer un chat o no
   const [hasDoneChat, setHasDoneChat] = useState(false); // Por defecto indicamos que el user no ha hecho un chat hoy
@@ -52,10 +51,11 @@ const ChatsHistory = () => {
   //Importamos del hook de chat lo que nos interesa
   const {
     getHistory,
-    getConversationChat,
     history,
     deleteChats,
     getHasChatToday,
+    getChatsByRange,
+    filteredChats,
   } = useChat();
 
   // Animar la entrada y salida de la barra de selección
@@ -103,7 +103,6 @@ const ChatsHistory = () => {
   //Función que se encargará de poner el modo de múltiple selección activado para su uso y ocultar los chtas que se han filtrado en caso de que el user haya hecho una búsqueda
   const handleDeletePress = () => {
     setIsSelectionMode(true);
-    setFilteredChats([]);
   };
 
   //Función que se encarga de cancelar la eliminación múltiple y volver al estado por default
@@ -175,7 +174,7 @@ const ChatsHistory = () => {
   };
 
   // Obtenemos los chats en el rango de fechas seleccionado
-  const handleSearchByDateRange = () => {
+  const handleSearchByDateRange = async () => {
     // Validar que la fecha de inicio sea anterior a la fecha de fin
     if (startDate > endDate) {
       Alert.alert(
@@ -197,13 +196,8 @@ const ChatsHistory = () => {
     const startDateString = formatDate(startDate);
     const endDateString = formatDate(endDate);
 
-    // Filtrar los chats cuya fecha esté entre las dos fechas seleccionadas
-    const filtered = history.filter((chat) => {
-      const chatDate = chat.date; // Suponemos que chat.date es YYYY-MM-DD
-      return chatDate >= startDateString && chatDate <= endDateString;
-    });
-
-    setFilteredChats(filtered);
+    // Obtenemos los chats cuyas fechas están entre las dos que ha introducido el user
+    await getChatsByRange(startDateString, endDateString);
   };
 
   // Manejador de cambio de fecha para ambos selectores
@@ -364,7 +358,7 @@ const ChatsHistory = () => {
       {/*Renderizamos los chats filtrados por rango de fechas*/}
       {hasSearched && filteredChats.length > 0 && (
         <View className="w-[90%] self-center mb-4">
-          <Text className="mb-2 text-lg font-semibold text-white">
+          <Text className="mb-4 text-lg font-semibold text-white">
             Resultados de búsqueda ({filteredChats.length})
           </Text>
           <FlatList

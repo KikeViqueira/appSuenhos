@@ -15,6 +15,7 @@ const useChat = () => {
   const [isAiWriting, setIsAiWriting] = useState(false); // Estado para controlar cuando la IA está escribiendo
   const { accessToken, userId } = useAuthContext();
   const [last3MonthsChats, setLast3MonthsChats] = useState([]); // Almacena los chats de los últimos tres meses
+  const [filteredChats, setFilteredChats] = useState([]); // Almacena los chats filtrados
 
   /*
    * Funciones internas para guardar el chatId en el AsyncStorage junto a una marca temporal de cuando se ha hecho el chat,
@@ -250,9 +251,8 @@ const useChat = () => {
     }
   };
 
-  /**
+  /*
    * Endpoint para recuperar los chats que ha hecho el user en los últimos tres meses
-   * Para tener esta funcionalidad se le pasa un parámetro filter con valor last3Months al endpoint
    */
   const getLast3MonthsChats = async () => {
     setError(null);
@@ -273,6 +273,40 @@ const useChat = () => {
       );
       //Guardamos estos chats en el estado correspondiente
       if (response.status === 200) setLast3MonthsChats(response.data);
+      console.log("Historial de chats recuperado: ", response.data);
+    } catch (error) {
+      setError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /*
+   * Endpoint para recuperar los chats que ha hecho el user en un rango de fechas
+   */
+  const getChatsByRange = async (startDateValue, endDateValue) => {
+    setError(null);
+    setLoading(true);
+
+    try {
+      const response = await apiClient.get(
+        `${API_BASE_URL}/users/${userId}/chats`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          params: {
+            filter: "range",
+            startDate: startDateValue,
+            endDate: endDateValue,
+          },
+        }
+      );
+      //Guardamos estos chats en el estado correspondiente
+      if (response.status === 200) setFilteredChats(response.data);
+      //Si la respuesta por parte del server es un 204 significa que no hay chats en el rango de fechas
+      if (response.status === 204) setFilteredChats([]);
       console.log("Historial de chats recuperado: ", response.data);
     } catch (error) {
       setError(error);
@@ -542,6 +576,8 @@ const useChat = () => {
     clearCurrentChat,
     getCurrentChatId,
     getHasChatToday,
+    filteredChats,
+    getChatsByRange,
   };
 };
 
