@@ -431,7 +431,9 @@ const Music = () => {
             currentSound?.id === item.id ? "text-white" : "text-gray-200"
           }`}
         >
-          {item.name}
+          {item.name.length > 15
+            ? item.name.substring(0, 15) + "..."
+            : item.name}
         </Text>
 
         <View className="flex-row gap-4 items-center">

@@ -15,7 +15,7 @@ const CustomInput = ({
   const [isFocused, setIsFocused] = useState(false);
 
   return (
-    <View className="flex flex-col items-start w-full gap-2 mb-4">
+    <View className="flex flex-col gap-2 items-start mb-4 w-full">
       <Text className="mb-1 ml-1 text-base font-medium color-white">
         {name}
       </Text>

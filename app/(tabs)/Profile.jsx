@@ -23,7 +23,7 @@ import useUser from "../../hooks/useUser";
 const Profile = () => {
   //Hacemos states tanto para guardar la foto como para controlar que el modal de opciones de cámara este desplegado o no
 
-  const [image, setImage] = useState(placeholderImage); //Valor por default
+  const [image, setImage] = useState({ uri: placeholderImage }); //Valor por default
   const [showModal, setshowModal] = useState(false);
   const [showModalLogOut, setshowModalLogOut] = useState(false);
   const [showModalChangePassword, setshowModalChangePassword] = useState(false);
@@ -116,7 +116,7 @@ const Profile = () => {
       //Si el user tiene una foto de perfil personalizada, la borramos y le asignamos el placeholder
       if (hasCustomImage) {
         await deleteProfilePicture();
-        setImage(placeholderImage);
+        setImage({ uri: placeholderImage });
         setHasCustomImage(false);
         setshowModal(false);
       }

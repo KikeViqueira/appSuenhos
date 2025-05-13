@@ -79,7 +79,7 @@ export const AuthProvider = ({ children }) => {
           setUserId(idUser);
         }
         //Se pone fuera del if pq se puede dar el caso de que el user se haya logeado y no haya completado el onboarding
-        setOnboardingCompleted(true);
+        setOnboardingCompleted(onboardingStatus);
       } catch (error) {
         console.error("Error al cargar los datos del user: ", error);
       } finally {

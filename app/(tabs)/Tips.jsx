@@ -8,7 +8,7 @@ import {
   Animated,
 } from "react-native";
 import React, { useEffect, useState, useCallback, useRef } from "react";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import TipItem from "../../components/TipItem";
 import { xorBy } from "lodash";
@@ -74,16 +74,57 @@ const Tips = () => {
     }
   };
 
+  // Ref para controlar si debemos actualizar en el focus
+  const isMounted = useRef(false);
+  const lastFocusTime = useRef(0);
+  const isRefreshing = useRef(false);
+  const initializedDone = useRef(false);
+
   // Cargar los tips cuando se monta el componente
   useEffect(() => {
-    getTips();
+    if (!initializedDone.current) {
+      getTips();
+      console.log("useEffect mounted");
+      initializedDone.current = true;
+      lastFocusTime.current = Date.now();
+    }
+    isMounted.current = true; //Ha finalizado el montaje inicial
   }, []);
+
+  //useEffect que se ejecutará cada vez que la pantalla reciba el foco
+
+  useFocusEffect(
+    useCallback(() => {
+      // Evitar múltiples llamadas en un corto período de tiempo
+      const now = Date.now();
+      if (
+        isMounted.current &&
+        now - lastFocusTime.current > 1000 &&
+        !isRefreshing.current &&
+        initializedDone.current
+      ) {
+        console.log("TIPS SCREEN FOCUSED - RELOADING TIPS");
+        getTips();
+        lastFocusTime.current = now;
+      }
+      return () => {
+        // Función de limpiado
+      };
+    }, [getTips])
+  );
 
   // Función para refrescar los tips manualmente
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
+    isRefreshing.current = true;
     await getTips();
+    console.log("onRefresh");
     setRefreshing(false);
+    //Desactivamos la referencia después de un breve retraso para evitar llamada del useFocusEffect
+    setTimeout(() => {
+      isRefreshing.current = false;
+      lastFocusTime.current = Date.now();
+    }, 1000);
   }, []);
 
   //Función que se encarga de poner el modo de múltiple selección activado para su uso
