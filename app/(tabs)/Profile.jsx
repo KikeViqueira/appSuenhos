@@ -10,7 +10,6 @@ import {
 import React, { useEffect, useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather, MaterialCommunityIcons, Octicons } from "@expo/vector-icons";
-import placeholderImage from "../../assets/images/placeholder.png";
 import * as ImagePicker from "expo-image-picker";
 import PictureOptions from "../../components/PictureOptions";
 import { router } from "expo-router";
@@ -21,9 +20,11 @@ import { useAuthContext } from "../../context/AuthContext";
 import useUser from "../../hooks/useUser";
 
 const Profile = () => {
-  //Hacemos states tanto para guardar la foto como para controlar que el modal de opciones de cámara este desplegado o no
+  //Recuperamos la info del user que se ha logueado en la app mediante el contexto de Auth y la función para cerrar sesión
+  const { userInfo, logout } = useAuthContext();
 
-  const [image, setImage] = useState({ uri: placeholderImage }); //Valor por default
+  //Hacemos states tanto para guardar la foto como para controlar que el modal de opciones de cámara este desplegado o no
+  const [image, setImage] = useState({ uri: userInfo?.profilePicture }); //Valor por default
   const [showModal, setshowModal] = useState(false);
   const [showModalLogOut, setshowModalLogOut] = useState(false);
   const [showModalChangePassword, setshowModalChangePassword] = useState(false);
@@ -31,8 +32,6 @@ const Profile = () => {
   //Estado para saber si el user tiene una foto de perfil propia o tiene el placeholder
   const [hasCustomImage, setHasCustomImage] = useState(false);
 
-  //Recuperamos la info del user que se ha logueado en la app mediante el contexto de Auth y la función para cerrar sesión
-  const { userInfo, logout } = useAuthContext();
   //Importamos la llamada al endpoint de updateUser
   const { deleteProfilePicture, updateProfilePicture } = useUser();
 
@@ -45,9 +44,10 @@ const Profile = () => {
    */
   useEffect(() => {
     //Como el user siempre tiene foto de perfil ya que cuando crea la cuenta se le asigna directamente el placeholder (image), tenemos que mirar si la imagen es distinta a la de placeholder
-    if (userInfo.profilePicture !== image.uri)
-      setImage({ uri: userInfo.profilePicture });
+    if (userInfo?.profilePicture !== image.uri)
+      setImage({ uri: userInfo?.profilePicture });
     setHasCustomImage(true);
+    console.log("userInfo.profilePicture", userInfo?.profilePicture);
   }, []);
 
   //TODO:AQUI ES DONDE TENEMOS QUE HACER EL COMPORTAMIENTO DE LA FUNCIÓN QUE SE ENCARGARÁ DE ACTIVAR/DESACTIVAR LAS NOTIFICACIONES

@@ -309,6 +309,11 @@ const Estadisticas = () => {
         //Guardamos la respuesta del user en la BD
         await createSleepLog(newResponse);
 
+        /*
+         * Cuando el user ha completado el cuestionario matutino y no se haya producido errores de la api al guardar la respuesta,
+         * tenemos que eliminar la bandera de sleepStart del AsyncStorage
+         */
+        await AsyncStorage.removeItem("sleepStart");
         // Actualizamos los estados
         setIsSleeping(false);
         setHasDailySleepLog(true);
@@ -496,12 +501,24 @@ const Estadisticas = () => {
             </Text>
           </View>
 
-          {/* Estado visual del registro */}
-          {hasDailySleepLog && (
-            <View className="flex-row items-center bg-[#2a3952] p-3 rounded-lg">
+          {/* Estado visual del registro, si el user ha completado el cuestionario matutino. Como cuando lo haya completado va a poder empezar otro, tenemos enseñar el mensaje solo si no esta durmiendo */}
+          {hasDailySleepLog && !isSleeping && (
+            <View className="flex-row items-center bg-[#2a3952] p-4 rounded-lg">
               <FontAwesome5 name="clipboard-check" size={18} color="#4cd964" />
               <Text className="ml-2 color-white">
                 Registro matutino completado
+              </Text>
+            </View>
+          )}
+
+          {/* Nota informativa cuando el usuario está durmiendo y ya ha completado un registro */}
+          {hasDailySleepLog && isSleeping && (
+            <View className="flex-row items-center justify-start bg-[#2a3952] p-4 gap-3 rounded-lg">
+              <FontAwesome5 name="info-circle" size={18} color="#6366ff" />
+              <Text className="text-sm color-white w-[90%]">
+                Solo puede registrar un cuestionario en el mismo día. Si inicia
+                el registro del siguiente día antes de las 00:00, podrá guardar
+                sus respuestas una vez pasada esa hora.
               </Text>
             </View>
           )}
@@ -512,9 +529,8 @@ const Estadisticas = () => {
               onPress={calculateSleepStart}
               className={`flex flex-row items-center justify-start p-4 gap-4 
                 ${isSleeping ? "bg-[#ff4757]" : "bg-[#323d4f]"} 
-                ${hasDailySleepLog ? "opacity-70" : "opacity-100"}
+                
                 rounded-xl w-auto`}
-              disabled={hasDailySleepLog}
             >
               {isSleeping ? (
                 <Feather name="refresh-cw" size={20} color="#fff" />

@@ -24,7 +24,7 @@ const setDailyReportFlag = async () => {
     );
     //Creamos el objeto que vamos a guardar en el AsyncStorage
     const data = {
-      tipCreated: true,
+      reportFlag: true,
       expiry: endOfDay.getTime(),
     };
     await AsyncStorage.setItem("reportFlag", JSON.stringify(data));
@@ -40,14 +40,14 @@ export const getDailyReportFlag = async () => {
   try {
     const data = await AsyncStorage.getItem("reportFlag");
     if (data) {
-      const { tipCreated, expiry } = JSON.parse(data);
+      const { reportFlag, expiry } = JSON.parse(data);
       //Comprobamos si el tiempo actual es mayor que el tiempo de expiración del chatId
       if (Date.now() > expiry) {
         //Si ha expirado eliminamos la bandera del AsyncStorage
         await AsyncStorage.removeItem("reportFlag");
         return null;
       }
-      return tipCreated;
+      return reportFlag;
     }
   } catch (error) {
     console.error(

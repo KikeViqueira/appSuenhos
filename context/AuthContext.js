@@ -45,10 +45,37 @@ export const AuthProvider = ({ children }) => {
   const [onboardingCompleted, setOnboardingCompleted] = useState(null); // Estado que guarda si el user ha completado el cuestionario de onboarding
   const [userInfo, setUserInfo] = useState(null); // Estado que guarda la info del user más actualizada que hay en la BD
   const [isAuthLoading, setIsAuthLoading] = useState(true); // Estado para controlar si la autenticación está en curso
+  const [flags, setFlags] = useState([]); // Estado que guarda los flags del user
 
   //Función para actualizar el estado del onboarding
   const updateOnboardingStatus = (status) => {
     setOnboardingCompleted(status);
+  };
+
+  //Función privada para recuperar el valor de las posbles banderas que el user tiene en la cache del dispositivo
+  const getUserCacheFlags = async () => {
+    //Recuperamos las banderas que tiene que ver con la configuración
+    const onboardingStatus = await hasCompletedOnboarding();
+    const preferredTimerDuration = await AsyncStorage.getItem(
+      "preferredTimerDuration"
+    );
+    //Recuperamos las banderas diarias que el user tiene
+    const sleepStart = await AsyncStorage.getItem("sleepStart");
+    const { chatId, expiryChatId } = JSON.parse(
+      await AsyncStorage.getItem("chatId")
+    );
+    const { done, expiryHasDone } = JSON.parse(
+      await AsyncStorage.getItem("hasChatToday")
+    );
+    const { reportFlag, expiryReport } = JSON.parse(
+      await AsyncStorage.getItem("reportFlag")
+    );
+    const { tipFlag, expiryTipFlag } = JSON.parse(
+      await AsyncStorage.getItem("tipFlag")
+    );
+    const { sleepLog, expirySleepLog } = JSON.parse(
+      await AsyncStorage.getItem("sleepLog")
+    );
   };
 
   //Al cargar la app, intentamos cargar el token de la memoria segura
@@ -98,12 +125,50 @@ export const AuthProvider = ({ children }) => {
 
   //Definimos en un nuevo efecto la llamada a la función de getUser cuando se cambia la variable de userId, accessToken o onboardingCompleted
   useEffect(() => {
+    /*
+     *CUANDO EL USER HAYA INICIADO SESIÓN Y SE TENGA TANTO EL ID COMO EL TOKEN DE ACCESO
+     * SE LLAMA A LA FUNCIÓN DE GETUSERFLAGS PARA RECUPERAR LAS BANDERAS DEL USER Y SINCRONIZAR LA CACHE DEL DISPOSITIVO
+     */
+    if (userId && accessToken) getUserFlags();
     /**
      * El primer getUser que se llamará será cuando el user se haya logueado y haya completado el onboarding
      * a partir de ahí, cada vez que se actualice el token de acceso (ya sea debido al inicio de sesión o por el refresco del propio token), se llamará a getUser para recuperar la info del user
      * */
     if (userId && accessToken && onboardingCompleted) getUser();
   }, [userId, accessToken, onboardingCompleted]);
+
+  /*
+   * Endpoint que se encargará de recuperar todas las banderas que esten relacionadas con el user para comprobar
+   * que en la cache este todo correcto y no haya ningún error
+   */
+
+  const getUserFlags = async () => {
+    setError(null);
+    setLoading(true);
+
+    try {
+      //Comprobamos que se ha recuperado la info del secureStorage de manera correcta para poder hacer la petición
+      //hacemos la petición get al endpoint de getUser
+      const response = await apiClient.get(
+        `${API_BASE_URL}/users/${userId}/flags`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (response.status === 200) setFlags(response.data);
+      console.log("Banderas recuperadas del user: ", response.data);
+    } catch (error) {
+      //Si hay un error, lo guardamos en el estado de error
+      setError(error);
+      console.error("Error al recuperar las banderas del user: ", error);
+    } finally {
+      //Desactivamos el estado de carga una vez que la petición ha terminado
+      setLoading(false);
+    }
+  };
 
   /*
    * Realizamos la petición POST a /auth/login permitir al user que inicie sesión en la app y obtenga su correspondiente token JWT para poder
@@ -209,14 +274,14 @@ export const AuthProvider = ({ children }) => {
 
   //Función para cerrar la sesión
   const logout = async () => {
+    router.push("/(Auth)/sign-in");
+
     setAccessToken(null);
     setUserInfo(null);
     setUserId(null);
     await SecureStore.deleteItemAsync("userAccessToken");
     await SecureStore.deleteItemAsync("userRefreshToken");
     await SecureStore.deleteItemAsync("userId");
-    //Redirigimos al user a la pantalla de login
-    router.push("/(Auth)/sign-in");
   };
 
   return (
