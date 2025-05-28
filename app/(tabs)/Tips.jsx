@@ -108,7 +108,7 @@ const Tips = () => {
         lastFocusTime.current = now;
       }
       return () => {
-        // Función de limpiado
+        //Función de limpiado
       };
     }, [getTips])
   );

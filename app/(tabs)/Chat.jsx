@@ -18,6 +18,7 @@ import { useAuthContext } from "../../context/AuthContext";
 import { router } from "expo-router";
 import LoadingBanner from "../../components/LoadingBanner";
 import { useLocalSearchParams } from "expo-router/build/hooks";
+import Markdown from "react-native-markdown-display";
 
 const Chat = () => {
   //recuperamos las funcionalidades y estados del hook de chat
@@ -29,6 +30,7 @@ const Chat = () => {
     isAiWriting,
     getConversationChat,
     getHasChatToday,
+    setIsToday,
   } = useChat();
   //Input que guarda el mensaje que se quiere enviar
   const [newMessage, setNewMessage] = useState("");
@@ -60,6 +62,9 @@ const Chat = () => {
         //Si es la primera vez que entramos en la pestaña tenemos que recuperar la bandera de si el user ha hecho un chat hoy
         const hasChatToday = await getHasChatToday();
 
+        console.log("Valor de hasChatToday: ", hasChatToday);
+        console.log("Valor de chatId: ", chatId);
+
         // Si venimos de eliminar el chat en el que estábamos y se debe mostrar el mensaje de "vuelve mañana" en caso de que el user haya borrado el chat de hoy también
         if (showTomorrowMessage === "true") {
           setCanCreateNewChat(false);
@@ -80,6 +85,7 @@ const Chat = () => {
         } else {
           //En caso de que el user no haya hecho un chat hoy dejamos que cree uno nuevo
           setCanCreateNewChat(true);
+          setIsToday(true);
         }
       } catch (err) {
         console.error("Error cargando chat:", err);

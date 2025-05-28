@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Animated,
+  InteractionManager,
 } from "react-native";
 import React, { useEffect, useState, useRef } from "react";
 import { router, useLocalSearchParams } from "expo-router";
@@ -46,7 +47,9 @@ const TipDetail = () => {
 
   // Función para obtener el icono según su nombre
   const getIcon = (iconName) => {
-    return iconMap[iconName] || ((props) => <Feather name="shield" {...props} />); // Si no se encuentra, usamos Shield como fallback
+    return (
+      iconMap[iconName] || ((props) => <Feather name="shield" {...props} />)
+    ); // Si no se encuentra, usamos Shield como fallback
   };
 
   useEffect(() => {
@@ -124,30 +127,35 @@ const TipDetail = () => {
     const offsetY = event.nativeEvent.contentOffset.y;
     scrollY.setValue(offsetY);
 
-    const layoutHeight = event.nativeEvent.layoutMeasurement.height; //Altura en si de la caja del scroll
-    const contentHeight = event.nativeEvent.contentSize.height; //Altura total del contenido del scroll
-    //Definimos donde es el final de la página para quitar el indicador de scroll
-    const isEndReached = layoutHeight + offsetY >= contentHeight - 35;
+    const layoutHeight = event.nativeEvent.layoutMeasurement.height; // Altura de la caja del scroll
+    const contentHeight = event.nativeEvent.contentSize.height; // Altura total del contenido
 
-    if (isEndReached && showScrollIndicator) {
-      // Fade out animation when reaching the bottom
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }).start(() => {
-        setShowScrollIndicator(false);
-      });
-    } else if (!isEndReached && !showScrollIndicator) {
-      // Fade in animation when not at the bottom
+    // Si el scroll está cerca del final, ocultar el indicador (similar a Stats.jsx)
+    if (layoutHeight + offsetY >= contentHeight - 35) {
+      setShowScrollIndicator(false);
+    } else {
       setShowScrollIndicator(true);
+    }
+  };
+
+  // Efecto para manejar la animación del indicador cuando cambia su visibilidad
+  useEffect(() => {
+    if (showScrollIndicator) {
+      // Mostrar con animación
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 300,
         useNativeDriver: true,
       }).start();
+    } else {
+      // Ocultar con animación
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
     }
-  };
+  }, [showScrollIndicator, fadeAnim]);
 
   // Si está cargando, mostrar un indicador de carga
   if (isLoading) {

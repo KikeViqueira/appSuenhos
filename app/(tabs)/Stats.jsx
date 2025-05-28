@@ -30,7 +30,7 @@ import { useAuthContext } from "../../context/AuthContext";
  */
 const formatDateToLocalDate = (date) => {
   const tzOffset = date.getTimezoneOffset() * 60000; // Offset en milisegundos
-  const localDate = new Date(date - tzOffset);
+  const localDate = new Date(date.getTime() - tzOffset);
   return localDate;
 };
 
@@ -53,18 +53,19 @@ Notifications.setNotificationHandler({
 });
 
 //Función para mandar una notificación cuando hayan pasado 8 horas desde que el user se haya ido a dormir
-const sendNotificationWakeUp = async (now) => {
-  // Asegurarnos de que now sea un objeto Date
-  const date = now instanceof Date ? now : new Date(now);
+const sendNotificationWakeUp = async () => {
   // Calculamos 8 horas después de la hora actual
-  const trigger = new Date(date.getTime() + 8 * 60 * 60 * 1000);
+  const trigger = new Date(new Date().getTime() + 8 * 60 * 60 * 1000);
   try {
     await Notifications.scheduleNotificationAsync({
       content: {
         title: "¿Pilas recargadas?",
         body: "No olvides registrar tu hora de despertar para calcular tu sueño.",
       },
-      trigger,
+      trigger: {
+        type: "date",
+        date: trigger,
+      },
     });
     console.log("Notification scheduled for wake up: ", trigger);
   } catch (error) {
@@ -212,7 +213,7 @@ const Estadisticas = () => {
         await AsyncStorage.setItem("sleepStart", formattedDate.toISOString());
 
         // Mandamos la notificación usando la fecha formateada
-        sendNotificationWakeUp(formattedDate);
+        sendNotificationWakeUp();
 
         // Actualizamos el estado después de que se haya guardado la hora
         setTimeout(() => setIsSleeping(true), 0);

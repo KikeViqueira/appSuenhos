@@ -116,6 +116,8 @@ const useTips = () => {
         }
       );
       if (response.status === 200) setTips(response.data);
+      //En caso de que la respuesta sea 204, es decir, que no hay contenido, lo que significa que el usuario no tiene tips favoritos, lo que significa que el array de tips favoritos se vacía
+      if (response.status === 204) setFavoriteTips([]);
     } catch (error) {
       setError(error);
       console.error("Error al recuperar los tips: ", error);
@@ -214,6 +216,7 @@ const useTips = () => {
         }
       );
       if (response.status === 200) setFavoriteTips(response.data);
+      if (response.status === 204) setFavoriteTips([]);
     } catch (error) {
       setError(error);
       console.error("Error al recuperar los tips favoritos: ", error);
@@ -238,10 +241,10 @@ const useTips = () => {
         }
       );
       if (response.status === 200) {
-        //Actualizamos la lista de tips favortitos en el estado //TODO: EL CHAT DICE QUE ES MEJOR ESTO A LLAMAR AL GET DE LA API
+        //Actualizamos la lista de tips favortitos en el estado
         setFavoriteTips((prevFavoriteTips) => [
           ...prevFavoriteTips,
-          response.data,
+          ...response.data, //Añadimos cada objeto tip del array que devuelve la api en el estado array
         ]);
       }
     } catch (error) {
@@ -271,6 +274,7 @@ const useTips = () => {
         setFavoriteTips((prevFavoriteTips) =>
           prevFavoriteTips.filter((tip) => tip.id !== idTip)
         );
+        console.log("TIP ELIMINADO DE FAVORITOS: ", idTip);
       }
     } catch (error) {
       setError(error);
@@ -279,6 +283,14 @@ const useTips = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    console.log("Lista de tips favoritos actualizada: ", favoriteTips);
+    console.log(
+      "Cantidad de tips favoritos actualizada: ",
+      favoriteTips.length
+    );
+  }, [favoriteTips]);
 
   return {
     tips,

@@ -37,27 +37,33 @@ const DrmReport = () => {
 
     const layoutHeight = event.nativeEvent.layoutMeasurement.height;
     const contentHeight = event.nativeEvent.contentSize.height;
-    const isEndReached = layoutHeight + offsetY >= contentHeight - 20;
-
-    if (isEndReached && showScrollIndicator) {
-      // Fade out animation when reaching the bottom
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }).start(() => {
-        setShowScrollIndicator(false);
-      });
-    } else if (!isEndReached && !showScrollIndicator) {
-      // Fade in animation when not at the bottom
+    
+    // Si el scroll está cerca del final, ocultar el indicador (similar a Stats.jsx)
+    if (layoutHeight + offsetY >= contentHeight - 20) {
+      setShowScrollIndicator(false);
+    } else {
       setShowScrollIndicator(true);
+    }
+  };
+  
+  // Efecto para manejar la animación del indicador cuando cambia su visibilidad
+  useEffect(() => {
+    if (showScrollIndicator) {
+      // Mostrar con animación
       Animated.timing(fadeAnim, {
         toValue: 1,
         duration: 300,
         useNativeDriver: true,
       }).start();
+    } else {
+      // Ocultar con animación
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
     }
-  };
+  }, [showScrollIndicator, fadeAnim]);
 
   const handleGenerateTip = async () => {
     if (tipButtonState === "generating") return;

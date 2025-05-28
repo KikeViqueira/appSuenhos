@@ -128,11 +128,16 @@ const useDRM = () => {
       //Guardamos el objeto DTO del drmToday en el estado drmToday
       setDrmToday(response.data);
     } catch (error) {
-      setError(error);
-      console.error(
-        "Error al intentar obtener el cuestionario DRM de hoy: ",
-        error
-      );
+      if (error.response) {
+        if (error.response.status !== 404) {
+          setError(error);
+          console.error(
+            "Error al intentar obtener el cuestionario DRM de hoy: ",
+            error
+          );
+          //En caso de que el user intente recuperar el de hoy y se devuelva un 404 porque todavía no la ha hecho, guardamos un objeto vacío en el estado drmToday
+        } else setDrmToday({});
+      }
     } finally {
       setLoading(false);
     }

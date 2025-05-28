@@ -1,20 +1,51 @@
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Feather,
   MaterialCommunityIcons,
   FontAwesome5,
 } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import useTips from "../hooks/useTips";
 
 const FavTips = () => {
   const { getFavoriteTips, favoriteTips } = useTips();
 
+  //Declaramos las referencias para saber si tenemos que actualizar el useFocus o no
+  const isMounted = useRef(false);
+  const lastFocusTime = useRef(0);
+  const initializedDone = useRef(false);
+
   useEffect(() => {
     getFavoriteTips();
+    isMounted.current = true;
+    lastFocusTime.current = Date.now();
+    initializedDone.current = true;
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      //Evitamos múltiples llamadas en un corto período de tiempo
+      const now = Date.now();
+      if (
+        isMounted.current &&
+        initializedDone.current &&
+        now - lastFocusTime.current > 1000
+      ) {
+        console.log("FAVTIPS SCREEN FOCUSED - RELOADING FAVS TIPS");
+        getFavoriteTips();
+        lastFocusTime.current = Date.now();
+        console.log(
+          "Cantidad de tips que tenemos en favoritos: ",
+          favoriteTips.length
+        );
+      }
+      return () => {
+        //Función de limpiado
+      };
+    }, [getFavoriteTips, favoriteTips.length])
+  );
 
   return (
     <SafeAreaView className="w-full h-full bg-primary">

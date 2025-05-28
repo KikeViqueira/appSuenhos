@@ -540,6 +540,7 @@ const useChat = () => {
       setMessages([]);
       setIsToday(true);
     }
+    console.log("Valor de si se puede crear un chat:", isToday);
   };
 
   const clearCurrentChat = async () => {
@@ -578,6 +579,7 @@ const useChat = () => {
     getHasChatToday,
     filteredChats,
     getChatsByRange,
+    setIsToday,
   };
 };
 

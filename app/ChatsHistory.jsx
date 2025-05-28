@@ -37,6 +37,10 @@ const ChatsHistory = () => {
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
   const [activeDatePicker, setActiveDatePicker] = useState(null); // 'start' o 'end'
 
+  //Estados para manejar de que manera se tiene que ir a la pantalla de chat y que parámetros son necesarios (en este caso por ahora solo tenemos que hacer un estado para nextChatId)
+  const [mode, setMode] = useState("normal");
+  const [nextChatId, setNextChatId] = useState(null);
+
   /*
    *Creamos estado para guardar los chats que se seleccionan en la selección múltiple para ser eliminados
    *
@@ -134,26 +138,19 @@ const ChatsHistory = () => {
         if (result.nextChatId) {
           // Si hay un chat disponible (normalmente el de hoy), navegamos a él
           console.log("Navegando al chat con ID:", result.nextChatId);
-          router.replace({
-            pathname: "./(tabs)/Chat",
-            params: { chatId: result.nextChatId.toString() },
-          });
+          setMode("goToChatToday");
+          setNextChatId(result.nextChatId);
         } else if (!result.hasChatToday) {
           // Si no hay un chat de hoy disponible, navegamos a la pantalla principal sin chatId
           // Esto mostrará la pantalla de bienvenida para crear un nuevo chat
           console.log("Navegando a pantalla principal para crear nuevo chat");
-          router.replace({
-            pathname: "./(tabs)/Chat",
-            params: { chatId: undefined },
-          });
+          setMode("goToCreateChat");
+          setNextChatId(undefined);
         } else {
           // El usuario ya ha hecho un chat hoy pero lo ha borrado,
           // mostrará la pantalla de "vuelve mañana"
           console.log("Navegando a pantalla de 'vuelve mañana'");
-          router.replace({
-            pathname: "./(tabs)/Chat",
-            params: { showTomorrowMessage: "true" },
-          });
+          setMode("goToTomorrowMessage");
         }
       } else {
         // Si no se eliminó el chat abierto, recargamos la lista de chats para actualizar la UI
@@ -166,6 +163,36 @@ const ChatsHistory = () => {
         "Ocurrió un problema al eliminar los chats seleccionados."
       );
     }
+  };
+
+  //Función que cuando se cierre el historial de chats volverá a la pantalla de chat de la manera correcta
+  const handleBackToChat = () => {
+    switch (mode) {
+      case "goToChatToday":
+        router.replace({
+          pathname: "./(tabs)/Chat",
+          params: { chatId: nextChatId.toString() },
+        });
+        break;
+      case "goToCreateChat":
+        router.replace({
+          pathname: "./(tabs)/Chat",
+          params: { chatId: undefined },
+        });
+        break;
+      case "goToTomorrowMessage":
+        router.replace({
+          pathname: "./(tabs)/Chat",
+          params: { showTomorrowMessage: "true" },
+        });
+        break;
+      default:
+        //En caso de que no se cumplan ninguna de las condiciones hacemos la acción por default
+        router.back();
+        break;
+    }
+    setMode("normal");
+    setNextChatId(null);
   };
 
   // Función para formatear fecha a YYYY-MM-DD
@@ -251,7 +278,7 @@ const ChatsHistory = () => {
   return (
     <SafeAreaView className="flex-1 w-full bg-primary">
       <View className="flex flex-row gap-4 justify-start items-center p-4">
-        <TouchableOpacity onPress={() => router.back()}>
+        <TouchableOpacity onPress={handleBackToChat}>
           <AntDesign name="close" size={32} color={"#6366ff"} />
         </TouchableOpacity>
         <Text
