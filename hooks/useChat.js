@@ -38,14 +38,14 @@ const useChat = () => {
       //Creamos el objeto que vamos a guardar en el AsyncStorage
       const data = {
         chatId: id,
-        expiry: endOfDay.getTime(),
+        expiry_chatId: endOfDay.getTime(),
       };
       await AsyncStorage.setItem("chatId", JSON.stringify(data));
       //Tenemos que crear bandera de si el user ha hecho un chat en el día de hoy o no
       //Cremaos el objeto de la misma manera
       const hasChatToday = {
         done: true,
-        expiry: endOfDay.getTime(),
+        expiry_hasChatToday: endOfDay.getTime(),
       };
 
       await AsyncStorage.setItem("hasChatToday", JSON.stringify(hasChatToday));
@@ -59,10 +59,10 @@ const useChat = () => {
       const data = await AsyncStorage.getItem("chatId");
 
       if (data) {
-        const { chatId, expiry } = JSON.parse(data);
+        const { chatId, expiry_chatId } = JSON.parse(data);
 
         //Comprobamos si el tiempo actual es mayor que el tiempo de expiración del chatId
-        if (Date.now() > expiry) {
+        if (Date.now() > expiry_chatId) {
           //Si ha expirado eliminamos el chatId del AsyncStorage
           await AsyncStorage.removeItem("chatId");
           return null;
@@ -82,12 +82,10 @@ const useChat = () => {
       const data = await AsyncStorage.getItem("hasChatToday");
 
       if (data) {
-        const { done, expiry } = JSON.parse(data);
+        const { done, expiry_hasChatToday } = JSON.parse(data);
 
-        //Comprobamos si el tiempo actual es mayor que el tiempo de expiración del chatId
-        if (Date.now() > expiry) {
-          //Si ha expirado eliminamos el chatId del AsyncStorage
-          await AsyncStorage.removeItem("chatId");
+        if (Date.now() > expiry_hasChatToday) {
+          await AsyncStorage.removeItem("hasChatToday");
           return false;
         }
         return done;

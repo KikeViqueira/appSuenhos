@@ -34,7 +34,7 @@ export default function useSleep() {
       );
       const data = {
         sleepLog: true,
-        expiry: endOfDay.getTime(),
+        expiry_sleep_log: endOfDay.getTime(),
       };
       await AsyncStorage.setItem("sleepLog", JSON.stringify(data));
     } catch (error) {
@@ -47,7 +47,7 @@ export default function useSleep() {
       const storedSleepLog = await AsyncStorage.getItem("sleepLog");
       if (storedSleepLog) {
         const parsedData = JSON.parse(storedSleepLog);
-        if (Date.now() > parsedData.expiry) {
+        if (Date.now() > parsedData.expiry_sleep_log) {
           await AsyncStorage.removeItem("sleepLog");
           return null;
         }

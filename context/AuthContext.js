@@ -45,37 +45,69 @@ export const AuthProvider = ({ children }) => {
   const [onboardingCompleted, setOnboardingCompleted] = useState(null); // Estado que guarda si el user ha completado el cuestionario de onboarding
   const [userInfo, setUserInfo] = useState(null); // Estado que guarda la info del user más actualizada que hay en la BD
   const [isAuthLoading, setIsAuthLoading] = useState(true); // Estado para controlar si la autenticación está en curso
-  const [flags, setFlags] = useState([]); // Estado que guarda los flags del user
 
   //Función para actualizar el estado del onboarding
   const updateOnboardingStatus = (status) => {
     setOnboardingCompleted(status);
   };
 
-  //Función privada para recuperar el valor de las posbles banderas que el user tiene en la cache del dispositivo
-  const getUserCacheFlags = async () => {
-    //Recuperamos las banderas que tiene que ver con la configuración
-    const onboardingStatus = await hasCompletedOnboarding();
-    const preferredTimerDuration = await AsyncStorage.getItem(
-      "preferredTimerDuration"
-    );
-    //Recuperamos las banderas diarias que el user tiene
-    const sleepStart = await AsyncStorage.getItem("sleepStart");
-    const { chatId, expiryChatId } = JSON.parse(
-      await AsyncStorage.getItem("chatId")
-    );
-    const { done, expiryHasDone } = JSON.parse(
-      await AsyncStorage.getItem("hasChatToday")
-    );
-    const { reportFlag, expiryReport } = JSON.parse(
-      await AsyncStorage.getItem("reportFlag")
-    );
-    const { tipFlag, expiryTipFlag } = JSON.parse(
-      await AsyncStorage.getItem("tipFlag")
-    );
-    const { sleepLog, expirySleepLog } = JSON.parse(
-      await AsyncStorage.getItem("sleepLog")
-    );
+  //Función que tiene el mapa de las banderas que se usan en la app en las que guardamos un objeto y no un simple valor
+  const groupedFlagsMap = {
+    chatId: ["chatId", "expiryChatId"],
+    hasChatToday: ["hasChatToday", "expiryHasDone"],
+    reportFlag: ["reportFlag", "expiry_drm_report"],
+    tipFlag: ["tipFlag", "expiry_tip_of_the_day"],
+    sleepLog: ["sleepLog", "expiry_sleep_log"],
+  };
+
+  /*
+   * Definimos a la función que se encargará de actualizar el valor de las banderas para que la cache siempre este sincronizada al entrar en la app
+   * teniendo en cuenta que se le pasa la respuesta de la api ha dicha función
+   *
+   */
+  const saveFlagsToCache = async (flags) => {
+    //usamos el operador spread para sacar las banderas de los correspondientes mapas que tenga el estado
+    const flatFlags = Object.values(flags).reduce((acc, section) => {
+      return [...acc, ...section];
+    }, {});
+
+    const groupedFlags = {};
+    //hacemos un set para evitar banderas que esten duplicadas
+    const usedKeys = new Set();
+
+    //Primero guardamos en el objeto groupedFlags las banderas que vienen de la api y necesitan formar un objeto
+    for (const key in groupedFlagsMap) {
+      groupedFlags[key] = {};
+      //Estamos haciendo lo siguiente
+      /*
+      groupedFlags = {
+        chatId: {}
+      }
+      */
+      //Recorremos el array asociado a esta bandera en el map que hemos hecho arriba
+      for (const subKey of groupedFlagsMap[key]) {
+        groupedFlags[key][subKey] = flags[subKey]; //Cogemos de la respuesta de la api el valor que no interesa para esta key
+        usedKeys.add(subKey); //Añadimos la key a nuestro set para evitar duplicados
+      }
+    }
+
+    //metemos en nuestro objeto ahora las banderas que son simples
+    for (const key in flatFlags) {
+      if (!usedKeys.has(key)) {
+        groupedFlags[key] = flatFlags[key];
+      }
+    }
+
+    //Recorremos el objeto y vamos guardando las banderas en el AsyncStorage
+    for (const key in groupedFlags) {
+      const value = groupedFlags[key];
+      //Serializamos el valor dependiendo de si lo que vamos a guardar en el AsyncStorage es un objeto o un valor simple
+      const serializedValue =
+        typeof value === "object" ? JSON.stringify(value) : String(value);
+      await AsyncStorage.setItem(key, serializedValue);
+    }
+
+    console.log("Banderas guardadas en AsyncStorage:", groupedFlags);
   };
 
   //Al cargar la app, intentamos cargar el token de la memoria segura
@@ -88,6 +120,7 @@ export const AuthProvider = ({ children }) => {
         //await AsyncStorage.removeItem("hasCompletedOnboarding");
         //await AsyncStorage.setItem("hasCompletedOnboarding", "true");
 
+        //Estas banderas dependen exclusivamente del dispositivo asi que no se tienen en cuenta para la sincronización
         const userAccessToken = await SecureStore.getItemAsync(
           "userAccessToken"
         );
@@ -107,6 +140,9 @@ export const AuthProvider = ({ children }) => {
         }
         //Se pone fuera del if pq se puede dar el caso de que el user se haya logeado y no haya completado el onboarding
         setOnboardingCompleted(onboardingStatus);
+
+        //llamamos al endpoint de recuperar las banderas para que se actualice la cache del dispositivo y asi tener un estado consistente
+        //await getUserFlags();
       } catch (error) {
         console.error("Error al cargar los datos del user: ", error);
       } finally {
@@ -158,7 +194,9 @@ export const AuthProvider = ({ children }) => {
         }
       );
 
-      if (response.status === 200) setFlags(response.data);
+      if (response.status === 200) {
+        await saveFlagsToCache(response.data);
+      }
       console.log("Banderas recuperadas del user: ", response.data);
     } catch (error) {
       //Si hay un error, lo guardamos en el estado de error
