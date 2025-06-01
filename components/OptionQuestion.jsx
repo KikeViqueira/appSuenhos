@@ -18,7 +18,7 @@ const OptionQuestion = ({ question, onAnswer }) => {
   const [selectedOption, setSelectedOption] = useState(null);
 
   return (
-    <View className="mb-4 w-full">
+    <View className="w-full">
       <Text className="mb-4 text-xl font-semibold text-[#6366ff]">
         {question.title}
       </Text>
@@ -31,18 +31,18 @@ const OptionQuestion = ({ question, onAnswer }) => {
               setSelectedOption(item.id);
               onAnswer(question.id, item.option);
             }}
-            className={`flex-row items-center justify-between p-4 border rounded-xl ${
+            className={`flex-row items-center justify-between p-4 border rounded-lg ${
               selectedOption === item.id
-                ? "bg-[#252e40] border-[#6366ff]"
-                : "bg-[#1a2c46] border-[#323d4f]"
+                ? "bg-[#6366ff]/20 border-[#6366ff]"
+                : "bg-[#0e172a] border-[#252e40]"
             }`}
             activeOpacity={0.7}
           >
             <Text
               className={`text-base ${
                 selectedOption === item.id
-                  ? "text-[#6366ff] font-semibold"
-                  : "text-white"
+                  ? "text-white font-semibold"
+                  : "text-gray-300"
               }`}
             >
               {item.option}

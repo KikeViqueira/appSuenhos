@@ -9,6 +9,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import useOnboarding from "../../hooks/useOnboarding";
 import { markOnboardingAsCompleted } from "../../services/onboardingService";
 import { useAuthContext } from "../../context/AuthContext";
+import { View, Text, StatusBar } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { MaterialIcons } from "@expo/vector-icons";
 
 export default function Onboarding() {
   const { saveOnboardingAnswers } = useOnboarding();
@@ -84,66 +87,159 @@ export default function Onboarding() {
   const question4 = OnboardingMultipleOptionsQuestions.questions[2];
   const question5 = OnboardingMultipleOptionsQuestions.questions[3];
 
+  // Calcular progreso
+  const getProgress = () => {
+    const totalQuestions = 5;
+    const currentProgress = (question / totalQuestions) * 100;
+    return {
+      current: question,
+      total: totalQuestions,
+      percentage: currentProgress,
+    };
+  };
+
+  const progress = getProgress();
+
+  // Obtener título de la pantalla actual
+  const getCurrentTitle = () => {
+    switch (question) {
+      case 1:
+        return "Configuración inicial";
+      case 2:
+        return "Personalización";
+      case 3:
+        return "Información personal";
+      case 4:
+        return "Preferencias";
+      case 5:
+        return "Finalización";
+      default:
+        return "Onboarding";
+    }
+  };
+
   return (
-    /*
-     * llamamos solo a la primera pregunta, ya que después cada una se encargará de llamar a la siguiente
-     *
-     * Tenemos que hacer reenderizado condicional dependiendo de la pregunta en la que estemos
-     * */
-
     <SafeAreaView className="w-full h-full bg-primary">
-      {question === 1 && (
-        <MultipleOptionOnboarding
-          questionText={question1.title}
-          options={question1.options}
-          questionKey={question1.id}
-          updateResponse={updateResponse}
-          nextQuestion={goToNextQuestion}
-          first={true}
-        />
-      )}
+      {/* Header con barra de progreso */}
+      <View className="bg-[#0e172a] border-b border-[#1e2a47] pb-6 pt-4">
+        {/* Título y paso actual */}
+        <View className="px-6 mb-4">
+          <View className="flex-row items-center justify-between mb-2">
+            <View className="flex-row items-center gap-3">
+              <MaterialIcons name="settings" size={24} color="#6366ff" />
+              <Text className="text-lg font-bold text-white">
+                {getCurrentTitle()}
+              </Text>
+            </View>
+            <Text className="text-base text-gray-400">
+              Paso {progress.current} de {progress.total}
+            </Text>
+          </View>
 
-      {question === 2 && (
-        <MultipleOptionOnboarding
-          questionText={question2.title}
-          options={question2.options}
-          questionKey={question2.id}
-          updateResponse={updateResponse}
-          nextQuestion={goToNextQuestion}
-          previousQuestion={goToPreviousQuestion}
-        />
-      )}
+          <Text className="text-sm text-gray-400">
+            Configura tu experiencia personalizada
+          </Text>
+        </View>
 
-      {question === 3 && (
-        <AgeQuestion
-          updateResponse={updateResponse}
-          nextQuestion={goToNextQuestion}
-          previousQuestion={goToPreviousQuestion}
-        />
-      )}
+        {/* Barra de progreso principal */}
+        <View className="px-6">
+          <View className="flex-row items-center justify-between mb-3">
+            <Text className="text-base font-medium text-gray-300">
+              Progreso de configuración
+            </Text>
+            <Text className="text-[#6366ff] text-base font-bold">
+              {Math.round(progress.percentage)}%
+            </Text>
+          </View>
 
-      {question === 4 && (
-        <MultipleOptionOnboarding
-          questionText={question4.title}
-          options={question4.options}
-          questionKey={question4.id}
-          updateResponse={updateResponse}
-          nextQuestion={goToNextQuestion}
-          previousQuestion={goToPreviousQuestion}
-        />
-      )}
+          {/* Contenedor de la barra con sombra */}
+          <View
+            className="w-full h-6 bg-[#1a2332] rounded-full border border-[#252e40] overflow-hidden"
+            style={{
+              shadowColor: "#000",
+              shadowOffset: { width: 0, height: 3 },
+              shadowOpacity: 0.3,
+              shadowRadius: 4,
+              elevation: 6,
+            }}
+          >
+            {/* Barra de progreso con gradiente */}
+            {progress.percentage > 0 && (
+              <LinearGradient
+                colors={["#6366ff", "#8b5cf6", "#d946ef"]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={{
+                  width: `${progress.percentage}%`,
+                  height: "100%",
+                  borderRadius: 12,
+                  shadowColor: "#6366ff",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.7,
+                  shadowRadius: 5,
+                  elevation: 4,
+                }}
+              />
+            )}
+          </View>
+        </View>
+      </View>
 
-      {question === 5 && (
-        <MultipleOptionOnboarding
-          questionText={question5.title}
-          options={question5.options}
-          questionKey={question5.id}
-          updateResponse={updateResponse}
-          onFinish={onFinish}
-          previousQuestion={goToPreviousQuestion}
-          final={true}
-        />
-      )}
+      {/* Contenido principal */}
+      <View className="flex-1">
+        {question === 1 && (
+          <MultipleOptionOnboarding
+            questionText={question1.title}
+            options={question1.options}
+            questionKey={question1.id}
+            updateResponse={updateResponse}
+            nextQuestion={goToNextQuestion}
+            first={true}
+          />
+        )}
+
+        {question === 2 && (
+          <MultipleOptionOnboarding
+            questionText={question2.title}
+            options={question2.options}
+            questionKey={question2.id}
+            updateResponse={updateResponse}
+            nextQuestion={goToNextQuestion}
+            previousQuestion={goToPreviousQuestion}
+          />
+        )}
+
+        {question === 3 && (
+          <AgeQuestion
+            updateResponse={updateResponse}
+            nextQuestion={goToNextQuestion}
+            previousQuestion={goToPreviousQuestion}
+          />
+        )}
+
+        {question === 4 && (
+          <MultipleOptionOnboarding
+            questionText={question4.title}
+            options={question4.options}
+            questionKey={question4.id}
+            updateResponse={updateResponse}
+            nextQuestion={goToNextQuestion}
+            previousQuestion={goToPreviousQuestion}
+          />
+        )}
+
+        {question === 5 && (
+          <MultipleOptionOnboarding
+            questionText={question5.title}
+            options={question5.options}
+            questionKey={question5.id}
+            updateResponse={updateResponse}
+            onFinish={onFinish}
+            previousQuestion={goToPreviousQuestion}
+            final={true}
+          />
+        )}
+      </View>
     </SafeAreaView>
   );
 }

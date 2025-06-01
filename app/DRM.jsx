@@ -7,16 +7,18 @@ import {
   KeyboardAvoidingView,
   Platform,
   Linking,
+  Alert,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { questions } from "../assets/DRMQuestions.json";
 import SliderQuestion from "../components/SliderQuestion";
 import OptionQuestion from "../components/OptionQuestion";
 import TextQuestion from "../components/TextQuestion";
-import { Feather } from "@expo/vector-icons";
+import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { getDailyReportFlag } from "../hooks/useDRM";
 import useDRM from "../hooks/useDRM";
+import { LinearGradient } from "expo-linear-gradient";
 
 const DRM = () => {
   const { saveDrmAnswers, loading, error } = useDRM();
@@ -42,6 +44,25 @@ const DRM = () => {
     if (reportButtonState === "generating" || reportButtonState === "generated")
       return;
 
+    // Validar que se hayan respondido las preguntas obligatorias
+    const mandatoryQuestions = questions.filter(
+      (q) => !q.title.toLowerCase().includes("opcional")
+    );
+
+    const answeredMandatory = mandatoryQuestions.filter((q) =>
+      answers.hasOwnProperty(q.id)
+    ).length;
+
+    if (answeredMandatory < mandatoryQuestions.length) {
+      Alert.alert(
+        "Cuestionario incompleto",
+        `Por favor, completa todas las preguntas obligatorias. Te faltan ${
+          mandatoryQuestions.length - answeredMandatory
+        } por responder.`
+      );
+      return;
+    }
+
     setReportButtonState("generating");
 
     try {
@@ -50,7 +71,7 @@ const DRM = () => {
       //Una vez que se ha generado el informe lo primero es borrar las respuestas para que no se queden guardadas
       setAnswers({});
     } catch (error) {
-      console.error("Error generando tip:", error);
+      console.error("Error generando informe:", error);
       setReportButtonState("default");
       Alert.alert(
         "Error",
@@ -85,7 +106,7 @@ const DRM = () => {
       case "generating":
         return "Generando informe...";
       case "generated":
-        return "Informe de hoy generado";
+        return "✓ Informe de hoy generado";
       default:
         return "Generar informe detallado";
     }
@@ -94,46 +115,129 @@ const DRM = () => {
   const getButtonStyle = () => {
     switch (reportButtonState) {
       case "generating":
-        return "bg-[#15db44]/60";
+        return "bg-[#15db44]/70";
       case "generated":
-        return "bg-gray-400";
+        return "bg-gray-500";
       default:
         return "bg-[#15db44]";
     }
   };
 
+  // Calcular progreso solo para preguntas obligatorias
+  const getProgress = () => {
+    // Filtrar preguntas obligatorias (excluir las que tienen "opcional" en el título)
+    const mandatoryQuestions = questions.filter(
+      (q) => !q.title.toLowerCase().includes("opcional")
+    );
+
+    const answeredMandatory = mandatoryQuestions.filter((q) =>
+      answers.hasOwnProperty(q.id)
+    ).length;
+
+    return {
+      answered: answeredMandatory,
+      total: mandatoryQuestions.length,
+      percentage:
+        mandatoryQuestions.length > 0
+          ? (answeredMandatory / mandatoryQuestions.length) * 100
+          : 0,
+    };
+  };
+
+  const progress = getProgress();
+
   return (
     <SafeAreaView className="flex-1 w-full h-full bg-primary">
-      <View className="flex flex-row gap-4 justify-start items-center p-4">
-        <TouchableOpacity
-          //Dejamos que el user pueda volver a las gráficas en caso de que haya entrado sin querer en la pestaña
-          onPress={() => router.back()}
-          className="flex flex-row gap-2 items-center py-2"
-        >
-          <Feather name="chevron-left" size={24} color="white" />
-        </TouchableOpacity>
-        <Text
-          className="text-center font-bold text-[#6366ff] py-2"
-          style={{ fontSize: 24 }}
-        >
-          Cuestionario diario DRM
-        </Text>
+      {/* Header mejorado */}
+      <View className="bg-[#0e172a] border-b border-[#1e2a47]">
+        <View className="flex flex-row items-center justify-between gap-4 p-4">
+          <TouchableOpacity
+            onPress={() => router.back()}
+            className="flex flex-row items-center gap-2 px-1 py-2"
+          >
+            <Feather name="chevron-left" size={24} color="white" />
+          </TouchableOpacity>
+
+          <View className="items-center flex-1">
+            <Text className="font-bold text-[#6366ff]" style={{ fontSize: 20 }}>
+              Cuestionario DRM
+            </Text>
+
+            {/* Barra de progreso */}
+            <View className="mt-3 w-[90%]">
+              <View className="flex-row items-center justify-between mb-2">
+                <Text className="text-xs font-medium text-gray-300">
+                  Progreso
+                </Text>
+                <Text className="text-[#6366ff] text-xs font-bold">
+                  {Math.round(progress.percentage)}%
+                </Text>
+              </View>
+
+              {/* Contenedor de la barra con sombra */}
+              <View
+                className="w-full h-3 bg-[#1a2332] rounded-full border border-[#252e40] overflow-hidden"
+                style={{
+                  shadowColor: "#000",
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.25,
+                  shadowRadius: 3,
+                  elevation: 4,
+                }}
+              >
+                {/* Barra de progreso con gradiente */}
+                {progress.percentage > 0 && (
+                  <LinearGradient
+                    colors={["#6366ff", "#8b5cf6"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={{
+                      width: `${progress.percentage}%`,
+                      height: "100%",
+                      borderRadius: 12,
+                      shadowColor: "#6366ff",
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowOpacity: 0.6,
+                      shadowRadius: 4,
+                      elevation: 3,
+                    }}
+                  />
+                )}
+              </View>
+
+              {progress.answered > 0 && (
+                <Text className="mt-2 text-xs text-center text-gray-400">
+                  {progress.answered} de {progress.total} obligatorias
+                  completadas
+                </Text>
+              )}
+            </View>
+          </View>
+
+          <View className="items-center w-8">
+            <MaterialIcons name="psychology" size={24} color="#6366ff" />
+          </View>
+        </View>
       </View>
 
-      <Text className="mx-4 mb-4 text-base text-center text-white">
-        Este cuestionario está pensado para que puedas obtener una valoración de
-        tu toma de decisiones del día anterior siguiendo la metodología{" "}
-        {/*Esto sirve para meter un espacio en el texto*/}
-        <Text
-          className="italic text-blue-300 underline"
-          //Cuando presionemos en el texto abrimos la url de la metodología, así el usuario puede tener más información sobre en que consiste la metodología
-          onPress={() =>
-            Linking.openURL("https://pubmed.ncbi.nlm.nih.gov/15576620/")
-          }
-        >
-          Day Reconstruction Method.
-        </Text>
-      </Text>
+      {/* Descripción */}
+      <View className="mx-4 mt-4 mb-4">
+        <View className="bg-[#1a2332] p-4 rounded-lg border border-[#252e40]">
+          <Text className="text-base leading-6 text-white">
+            Evalúa tu toma de decisiones del día anterior siguiendo la
+            metodología{" "}
+            <Text
+              className="italic text-[#6366ff] underline"
+              onPress={() =>
+                Linking.openURL("https://pubmed.ncbi.nlm.nih.gov/15576620/")
+              }
+            >
+              Day Reconstruction Method
+            </Text>
+            .
+          </Text>
+        </View>
+      </View>
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -145,10 +249,10 @@ const DRM = () => {
             alignSelf: "center",
             alignItems: "center",
             justifyContent: "center",
-            gap: 20,
+            gap: 36,
             paddingTop: 20,
             paddingBottom: 40,
-            width: "95%",
+            width: "90%",
           }}
           showsVerticalScrollIndicator={true}
           indicatorStyle="white"
@@ -181,19 +285,45 @@ const DRM = () => {
               );
             }
           })}
-          {/*Botón para generar el informe detallado*/}
-          <TouchableOpacity
-            className={`items-center py-4 w-full rounded-xl ${getButtonStyle()}`}
-            onPress={submit}
-            disabled={
-              reportButtonState === "generating" ||
-              reportButtonState === "generated"
-            }
-          >
-            <Text className="text-lg text-white font-psemibold">
-              {getButtonText()}
-            </Text>
-          </TouchableOpacity>
+
+          {/* Botón de generar informe */}
+          <View className="w-full">
+            <TouchableOpacity
+              className={`items-center py-4 rounded-xl ${getButtonStyle()}`}
+              onPress={submit}
+              disabled={
+                reportButtonState === "generating" ||
+                reportButtonState === "generated"
+              }
+              style={{
+                shadowColor:
+                  reportButtonState === "default" ? "#15db44" : "transparent",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.3,
+                shadowRadius: 4,
+                elevation: 4,
+              }}
+            >
+              <View className="flex-row items-center gap-2">
+                {reportButtonState === "generating" && (
+                  <MaterialIcons
+                    name="hourglass-empty"
+                    size={20}
+                    color="white"
+                  />
+                )}
+                {reportButtonState === "generated" && (
+                  <MaterialIcons name="check-circle" size={20} color="white" />
+                )}
+                {reportButtonState === "default" && (
+                  <MaterialIcons name="assessment" size={20} color="white" />
+                )}
+                <Text className="text-lg font-semibold text-white">
+                  {getButtonText()}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

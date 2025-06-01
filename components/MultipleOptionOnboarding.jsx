@@ -49,138 +49,153 @@ const MultipleOptionOnboarding = ({
   };
 
   return (
-    <SafeAreaView className="flex justify-center items-center w-full h-full bg-primary">
-      <View
-        className="flex flex-col w-[90%] justify-center items-center gap-10"
-        style={{
-          height: "auto",
-        }}
-      >
-        <Text
-          className="text-center font-bold color-[#6366ff]"
-          style={{ fontSize: 24 }}
-        >
-          {questionText}
-        </Text>
-        <FlatList
-          contentContainerStyle={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            gap: 12,
-            paddingVertical: 10,
-          }}
-          style={{ width: "100%" }}
-          data={options}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() => setSelected(item.id)}
-              className="flex flex-row gap-4 items-center px-6 py-4 w-full rounded-xl"
-              style={{
-                backgroundColor: selected === item.id ? "#162030" : "#1a2c46",
-                borderWidth: selected === item.id ? 1 : 0,
-                borderColor: "#6366ff",
-                shadowColor: selected === item.id ? "#6366ff" : "#000",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: selected === item.id ? 0.3 : 0.1,
-                shadowRadius: 5,
-                elevation: selected === item.id ? 4 : 2,
-              }}
-            >
-              {selected === item.id ? (
-                <Text
-                  className="text-lg text-center color-[#6366ff] w-full font-bold"
-                  style={{ letterSpacing: 0.5 }}
-                >
-                  {item.option}
-                </Text>
-              ) : (
-                <Text className="w-full text-lg text-center color-white">
-                  {item.option}
-                </Text>
-              )}
-            </TouchableOpacity>
-          )}
-        />
+    <View className="items-center justify-center flex-1 px-6 py-8">
+      {/* Contenedor principal */}
+      <View className="justify-center flex-1 w-full max-w-lg">
+        {/* Pregunta principal */}
+        <View className="mb-8">
+          <Text
+            className="mb-4 font-bold text-center text-white"
+            style={{ fontSize: 26, lineHeight: 32 }}
+          >
+            {questionText}
+          </Text>
+          <View className="w-16 h-1 bg-[#6366ff] rounded-full mx-auto" />
+        </View>
 
-        {/* Dependiendo de si la pregunta es la primera o no tendremos que reenderizar un botón de solo continuar, o dos 
-          (uno para continuar y otro para retroceder) respectivamente */}
+        {/* Opciones */}
+        <View className="mb-8">
+          <FlatList
+            data={options}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{
+              gap: 12,
+              paddingVertical: 8,
+            }}
+            renderItem={({ item, index }) => (
+              <TouchableOpacity
+                onPress={() => setSelected(item.id)}
+                className={`p-5 rounded-2xl border-2 transition-all duration-200 ${
+                  selected === item.id
+                    ? "bg-[#6366ff]/15 border-[#6366ff]"
+                    : "bg-[#1a2332] border-[#252e40]"
+                }`}
+                style={{
+                  shadowColor: selected === item.id ? "#6366ff" : "#000",
+                  shadowOffset: {
+                    width: 0,
+                    height: selected === item.id ? 4 : 2,
+                  },
+                  shadowOpacity: selected === item.id ? 0.3 : 0.1,
+                  shadowRadius: selected === item.id ? 8 : 3,
+                  elevation: selected === item.id ? 6 : 2,
+                }}
+                activeOpacity={0.8}
+              >
+                <View className="flex-row items-center gap-4">
+                  {/* Texto de la opción */}
+                  <Text
+                    className={`flex-1 text-base ${
+                      selected === item.id
+                        ? "text-white font-semibold"
+                        : "text-gray-300"
+                    }`}
+                    style={{ lineHeight: 22 }}
+                  >
+                    {item.option}
+                  </Text>
+
+                  {/* Icono de selección */}
+                  {selected === item.id && (
+                    <View className="bg-[#6366ff] rounded-full p-1">
+                      <Feather name="check" size={14} color="white" />
+                    </View>
+                  )}
+                </View>
+              </TouchableOpacity>
+            )}
+          />
+        </View>
+      </View>
+
+      {/* Botones de navegación */}
+      <View className="w-full">
         {first ? (
           //Boton de Continuar unicamente
           <TouchableOpacity
             onPress={handleSelection}
             //Si no hay una opción seleccionada el botón se muestra deshabilitado
             disabled={!selected}
-            className="flex flex-row gap-4 items-center px-8 py-4 rounded-xl"
+            className="w-full py-4 rounded-2xl"
             style={{
               backgroundColor: "#6366ff",
-              opacity: selected ? 1 : 0.3,
+              opacity: selected ? 1 : 0.4,
               shadowColor: "#6366ff",
               shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.3,
-              shadowRadius: 5,
-              elevation: 6,
+              shadowOpacity: selected ? 0.4 : 0,
+              shadowRadius: 8,
+              elevation: selected ? 8 : 0,
             }}
           >
-            <Text className="text-lg font-bold text-center color-white">
-              Continuar
-            </Text>
-            <Feather name="arrow-right-circle" size={24} color="white" />
+            <View className="flex-row items-center justify-center gap-3">
+              <Text className="text-lg font-bold text-white">Continuar</Text>
+              <Feather name="arrow-right" size={20} color="white" />
+            </View>
           </TouchableOpacity>
         ) : (
-          <View className="flex flex-row justify-between w-full">
+          <View className="flex-row justify-between gap-4">
             {/* Botón de Volver */}
             <TouchableOpacity
               //Cuando se presiona el botón tenemos que volver a la pregunta anterior, indicandole al componente padre puede volver a la pregunta anterior
               onPress={previousQuestion}
-              className="flex flex-row gap-4 items-center px-6 py-4 rounded-xl"
+              className="flex-1 py-4 rounded-2xl bg-[#252e40]"
               style={{
-                backgroundColor: "#323d4f",
                 shadowColor: "#000",
                 shadowOffset: { width: 0, height: 2 },
                 shadowOpacity: 0.2,
-                shadowRadius: 3,
+                shadowRadius: 4,
                 elevation: 3,
               }}
             >
-              <Feather name="arrow-left-circle" size={24} color="white" />
-              <Text className="text-lg font-semibold text-center color-white">
-                Volver
-              </Text>
+              <View className="flex-row items-center justify-center gap-3">
+                <Feather name="arrow-left" size={20} color="white" />
+                <Text className="text-lg font-semibold text-white">Volver</Text>
+              </View>
             </TouchableOpacity>
+
             {/* Botón de Continuar */}
             <TouchableOpacity
               onPress={handleSelection}
               //Si no hay una opción seleccionada el botón se muestra deshabilitado
               disabled={!selected}
-              className="flex flex-row gap-4 items-center px-6 py-4 rounded-xl"
+              className="flex-1 py-4 rounded-2xl"
               style={{
                 backgroundColor: "#6366ff",
-                opacity: selected ? 1 : 0.3,
+                opacity: selected ? 1 : 0.4,
                 shadowColor: "#6366ff",
                 shadowOffset: { width: 0, height: 4 },
-                shadowOpacity: 0.3,
-                shadowRadius: 5,
-                elevation: 6,
+                shadowOpacity: selected ? 0.4 : 0,
+                shadowRadius: 8,
+                elevation: selected ? 8 : 0,
               }}
             >
-              {/*Dependiendo de si la pregunta es la de mitad de las que preguntamos o es la última, ponemos un texto u otro */}
-              {final ? (
-                <Text className="text-lg font-bold text-center color-white">
-                  Finalizar
+              <View className="flex-row items-center justify-center gap-3">
+                {/*Dependiendo de si la pregunta es la de mitad de las que preguntamos o es la última, ponemos un texto u otro */}
+                <Text className="text-lg font-bold text-white">
+                  {final ? "Finalizar" : "Continuar"}
                 </Text>
-              ) : (
-                <Text className="text-lg font-bold text-center color-white">
-                  Continuar
-                </Text>
-              )}
-              <Feather name="arrow-right-circle" size={24} color="white" />
+                {final ? (
+                  <Feather name="check" size={20} color="white" />
+                ) : (
+                  <Feather name="arrow-right" size={20} color="white" />
+                )}
+              </View>
             </TouchableOpacity>
           </View>
         )}
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

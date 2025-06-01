@@ -7,7 +7,7 @@ import {
 } from "react-native";
 import React, { useState } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import Icon from "react-native-vector-icons/FontAwesome";
+import { Feather } from "@expo/vector-icons";
 
 //Recibimos la función para modificar el objeto de respuestas
 export default function Question3({
@@ -68,27 +68,12 @@ export default function Question3({
      * En la BD lo que nos interesa es guardar la fecha de nacimiento del user, ya que si guardamos solo la edad, cada año tendríamos que actualizarla
      * Con la fecha sea el momento que sea que la recuperemos, siempre tendremos la edad actual del user mediante la resta de la fecha actual menos la de nacimiento
      */
-    //const age = calculateAge(date);
-    //console.log("Edad: ", age);
 
     // Obtiene el string en formato ISO, por ejemplo: "2000-01-15T00:00:00.000Z"
     const isoDate = date.toISOString().split("T")[0]; // Extrae "YYYY-MM-DD"
     updateResponse("question3", isoDate);
     //Una vez guardamos la respuesta seleccionada, navegamos a la siguiente pregunta
     nextQuestion();
-
-    //El rango de edad tiene que ser un número entre 10 y 100 [Se han puesto estos valores por convención]
-    //TODO: comprobacion para android desactivada temporalmente por faklta de retroceso en los años rápida
-    //TODO: YA NO NOS HACE FALLTA PORQUE HEMOS PUESTO UN RANGO DE FECHAS EN EL DATEPICKER, TENEN¡MOS QUE COMPROBAR QUE FUNCIONA EN ANDROID
-    /*if (age >= 10 && age <= 100) {
-      updateResponse("question3", age.toString());
-      //Una vez guardamos la respuesta seleccionada, navegamos a la siguiente pregunta
-      nextQuestion();
-    } else {
-      setError(
-        "Solo se puede usar la aplicación si tienes entre 10 y 100 años"
-      );
-    }*/
   };
 
   //Función que tiene la lógica de manejar el evento del DateTimePicker
@@ -106,100 +91,138 @@ export default function Question3({
   };
 
   return (
-    <SafeAreaView className="flex justify-center items-center w-full h-full bg-primary">
-      <View
-        className="flex flex-col w-[90%] justify-center items-center gap-8"
-        style={{
-          height: "auto",
-        }}
-      >
-        <Text
-          className="text-center font-bold color-[#6366ff]"
-          style={{ fontSize: 24 }}
-        >
-          Fecha de nacimiento
-        </Text>
+    <View className="items-center justify-center flex-1 h-full px-6 py-8">
+      {/* Contenedor principal */}
+      <View className="items-center justify-center flex-1 w-full">
+        {/* Título de la pregunta */}
+        <View className="mb-8">
+          <Text
+            className="mb-4 font-bold text-center text-white"
+            style={{ fontSize: 26, lineHeight: 32 }}
+          >
+            ¿Cuál es tu fecha de nacimiento?
+          </Text>
+          <View className="w-16 h-1 bg-[#6366ff] rounded-full self-center" />
+        </View>
 
-        {/*Muestra el botón para abrir el DateTimePicker si estamos en Android*/}
-        {Platform.OS === "android" && (
-          <TouchableOpacity onPress={openDatePicker} className="w-full">
-            <View className="bg-[#1e273a] p-4 rounded-xl">
-              <Text className="text-center text-white">
-                {date.toLocaleDateString()}
+        {/* Contenedor del date picker */}
+        <View className="mb-4">
+          {/*Muestra el botón para abrir el DateTimePicker si estamos en Android*/}
+          {Platform.OS === "android" && (
+            <TouchableOpacity
+              onPress={openDatePicker}
+              className="w-full mb-6 p-5 bg-[#1a2332] border-2 border-[#252e40] rounded-2xl"
+              style={{
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.1,
+                shadowRadius: 4,
+                elevation: 3,
+              }}
+            >
+              <View className="flex-row items-center justify-between">
+                <Text className="text-base text-white">
+                  {date.toLocaleDateString("es-ES", {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </Text>
+                <Feather name="calendar" size={20} color="#6366ff" />
+              </View>
+            </TouchableOpacity>
+          )}
+
+          {/* Muestra el DateTimePicker si showPicker*/}
+          {(Platform.OS === "ios" || showDatePicker) && (
+            <DateTimePicker
+              value={date}
+              mode="date"
+              //El display default toma como referencia el mode para elegir el formato adecuado, pero nosotros usaremos el modo spinner
+              display={Platform.OS === "ios" ? "spinner" : "default"}
+              textColor={Platform.OS === "ios" ? "white" : undefined}
+              accentColor="#6366ff" // Android specific color accent
+              onChange={handleDateChange}
+              //Indicamos la fecha mínima y máxima que se puede seleccionar
+              minimumDate={minDate}
+              maximumDate={maxDate}
+            />
+          )}
+
+          {/* Información adicional */}
+          <View className="bg-[#6366ff]/10 p-4 rounded-xl border border-[#6366ff]/30 mt-4">
+            <View className="flex-row items-center gap-3 mb-2">
+              <Feather name="info" size={16} color="#6366ff" />
+              <Text className="text-[#6366ff] text-base font-semibold">
+                Fecha seleccionada
               </Text>
             </View>
-          </TouchableOpacity>
-        )}
+            <Text className="text-base font-medium text-white">
+              {date.toLocaleDateString("es-ES", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </Text>
+            <Text className="mt-1 text-base text-gray-400">
+              Edad: {calculateAge(date)} años
+            </Text>
+          </View>
 
-        {/* Muestra el DateTimePicker si showPicker*/}
-        {(Platform.OS === "ios" || showDatePicker) && (
-          <DateTimePicker
-            value={date}
-            mode="date"
-            //El display default toma como referencia el mode para elegir el formato adecuado, pero nosotros usaremos el modo spinner
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            textColor={Platform.OS === "ios" ? "white" : undefined}
-            accentColor="#6366ff" // Android specific color accent
-            onChange={handleDateChange}
-            //Indicamos la fecha mínima y máxima que se puede seleccionar
-            minimumDate={minDate}
-            maximumDate={maxDate}
-          />
-        )}
+          {/*Si la edad no cumple no está entre los valores permitidos mostramos el error por pantalla*/}
+          {error && (
+            <View className="p-4 mt-4 border bg-red-500/10 rounded-xl border-red-500/30">
+              <Text className="text-center text-red-400">{error}</Text>
+            </View>
+          )}
+        </View>
+      </View>
 
-        {/*Mostramos la fecha que el usuario ha seleccionado*/}
-        <Text className="w-full text-lg text-center color-white">
-          Fecha seleccionada : {date.toLocaleDateString()}
-        </Text>
-
-        {/*Si la edad no cumple no está entre los valores permitidos mostramos el error por pantalla*/}
-        {error && (
-          <Text className="w-full text-lg text-center color-red-500">
-            {error}
-          </Text>
-        )}
-
-        <View className="flex flex-row justify-between w-full">
+      {/* Botones de navegación */}
+      <View className="w-full">
+        <View className="flex-row justify-between gap-4">
           {/* Botón de Volver */}
           <TouchableOpacity
             onPress={previousQuestion}
-            className="flex flex-row gap-4 items-center px-6 py-4 rounded-xl"
+            className="flex-1 py-4 rounded-2xl bg-[#252e40]"
             style={{
-              backgroundColor: "#323d4f",
               shadowColor: "#000",
               shadowOffset: { width: 0, height: 2 },
               shadowOpacity: 0.2,
-              shadowRadius: 3,
+              shadowRadius: 4,
               elevation: 3,
             }}
           >
-            <CircleArrowLeft size={24} color="white" />
-            <Text className="text-lg font-semibold text-center color-white">
-              Volver
-            </Text>
+            <View className="flex-row items-center justify-center gap-3">
+              <Feather name="arrow-left" size={20} color="white" />
+              <Text className="text-lg font-semibold text-white">Volver</Text>
+            </View>
           </TouchableOpacity>
+
           {/* Botón de Continuar */}
           <TouchableOpacity
             onPress={handleSelection}
             disabled={!selected}
-            className="flex flex-row gap-4 items-center px-6 py-4 rounded-xl"
+            className="flex-1 py-4 rounded-2xl"
             style={{
               backgroundColor: "#6366ff",
-              opacity: selected ? 1 : 0.3,
+              opacity: selected ? 1 : 0.4,
               shadowColor: "#6366ff",
               shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.3,
-              shadowRadius: 5,
-              elevation: 6,
+              shadowOpacity: selected ? 0.4 : 0,
+              shadowRadius: 8,
+              elevation: selected ? 8 : 0,
             }}
           >
-            <Text className="text-lg font-bold text-center color-white">
-              Continuar
-            </Text>
-            <CircleArrowRight size={24} color="white" />
+            <View className="flex-row items-center justify-center gap-3">
+              <Text className="text-lg font-bold text-white">Continuar</Text>
+              <Feather name="arrow-right" size={20} color="white" />
+            </View>
           </TouchableOpacity>
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }

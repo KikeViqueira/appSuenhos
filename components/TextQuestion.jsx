@@ -14,37 +14,59 @@ import React, { useState } from "react";
 
 const TextQuestion = ({ question, onAnswer }) => {
   const [value, setValue] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
 
   return (
-    <View
-      className="flex flex-col gap-5 justify-center items-center w-full"
-      style={{
-        height: "auto",
-      }}
-    >
-      <Text
-        className="text-center font-bold color-[#6366ff]"
-        style={{ fontSize: 18 }}
-      >
+    <View className="flex flex-col w-full gap-4">
+      <Text className=" text-xl font-semibold text-[#6366ff]">
         {question.title}
       </Text>
-      <TextInput
-        placeholder={question.placeholder}
-        placeholderTextColor="#9ca3af"
-        maxLength={question.maxLength} //Solo dejamos escribir el máximo permitido
-        value={value}
-        onChangeText={(val) => {
-          setValue(val);
-          onAnswer(question.id, val);
-        }}
-        multiline={true}
-        textAlignVertical="top"
-        scrollEnabled={true}
-        style={{
-          maxHeight: 100,
-        }}
-        className="bg-[#1e2a47] border w-full border-gray-500 rounded-xl p-2 text-white"
-      />
+
+      <View className="w-full">
+        <TextInput
+          placeholder={question.placeholder}
+          placeholderTextColor="#9ca3af"
+          maxLength={question.maxLength}
+          value={value}
+          onChangeText={(val) => {
+            setValue(val);
+            onAnswer(question.id, val);
+          }}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          multiline={true}
+          textAlignVertical="top"
+          scrollEnabled={true}
+          style={{
+            minHeight: 80,
+            maxHeight: 120,
+            fontSize: 15,
+            lineHeight: 20,
+          }}
+          className={`bg-[#0e172a] border w-full rounded-lg p-3 text-white ${
+            isFocused
+              ? "border-[#6366ff]"
+              : value.length > 0
+              ? "border-[#10b981]"
+              : "border-[#252e40]"
+          }`}
+        />
+
+        {/* Contador de caracteres */}
+        <View className="flex-row items-center justify-between mt-2">
+          <View>
+            {value.length > 0 && (
+              <Text className="text-[#10b981] text-base">
+                Respuesta añadida ✓
+              </Text>
+            )}
+          </View>
+
+          <Text className="text-base text-gray-500">
+            {value.length}/{question.maxLength}
+          </Text>
+        </View>
+      </View>
     </View>
   );
 };
