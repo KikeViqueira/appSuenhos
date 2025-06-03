@@ -76,6 +76,7 @@ const Chat = () => {
           // Caso especial si venimos de eliminar el chat en el que estábamos y en caso de que exista el chatId, lo cargamos también está reservado para el caso de que cargemos una conversación de un chat seleccionado del historial
           await getConversationChat(chatId);
         } else if (hasChatToday) {
+          console.log("VALOR DE HASCHAT TODAY: ", hasChatToday);
           //En caso de que el user haya hecho hoy un chat pero no tenemos la id primero lo que hacemos es llamar a la función que intenta recuperarel chat de hoy
           await getTodayChat();
           //Si los mensajes que se han recuperado son cero, significa que el user ha borrado el chat de hoy y por lo tanto tiene que esperar a mañana a crear uno nuevo
@@ -83,6 +84,7 @@ const Chat = () => {
             setCanCreateNewChat(false);
           }
         } else {
+          console.log("VALOR de canCreateNewChat: ", canCreateNewChat);
           //En caso de que el user no haya hecho un chat hoy dejamos que cree uno nuevo
           setCanCreateNewChat(true);
           setIsToday(true);
@@ -164,7 +166,7 @@ const Chat = () => {
         className="flex-1"
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
-        <View className="flex flex-row gap-4 justify-start items-center p-4 android:pt-6">
+        <View className="flex flex-row items-center justify-start gap-4 p-4 android:pt-6">
           <TouchableOpacity
             //Cuando pinchemos en el menú hamburguesa se abre el modal
             onPress={toggleModal}
@@ -186,11 +188,11 @@ const Chat = () => {
          */}
         {initializing ? (
           // Pantalla de carga profesional mientras inicializamos
-          <View className="flex-1 justify-center items-center px-6">
+          <View className="items-center justify-center flex-1 px-6">
             <View className="w-full bg-[#1e2a47] rounded-xl p-8">
               <View className="flex-row w-full">
                 <View className="w-2 h-full bg-[#6366ff]" />
-                <View className="flex-1 items-center">
+                <View className="items-center flex-1">
                   <LoadingBanner />
                   <Text className="mb-2 text-xl font-bold text-white">
                     Cargando entorno de ZzzTime AI
@@ -200,7 +202,7 @@ const Chat = () => {
                     tus sueños y mejorar tu descanso.
                   </Text>
 
-                  <View className="flex flex-row gap-2 justify-center mt-2 w-full">
+                  <View className="flex flex-row justify-center w-full gap-2 mt-2">
                     <View className="h-2 w-2 rounded-full bg-[#6366ff] opacity-30" />
                     <View className="h-2 w-2 rounded-full bg-[#6366ff] opacity-50" />
                     <View className="h-2 w-2 rounded-full bg-[#6366ff] opacity-70" />
@@ -214,8 +216,8 @@ const Chat = () => {
           canCreateNewChat ? (
             // Pantalla de bienvenida si no hay mensajes en el caso de que se abra el teclado y el user quiera cerrarlo tenemos que englobar esta vista en un Pressable para que se cierre el teclado
             <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
-              <View className="flex-1 justify-center items-center android:px-6">
-                <View className="flex-1 justify-center items-center">
+              <View className="items-center justify-center flex-1 android:px-6">
+                <View className="items-center justify-center flex-1">
                   <Text className="text-center text-[#6366ff] text-3xl font-bold mb-2">
                     Hola, {userInfo?.name || "User"}!
                   </Text>
@@ -228,11 +230,11 @@ const Chat = () => {
             </Pressable>
           ) : (
             // Pantalla mejorada para cuando el usuario no puede crear un nuevo chat hoy
-            <View className="flex-1 justify-center items-center px-6 android:px-4">
+            <View className="items-center justify-center flex-1 px-6 android:px-4">
               <View className="w-full bg-[#1e2a47] rounded-xl p-8 border border-[#323d4f]">
                 <View className="flex-row w-full">
                   <View className="w-2 h-full bg-[#6366ff]" />
-                  <View className="flex-1 items-center">
+                  <View className="items-center flex-1">
                     <View className="bg-[#6366ff]/10 p-4 rounded-full mb-4">
                       <Feather name="calendar" size={32} color="#6366ff" />
                     </View>
@@ -262,7 +264,7 @@ const Chat = () => {
                       onPress={() => router.push("../ChatsHistory")}
                       className="mt-2 bg-[#6366ff] px-6 py-3 rounded-xl flex-row items-center"
                     >
-                      <View className="flex-row gap-2 justify-center items-center">
+                      <View className="flex-row items-center justify-center gap-2">
                         <Feather
                           name="message-square"
                           size={16}
@@ -292,8 +294,9 @@ const Chat = () => {
         )}
 
         {isToday ? (
-          //Si no se ha inicializado ocultamos el input y el botón de enviar
-          !initializing && (
+          //Si no se ha inicializado o no puede crear un nuevo chat hoy ocultamos el input y el botón de enviar
+          !initializing &&
+          canCreateNewChat && (
             <View className="flex-row items-center p-4 pb-0 border-t border-gray-700 ios:mb-0 android:mb-2">
               <TextInput
                 className="flex-1 bg-[#323d4f] text-white p-3 rounded-xl mr-2"

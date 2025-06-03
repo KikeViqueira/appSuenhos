@@ -53,8 +53,8 @@ export const AuthProvider = ({ children }) => {
 
   //Función que tiene el mapa de las banderas que se usan en la app en las que guardamos un objeto y no un simple valor
   const groupedFlagsMap = {
-    chatId: ["chatId", "expiryChatId"],
-    hasChatToday: ["hasChatToday", "expiryHasDone"],
+    chatId: ["chatId", "expiry_chatId"],
+    hasChatToday: ["hasChatToday", "expiry_hasChatToday"],
     reportFlag: ["reportFlag", "expiry_drm_report"],
     tipFlag: ["tipFlag", "expiry_tip_of_the_day"],
     sleepLog: ["sleepLog", "expiry_sleep_log"],
@@ -119,6 +119,7 @@ export const AuthProvider = ({ children }) => {
         //await SecureStore.deleteItemAsync("userId");
         //await AsyncStorage.removeItem("hasCompletedOnboarding");
         //await AsyncStorage.setItem("hasCompletedOnboarding", "true");
+        //await AsyncStorage.removeItem("hasChatToday");
 
         //Estas banderas dependen exclusivamente del dispositivo asi que no se tienen en cuenta para la sincronización
         const userAccessToken = await SecureStore.getItemAsync(
@@ -165,7 +166,7 @@ export const AuthProvider = ({ children }) => {
      *CUANDO EL USER HAYA INICIADO SESIÓN Y SE TENGA TANTO EL ID COMO EL TOKEN DE ACCESO
      * SE LLAMA A LA FUNCIÓN DE GETUSERFLAGS PARA RECUPERAR LAS BANDERAS DEL USER Y SINCRONIZAR LA CACHE DEL DISPOSITIVO
      */
-    if (userId && accessToken) getUserFlags();
+    //if (userId && accessToken) getUserFlags();
     /**
      * El primer getUser que se llamará será cuando el user se haya logueado y haya completado el onboarding
      * a partir de ahí, cada vez que se actualice el token de acceso (ya sea debido al inicio de sesión o por el refresco del propio token), se llamará a getUser para recuperar la info del user

@@ -16,6 +16,7 @@ import Slider from "@react-native-community/slider";
 import * as DocumentPicker from "expo-document-picker";
 import useSound from "../../hooks/useSound";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import useFlags from "../../hooks/useFlags";
 
 const Music = () => {
   //Recuperamos las funcionalidades del useSound para usar en este componente
@@ -43,6 +44,8 @@ const Music = () => {
   const [timerActive, setTimerActive] = useState(false);
   const timerOpacityAnim = useRef(new Animated.Value(1)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
+
+  const { updateConfigFlagValue } = useFlags();
 
   const timerOptions = [
     { label: "15 min", value: 15 * 60 * 1000 },
@@ -374,6 +377,9 @@ const Music = () => {
       } catch (error) {
         console.error("Error guardando preferencia de temporizador:", error);
       }
+
+      //Actualizamos el estado de la bandera en la BD
+      await updateConfigFlagValue("preferredTimerDuration", duration);
     } else {
       await cancelTimer();
     }
@@ -425,7 +431,7 @@ const Music = () => {
         currentSound?.id === item.id ? "border-[#8a8cff]" : "border-[#323d4f]"
       } shadow-md mb-1`}
     >
-      <View className="flex-row justify-between items-center mb-3">
+      <View className="flex-row items-center justify-between mb-3">
         <Text
           className={`text-lg font-semibold ${
             currentSound?.id === item.id ? "text-white" : "text-gray-200"
@@ -436,7 +442,7 @@ const Music = () => {
             : item.name}
         </Text>
 
-        <View className="flex-row gap-4 items-center">
+        <View className="flex-row items-center gap-4">
           {/* Botón para repetir o no el audio */}
           <TouchableOpacity
             className={`p-2 rounded-full ${
@@ -497,7 +503,7 @@ const Music = () => {
 
       {/* Control y visualización del reproductor */}
       {currentSound?.id === item.id && (
-        <View className="mt-1 w-full">
+        <View className="w-full mt-1">
           <Slider
             minimumValue={0}
             maximumValue={duration}
@@ -622,7 +628,7 @@ const Music = () => {
           } w-full self-center flex p-6 gap-4 rounded-3xl border border-[#323d4f]`}
           onPress={uploadSound}
         >
-          <View className="flex-row justify-between items-center">
+          <View className="flex-row items-center justify-between">
             <Text className="text-lg text-white font-psemibold">
               {userSounds.length >= maxSounds
                 ? "Elimina sonidos para subir nuevos"
@@ -650,7 +656,7 @@ const Music = () => {
             onPress={() => setTimerModalVisible(true)}
             className="bg-[#1e273a] p-4 rounded-xl shadow border border-[#323d4f] overflow-hidden"
           >
-            <View className="flex-row justify-between items-center">
+            <View className="flex-row items-center justify-between">
               <View className="flex-row items-center">
                 <View className="bg-[#6366ff]/20 p-2 rounded-full mr-3">
                   <Ionicons name="timer-outline" color="#6366ff" size={20} />
@@ -759,9 +765,9 @@ const Music = () => {
         visible={timerModalVisible}
         onRequestClose={() => setTimerModalVisible(false)}
       >
-        <View className="flex-1 justify-center items-center bg-black/60">
+        <View className="items-center justify-center flex-1 bg-black/60">
           <View className="w-[85%] bg-[#1e2a47] p-6 rounded-2xl">
-            <View className="flex-row justify-between items-center mb-5">
+            <View className="flex-row items-center justify-between mb-5">
               <Text className="text-xl font-bold text-white">Temporizador</Text>
               <TouchableOpacity
                 onPress={() => setTimerModalVisible(false)}

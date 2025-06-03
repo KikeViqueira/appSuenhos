@@ -8,8 +8,10 @@ import {
   Platform,
   Animated,
   Alert,
+  ActivityIndicator,
+  ScrollView,
 } from "react-native";
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import {
   Feather,
   AntDesign,
@@ -49,6 +51,11 @@ const ChatsHistory = () => {
   const [selectedChats, setSelectedChats] = useState([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
 
+  // Estados para manejar scroll infinito
+  const [loadingMoreHistory, setLoadingMoreHistory] = useState(false);
+  const [loadingMoreFiltered, setLoadingMoreFiltered] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
   // Ref para animación
   const selectionBarOpacity = useRef(new Animated.Value(0)).current;
 
@@ -60,6 +67,18 @@ const ChatsHistory = () => {
     getHasChatToday,
     getChatsByRange,
     filteredChats,
+    loading,
+    // Estados de paginación
+    currentPage,
+    totalPages,
+    totalElements,
+    currentPageFiltered,
+    totalPagesFiltered,
+    totalElementsFiltered,
+    // Funciones de paginación
+    loadNextPage,
+    refreshHistory,
+    refreshFilteredChats,
   } = useChat();
 
   // Animar la entrada y salida de la barra de selección
@@ -81,6 +100,125 @@ const ChatsHistory = () => {
     //Cargamos la información necesaria al iniciar el componente
     loadHistoryData();
   }, []);
+
+  // Función para manejar el refresh manual (pull to refresh)
+  const onRefreshHistory = async () => {
+    setRefreshing(true);
+    await refreshHistory();
+    const hasChat = await getHasChatToday();
+    setHasDoneChat(hasChat);
+
+    // Si había búsqueda activa, también refrescamos los filtrados
+    if (hasSearched) {
+      const startDateString = formatDate(startDate);
+      const endDateString = formatDate(endDate);
+      await getChatsByRange(startDateString, endDateString);
+    }
+    setRefreshing(false);
+  };
+
+  // Función para cargar más chats del historial
+  const handleLoadMoreHistory = async () => {
+    if (loadingMoreHistory || loading || currentPage + 1 >= totalPages) return;
+
+    setLoadingMoreHistory(true);
+    await loadNextPage(false); // false = historial, no filtrados
+    setLoadingMoreHistory(false);
+  };
+
+  // Función para cargar más chats filtrados
+  const handleLoadMoreFiltered = async () => {
+    if (
+      loadingMoreFiltered ||
+      loading ||
+      currentPageFiltered + 1 >= totalPagesFiltered
+    )
+      return;
+
+    setLoadingMoreFiltered(true);
+    await loadNextPage(true); // true = filtrados
+    setLoadingMoreFiltered(false);
+  };
+
+  // Componente footer para historial con paginación
+  const HistoryFooter = () => {
+    if (history.length === 0) return null;
+
+    return (
+      <View className="items-center px-4 py-6">
+        {/* Indicador de carga cuando se están cargando más chats */}
+        {loadingMoreHistory && (
+          <View className="flex-row items-center mb-4">
+            <ActivityIndicator size="small" color="#6366ff" />
+            <Text className="ml-2 text-sm text-white">
+              Cargando más chats...
+            </Text>
+          </View>
+        )}
+
+        {/* Información de paginación */}
+        <View className="bg-[#1e273a]/50 px-4 py-2 rounded-full border border-[#323d4f]/30">
+          <Text className="text-xs text-center text-white/70">
+            {history.length} de {totalElements} chats • Página {currentPage + 1}{" "}
+            de {totalPages}
+          </Text>
+        </View>
+
+        {/* Mensaje cuando no hay más contenido */}
+        {currentPage + 1 >= totalPages &&
+          totalElements > 7 &&
+          !loadingMoreHistory && (
+            <View className="flex-row items-center mt-4">
+              <View className="h-px bg-[#323d4f] flex-1" />
+              <Text className="mx-4 text-base text-white/50">
+                Has llegado al final
+              </Text>
+              <View className="h-px bg-[#323d4f] flex-1" />
+            </View>
+          )}
+      </View>
+    );
+  };
+
+  // Componente footer para chats filtrados con paginación
+  const FilteredFooter = () => {
+    if (filteredChats.length === 0) return null;
+
+    return (
+      <View className="items-center px-4 py-6">
+        {/* Indicador de carga cuando se están cargando más chats */}
+        {loadingMoreFiltered && (
+          <View className="flex-row items-center mb-4">
+            <ActivityIndicator size="small" color="#6366ff" />
+            <Text className="ml-2 text-sm text-white">
+              Cargando más resultados...
+            </Text>
+          </View>
+        )}
+
+        {/* Información de paginación */}
+        <View className="bg-[#1e273a]/50 px-4 py-2 rounded-full border border-[#323d4f]/30">
+          <Text className="text-xs text-center text-white/70">
+            {filteredChats.length} de {totalElementsFiltered} chats • Página{" "}
+            {currentPageFiltered + 1} de {totalPagesFiltered}
+          </Text>
+        </View>
+
+        {/* Mensaje cuando no hay más contenido */}
+        {currentPageFiltered + 1 >= totalPagesFiltered &&
+          totalElementsFiltered > 7 &&
+          !loadingMoreFiltered && (
+            <View className="flex-row items-center mt-4">
+              <View className="h-px bg-[#323d4f] flex-1" />
+              <Text className="mx-4 text-base text-white/50">
+                No hay más chats en este rango de fechas
+              </Text>
+              <View className="h-px bg-[#323d4f] flex-1" />
+            </View>
+          )}
+      </View>
+    );
+  };
 
   const handleChatPress = async (chat) => {
     //Dependiendo del modo en el que estemos pulsar en un chat tendrá una acción asociada
@@ -154,7 +292,17 @@ const ChatsHistory = () => {
         }
       } else {
         // Si no se eliminó el chat abierto, recargamos la lista de chats para actualizar la UI
-        await loadHistoryData();
+
+        //TODO: TAL Y COMO ESTAN LOS ENDPOINTS CREO QUE ESTO SOBRA PERO BUENO
+
+        await refreshHistory();
+
+        // Si había búsqueda activa, también refrescamos los filtrados
+        if (hasSearched) {
+          const startDateString = formatDate(startDate);
+          const endDateString = formatDate(endDate);
+          await getChatsByRange(startDateString, endDateString);
+        }
       }
     } catch (error) {
       console.error("Error en la eliminación de chats:", error);
@@ -267,7 +415,7 @@ const ChatsHistory = () => {
         onPress={() => openDatePicker(pickerType)}
         className="flex-row items-center bg-[#1e273a] p-3 py-5 rounded-xl w-full"
       >
-        <View className="flex-row gap-2 items-center">
+        <View className="flex-row items-center gap-2">
           <Feather name="calendar" size={16} color="#6366ff" />
           <Text className="text-white">{date.toLocaleDateString()}</Text>
         </View>
@@ -277,7 +425,7 @@ const ChatsHistory = () => {
 
   return (
     <SafeAreaView className="flex-1 w-full bg-primary">
-      <View className="flex flex-row gap-4 justify-start items-center p-4">
+      <View className="flex flex-row items-center justify-start gap-4 p-4">
         <TouchableOpacity onPress={handleBackToChat}>
           <AntDesign name="close" size={32} color={"#6366ff"} />
         </TouchableOpacity>
@@ -300,143 +448,211 @@ const ChatsHistory = () => {
 
       {/*Buscador de chats por rango de fechas*/}
       {/*Si existe algún chat asociado al user enseñamos el componente de selección de chats mediante rango de fechas*/}
-      {history.length > 0 && (
-        <View className="w-[90%] self-center bg-[#1e2a47] p-4 rounded-xl mb-4">
-          <Text className="mb-3 text-lg font-semibold text-white">
-            Buscar chats por rango de fechas
-          </Text>
 
-          <View className="flex-row justify-between items-center w-full">
-            <DatePickerWithLabel
-              label="Desde"
-              date={startDate}
-              pickerType="start"
-            />
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={true}
+        indicatorStyle="white"
+        refreshing={refreshing}
+        onRefresh={onRefreshHistory}
+        contentContainerStyle={{
+          paddingBottom: 20,
+        }}
+      >
+        {history.length > 0 && (
+          <View className="w-[90%] self-center bg-[#1e2a47] p-4 rounded-xl mb-4">
+            <Text className="mb-3 text-lg font-semibold text-white">
+              Buscar chats por rango de fechas
+            </Text>
 
-            <Feather name="arrow-right" size={20} color="#6366ff" />
+            <View className="flex-row items-center justify-between w-full">
+              <DatePickerWithLabel
+                label="Desde"
+                date={startDate}
+                pickerType="start"
+              />
 
-            <DatePickerWithLabel
-              label="Hasta"
-              date={endDate}
-              pickerType="end"
+              <Feather name="arrow-right" size={20} color="#6366ff" />
+
+              <DatePickerWithLabel
+                label="Hasta"
+                date={endDate}
+                pickerType="end"
+              />
+            </View>
+
+            {/* Mostrar DateTimePicker según plataforma y estado */}
+            {Platform.OS === "ios" && (
+              <View className="my-2">
+                {activeDatePicker === "start" && (
+                  <DateTimePicker
+                    value={startDate}
+                    mode="date"
+                    display="inline"
+                    textColor="white"
+                    themeVariant="dark"
+                    maximumDate={new Date()}
+                    onChange={(event, date) =>
+                      handleDateChange(event, date, "start")
+                    }
+                  />
+                )}
+                {activeDatePicker === "end" && (
+                  <DateTimePicker
+                    value={endDate}
+                    mode="date"
+                    display="inline"
+                    textColor="white"
+                    themeVariant="dark"
+                    maximumDate={new Date()}
+                    onChange={(event, date) =>
+                      handleDateChange(event, date, "end")
+                    }
+                  />
+                )}
+              </View>
+            )}
+
+            {(showStartDatePicker || showEndDatePicker) &&
+              Platform.OS === "android" && (
+                <DateTimePicker
+                  value={showStartDatePicker ? startDate : endDate}
+                  mode="date"
+                  display="default"
+                  maximumDate={new Date()}
+                  onChange={(event, date) =>
+                    handleDateChange(
+                      event,
+                      date,
+                      showStartDatePicker ? "start" : "end"
+                    )
+                  }
+                />
+              )}
+
+            <TouchableOpacity
+              className="bg-[#6366ff] p-4 rounded-xl w-full"
+              onPress={handleSearchByDateRange}
+            >
+              <Text className="text-base font-semibold text-center text-white">
+                Buscar
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Barra de selección animada */}
+        {isSelectionMode && (
+          <Animated.View
+            style={{
+              opacity: selectionBarOpacity,
+              transform: [
+                {
+                  translateY: selectionBarOpacity.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: [20, 0],
+                  }),
+                },
+              ],
+              width: "90%",
+              alignSelf: "center",
+            }}
+            className="mb-3"
+          >
+            <View className="flex-row items-center justify-between bg-[#1e273a] p-3 rounded-xl border border-[#323d4f]">
+              <View className="flex-row items-center">
+                <View className="bg-[#ff6b6b]/10 p-2 rounded-full mr-3">
+                  <Feather name="alert-circle" color="#ff6b6b" size={20} />
+                </View>
+                <Text className="text-base text-white">
+                  {selectedChats.length}{" "}
+                  {selectedChats.length === 1
+                    ? "chat seleccionado"
+                    : "chats seleccionados"}
+                </Text>
+              </View>
+
+              <View className="flex-row gap-3">
+                <TouchableOpacity
+                  onPress={disableSelection}
+                  className="bg-[#323d4f] p-2 rounded-lg"
+                >
+                  <AntDesign name="close" color="white" size={20} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={confirmDeletion}
+                  className="bg-[#ff6b6b] p-2 rounded-lg"
+                  disabled={selectedChats.length === 0}
+                  style={{ opacity: selectedChats.length === 0 ? 0.5 : 1 }}
+                >
+                  <Feather name="check" color="white" size={20} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Animated.View>
+        )}
+
+        {/*Renderizamos los chats filtrados por rango de fechas*/}
+        {hasSearched && filteredChats.length > 0 && (
+          <View className="w-[90%] self-center mb-4">
+            <Text className="mb-4 text-lg font-semibold text-white">
+              Resultados de búsqueda (
+              {totalElementsFiltered || filteredChats.length})
+            </Text>
+            <FlatList
+              data={filteredChats}
+              keyExtractor={(item) => `filtered-${item.id}`}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => handleChatPress(item)}
+                  className="mb-3"
+                  disabled={isSelectionMode}
+                >
+                  <ChatItem
+                    item={item}
+                    isSelectionMode={isSelectionMode}
+                    isSelected={selectedChats.some(
+                      (chat) => chat.id === item.id
+                    )}
+                  />
+                </TouchableOpacity>
+              )}
+              ListEmptyComponent={null}
+              ListFooterComponent={FilteredFooter}
+              onEndReached={handleLoadMoreFiltered}
+              onEndReachedThreshold={0.3}
+              scrollEnabled={false}
+              nestedScrollEnabled={true}
+              contentContainerStyle={{
+                paddingBottom: 10,
+              }}
+              showsVerticalScrollIndicator={false}
+              removeClippedSubviews={true}
+              initialNumToRender={10}
+              maxToRenderPerBatch={5}
+              windowSize={10}
             />
           </View>
+        )}
 
-          {/* Mostrar DateTimePicker según plataforma y estado */}
-          {Platform.OS === "ios" && (
-            <View className="my-2">
-              {activeDatePicker === "start" && (
-                <DateTimePicker
-                  value={startDate}
-                  mode="date"
-                  display="inline"
-                  textColor="white"
-                  themeVariant="dark"
-                  maximumDate={new Date()}
-                  onChange={(event, date) =>
-                    handleDateChange(event, date, "start")
-                  }
-                />
-              )}
-              {activeDatePicker === "end" && (
-                <DateTimePicker
-                  value={endDate}
-                  mode="date"
-                  display="inline"
-                  textColor="white"
-                  themeVariant="dark"
-                  maximumDate={new Date()}
-                  onChange={(event, date) =>
-                    handleDateChange(event, date, "end")
-                  }
-                />
-              )}
-            </View>
-          )}
-
-          {(showStartDatePicker || showEndDatePicker) &&
-            Platform.OS === "android" && (
-              <DateTimePicker
-                value={showStartDatePicker ? startDate : endDate}
-                mode="date"
-                display="default"
-                maximumDate={new Date()}
-                onChange={(event, date) =>
-                  handleDateChange(
-                    event,
-                    date,
-                    showStartDatePicker ? "start" : "end"
-                  )
-                }
-              />
-            )}
-
-          <TouchableOpacity
-            className="bg-[#6366ff] p-4 rounded-xl w-full"
-            onPress={handleSearchByDateRange}
-          >
-            <Text className="text-base font-semibold text-center text-white">
-              Buscar
+        {/* Mensaje de no resultados */}
+        {hasSearched && filteredChats.length === 0 && (
+          <View className="w-[90%] self-center mb-4 bg-[#1e273a] p-4 rounded-xl">
+            <Text className="text-base text-center text-white">
+              No se encontraron chats en el rango de fechas seleccionado
             </Text>
-          </TouchableOpacity>
-        </View>
-      )}
+          </View>
+        )}
 
-      {/*Renderizamos los chats filtrados por rango de fechas*/}
-      {hasSearched && filteredChats.length > 0 && (
-        <View className="w-[90%] self-center mb-4">
-          <Text className="mb-4 text-lg font-semibold text-white">
-            Resultados de búsqueda ({filteredChats.length})
-          </Text>
-          <FlatList
-            data={filteredChats}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                onPress={() => handleChatPress(item)}
-                className="mb-3"
-                disabled={isSelectionMode}
-              >
-                <ChatItem
-                  item={item}
-                  isSelectionMode={isSelectionMode}
-                  isSelected={selectedChats.some((chat) => chat.id === item.id)}
-                />
-              </TouchableOpacity>
-            )}
-            ListEmptyComponent={null}
-            scrollEnabled={filteredChats.length > 3}
-            contentContainerStyle={{
-              maxHeight: 300,
-              paddingBottom: 10,
-            }}
-          />
-        </View>
-      )}
-
-      {/* Mensaje de no resultados */}
-      {hasSearched && filteredChats.length === 0 && (
-        <View className="w-[90%] self-center mb-4 bg-[#1e273a] p-4 rounded-xl">
-          <Text className="text-base text-center text-white">
-            No se encontraron chats en el rango de fechas seleccionado
-          </Text>
-        </View>
-      )}
-
-      {/*Renderizamos los últimos chats recientes en base a los últimos x días*/}
-      <View
-        className={`w-[90%] flex flex-col flex-1 gap-4 self-center
-        ${history.length > 0 ? "justify-start" : "justify-center"}
-        `}
-      >
+        {/*Renderizamos los últimos chats recientes*/}
         {history.length > 0 ? (
-          <>
-            <View className="flex-row justify-between items-center mb-4">
-              <Text className="mb-2 text-xl font-bold text-white">
+          <View className="w-[90%] self-center">
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-xl font-bold text-white">
                 Chats Recientes
               </Text>
               {/*
-               *Dependiendo de si está activada o no la bandera de isSelectionMode tenemos que rederizar el
+               *Dependiendo de si está activada o no la bandera de isSelectionMode tenemos que renderizar el
                * botón de eliminar chats o no
                */}
               {!isSelectionMode && (
@@ -449,66 +665,9 @@ const ChatsHistory = () => {
               )}
             </View>
 
-            {/*En caso de que el modo de eliminar chats este activado reenderizamos el componente de la barra de selección animada*/}
-            {isSelectionMode && (
-              <Animated.View
-                style={{
-                  opacity: selectionBarOpacity,
-                  transform: [
-                    {
-                      translateY: selectionBarOpacity.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [20, 0],
-                      }),
-                    },
-                  ],
-                }}
-                className="mb-3"
-              >
-                {isSelectionMode && (
-                  <View className="flex-row items-center justify-between bg-gradient-to-r from-[#1e273a] to-[#252e40] p-3 rounded-xl border border-[#323d4f]">
-                    <View className="flex-row items-center">
-                      <View className="bg-[#ff6b6b]/10 p-2 rounded-full mr-3">
-                        <Feather
-                          name="alert-circle"
-                          color="#ff6b6b"
-                          size={20}
-                        />
-                      </View>
-                      <Text className="text-base text-white">
-                        {selectedChats.length}{" "}
-                        {selectedChats.length === 1
-                          ? "chat seleccionado"
-                          : "chats seleccionados"}
-                      </Text>
-                    </View>
-
-                    <View className="flex-row gap-3">
-                      <TouchableOpacity
-                        onPress={disableSelection}
-                        className="bg-[#323d4f] p-2 rounded-lg"
-                      >
-                        <AntDesign name="close" color="white" size={20} />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={confirmDeletion}
-                        className="bg-[#ff6b6b] p-2 rounded-lg"
-                        disabled={selectedChats.length === 0}
-                        style={{
-                          opacity: selectedChats.length === 0 ? 0.5 : 1,
-                        }}
-                      >
-                        <Feather name="check" color="white" size={20} />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                )}
-              </Animated.View>
-            )}
-
             <FlatList
               data={history}
-              keyExtractor={(item) => item.id}
+              keyExtractor={(item) => `history-${item.id}`}
               ItemSeparatorComponent={() => <View className="h-4" />}
               renderItem={({ item }) => (
                 <TouchableOpacity onPress={() => handleChatPress(item)}>
@@ -521,10 +680,23 @@ const ChatsHistory = () => {
                   />
                 </TouchableOpacity>
               )}
+              ListFooterComponent={HistoryFooter}
+              onEndReached={handleLoadMoreHistory}
+              onEndReachedThreshold={0.3}
+              scrollEnabled={false}
+              nestedScrollEnabled={true}
+              showsVerticalScrollIndicator={false}
+              removeClippedSubviews={true}
+              initialNumToRender={10}
+              maxToRenderPerBatch={5}
+              windowSize={10}
+              contentContainerStyle={{
+                paddingBottom: 10,
+              }}
             />
-          </>
+          </View>
         ) : (
-          <View className="flex justify-center items-center px-6 py-10">
+          <View className="flex-1 items-center justify-center px-6 py-10 min-h-[400px]">
             <View className="bg-gradient-to-b from-[#1e273a] to-[#101520] p-8 rounded-2xl border border-[#323d4f] w-full items-center">
               <View className="bg-[#6366ff]/10 p-5 rounded-full mb-4">
                 <MaterialCommunityIcons
@@ -543,7 +715,7 @@ const ChatsHistory = () => {
                 facilitarte el acceso a ellos.
               </Text>
 
-              <View className="flex-row gap-2 items-center mt-2">
+              <View className="flex-row items-center gap-2 mt-2">
                 <Feather name="message-square" size={16} color="#6366ff" />
                 <Text className="text-sm text-[#6366ff]">
                   Podrás buscar chats por rango de fechas
@@ -552,7 +724,7 @@ const ChatsHistory = () => {
             </View>
           </View>
         )}
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };

@@ -18,6 +18,7 @@ import ChangePasswordModal from "../../components/ChangePasswordModal";
 import ChatContributionGraph from "../../components/ChatContributionGraph";
 import { useAuthContext } from "../../context/AuthContext";
 import useUser from "../../hooks/useUser";
+import useFlags from "../../hooks/useFlags";
 
 const Profile = () => {
   //Recuperamos la info del user que se ha logueado en la app mediante el contexto de Auth y la función para cerrar sesión
@@ -34,6 +35,8 @@ const Profile = () => {
 
   //Importamos la llamada al endpoint de updateUser
   const { deleteProfilePicture, updateProfilePicture } = useUser();
+
+  const { updateConfigFlagValue } = useFlags();
 
   //Cuando carguemos la pantalla tenemos que cargar la foto de perfil que el user tenga en la BD
   /*
@@ -54,6 +57,9 @@ const Profile = () => {
   //TODO: TENEMOS QUE METER ESTO EN EL ASYNC STORAGE PARA QUE SE GUARDE EL ESTADO DE LAS NOTIFICACIONES, Y CARGARLO CON UN USEEFFECT CUANDO ENTREMOS EN LA APP
   const toggleEnabled = async () => {
     setIsSwitchEnabled(!isSwitchEnabled);
+    //Guardamos en la BD la preferencia dle user respecto a las notificaciones
+    await updateConfigFlagValue("notifications", isSwitchEnabled);
+    //Dependiendo del estado tenemos que cancelar todas o no, deberiamos hacer un pop up de que si las cancela no recuperará las que tenía programadas
   };
 
   //hacemos función de guardar foto que incluye las opciones de sacar foto o elegir una de la galería, en base al parámetro que reciba
@@ -166,7 +172,7 @@ const Profile = () => {
 
   return (
     <SafeAreaView className="w-full h-full bg-primary">
-      <View className="flex flex-col gap-4 px-4 mt-4 w-full h-full">
+      <View className="flex flex-col w-full h-full gap-4 px-4 mt-4">
         {/* Header */}
         <Text
           className="text-center font-bold text-[#6366ff] py-4 "
@@ -209,7 +215,7 @@ const Profile = () => {
           />
           {/*GRÁFICA QUE MUESTRA CUANTOS DÍAS DEL MES EL USER HA INTERACCIONADO CON EL CHAT Y HA HABLADO SOBRE SUS SUEÑOS*/}
           <View className="flex flex-col items-center bg-[#1e2a47] rounded-xl p-4 mb-4">
-            <View className="flex flex-row gap-2 items-center mb-2">
+            <View className="flex flex-row items-center gap-2 mb-2">
               <Octicons name="verified" size={20} color="#fff" />
               <Text
                 className="text-lg font-bold color-[#6366ff]"
@@ -229,7 +235,7 @@ const Profile = () => {
 
           {/* Personal Information */}
           <View className="bg-[#1e2a47] rounded-xl p-4">
-            <View className="flex-row justify-between items-center mb-4">
+            <View className="flex-row items-center justify-between mb-4">
               <Text className="text-white font-pmedium">
                 Correo Electrónico
               </Text>
@@ -248,7 +254,7 @@ const Profile = () => {
 
           {/* Disable Notifications Switch */}
           <View className="bg-[#1e2a47] p-4 rounded-xl flex-row justify-between">
-            <View className="flex-row gap-2 items-center">
+            <View className="flex-row items-center gap-2">
               <Feather name="bell" color="white" size={20} />
               <Text className="text-lg text-white font-psemibold">
                 Notificaciones Activas
@@ -270,7 +276,7 @@ const Profile = () => {
             //Cuando pinchamos en el botón tenemos que enseñar el modal de cambiar la contraseña
             onPress={() => setshowModalChangePassword(true)}
           >
-            <View className="flex-row gap-2 items-center">
+            <View className="flex-row items-center gap-2">
               <Feather name="lock" color="white" size={20} />
               <Text className="text-lg text-white font-psemibold">
                 Cambiar Contraseña
@@ -295,7 +301,7 @@ const Profile = () => {
             //Cuando presionamos el botón tenemos que navegar a la pantalla de mis tips favoritos
             onPress={() => router.push("../FavTips")}
           >
-            <View className="flex-row gap-2 items-center">
+            <View className="flex-row items-center gap-2">
               <MaterialCommunityIcons
                 name="bookmark-outline"
                 color="white"
@@ -312,7 +318,7 @@ const Profile = () => {
             className="bg-[#1e2a47] p-4 rounded-xl items-start"
             //TODO: Tenemos que hacer una panatlla donde el user pueda recibir ayuda en caso de problemas
           >
-            <View className="flex-row gap-2 items-center">
+            <View className="flex-row items-center gap-2">
               <Feather name="help-circle" color="white" size={24} />
               <Text className="text-lg text-white font-psemibold">Ayuda</Text>
             </View>

@@ -104,19 +104,14 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
     if (Platform.OS === "android") setShowTimePicker(false);
 
     if (selectedTime) {
-      //tenemos que comprobar que la hora que ponga el user que se ha levantado sea menor o igual a la hora actual, si no podrían exister medidas érroneas
-      if (selectedTime <= new Date()) {
-        const wakeUpTime = formatDateToLocalDate(selectedTime); //Limpiamos el objeto date para operar correctamente
-        setTime(wakeUpTime);
-        handleAnswer("wakeUpTime", wakeUpTime);
-        setIsValidTime(true);
-      } else {
-        setIsValidTime(false);
-        Alert.alert(
-          "Hora no válida",
-          "La hora de despertar debe ser menor o igual a la hora actual"
-        );
+      //En caso de que el user haya metido una fecha superior a la ctual se está refiriendo a esa hora pero en el día anterior
+      if (selectedTime > new Date()) {
+        selectedTime.setDate(selectedTime.getDate() - 1); //Le restamos un día
       }
+      const wakeUpTime = formatDateToLocalDate(selectedTime); //Limpiamos el objeto date para operar correctamente
+      setTime(wakeUpTime);
+      handleAnswer("wakeUpTime", wakeUpTime);
+      setIsValidTime(true);
     }
   };
 

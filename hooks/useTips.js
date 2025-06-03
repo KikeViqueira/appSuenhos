@@ -63,6 +63,12 @@ const useTips = () => {
   const [tipSelectedDetail, setTipSelectedDetail] = useState({}); // Almacena el detalle del tip seleccionado
   const [favoriteTips, setFavoriteTips] = useState([]); // Almacena los tips favoritos del usuario
 
+  // Estados para paginación
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
+  const [pageSize, setPageSize] = useState(7);
+
   const { accessToken, userId } = useAuthContext();
 
   /*
@@ -85,7 +91,10 @@ const useTips = () => {
       );
       //Una vez creado lo que tenemos que hacer es añadirlo a los tips existentes
       const newTip = response.data;
-      if (response.status === 200) setTips((prevTips) => [...prevTips, newTip]);
+      if (response.status === 200) {
+        // Agregar el nuevo tip al principio de la lista (más reciente)
+        setTips((prevTips) => [newTip, ...prevTips]);
+      }
       //llamamos a la función para guardar la bandera de tip en el AsyncStorage
       await setDailyTipFlag();
     } catch (error) {
@@ -97,9 +106,20 @@ const useTips = () => {
   };
 
   /*
-   * Endpoint para recuperar los tips que el usario tiene asociados a su cuenta.
+   * Endpoint para recuperar los tips que el usuario tiene asociados a su cuenta con paginación.
+   * @param page - Número de página (opcional, por defecto 0)
+   * @param size - Tamaño de página (opcional, por defecto 10)
+   * @param sortBy - Campo por el que ordenar (opcional, por defecto 'timeStamp')
+   * @param direction - Dirección del ordenamiento (opcional, por defecto 'desc')
+   * @param append - Si es true, anexa los resultados a los existentes (para scroll infinito)
    */
-  const getTips = async () => {
+  const getTips = async (
+    page = 0,
+    size = 7,
+    sortBy = "timeStamp",
+    direction = "desc",
+    append = false
+  ) => {
     setError(null);
     setLoading(true);
 
@@ -111,16 +131,51 @@ const useTips = () => {
             Authorization: `Bearer ${accessToken}`,
             "Content-Type": "application/json",
           },
+          params: {
+            page: page.toString(),
+            size: size.toString(),
+            sort: sortBy,
+            direction: direction,
+          },
         }
       );
-      if (response.status === 200) setTips(response.data);
-      //En caso de que la respuesta sea 204, es decir, que no hay contenido, lo que significa que el usuario no tiene tips favoritos, lo que significa que el array de tips favoritos se vacía
-      if (response.status === 204) setFavoriteTips([]);
+
+      if (response.status === 200) {
+        const pageData = response.data;
+
+        // Actualizar estados de paginación
+        setCurrentPage(pageData.number);
+        setTotalPages(pageData.totalPages);
+        setTotalElements(pageData.totalElements);
+        setPageSize(pageData.size);
+
+        // Actualizar tips según si es append o reemplazo
+        if (append && page > 0) {
+          setTips((prevTips) => [...prevTips, ...pageData.content]);
+        } else {
+          setTips(pageData.content);
+        }
+      }
+
+      if (response.status === 204) {
+        // No hay contenido
+        setTips([]);
+        setCurrentPage(0);
+        setTotalPages(0);
+        setTotalElements(0);
+      }
     } catch (error) {
       setError(error);
       console.error("Error al recuperar los tips: ", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Función para cargar la siguiente página (útil para scroll infinito)
+  const loadNextPage = async () => {
+    if (currentPage + 1 < totalPages && !loading) {
+      await getTips(currentPage + 1, pageSize, "timeStamp", "desc", true);
     }
   };
 
@@ -146,8 +201,12 @@ const useTips = () => {
       //Almacenamos los detalles del tip seleccionado en el estado correspondiente
       if (response.status === 200) setTipSelectedDetail(response.data);
     } catch (error) {
-      setError(error);
-      console.error("Error al recuperar el tip: ", error);
+      if (error.response) {
+        if (error.response.status !== 404) {
+          setError(error);
+          console.error("Error al recuperar el tip: ", error);
+        } else setTipSelectedDetail({});
+      }
     } finally {
       setLoading(false);
     }
@@ -181,10 +240,22 @@ const useTips = () => {
         }
       );
       if (response.status === 200) {
-        //Dejamos guardados en el estado aquellos tips que no tengan un id que esté en el array de ids que se han pasado como parámetro para ser eliminados
+        //Eliminamos los tips del estado local
         setTips((prevTips) =>
           prevTips.filter((tip) => !tipIds.includes(tip.id))
         );
+
+        // Actualizar el total de elementos
+        setTotalElements((prevTotal) => prevTotal - tipIds.length);
+
+        //TODO: DIRIA QUE ESTO SOBRA COMPLETAMENTE TAL Y COMO ESTA IMPLEMENTADO
+        // Si la página actual queda vacía y no es la primera página, ir a la anterior
+        const remainingTipsInCurrentPage = tips.filter(
+          (tip) => !tipIds.includes(tip.id)
+        ).length;
+        if (remainingTipsInCurrentPage === 0 && currentPage > 0) {
+          await getTips(currentPage - 1, pageSize, "timeStamp", "desc", false);
+        }
       }
     } catch (error) {
       setError(error);
@@ -298,11 +369,17 @@ const useTips = () => {
     getTips,
     getTipById,
     tipSelectedDetail,
-    getFavoriteTips,
+    setTipSelectedDetail,
     favoriteTips,
+    getFavoriteTips,
     addFavoriteTip,
     removeFavoriteTip,
     deleteTips,
+    currentPage,
+    totalPages,
+    totalElements,
+    pageSize,
+    loadNextPage,
   };
 };
 

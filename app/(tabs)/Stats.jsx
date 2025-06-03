@@ -22,6 +22,7 @@ import * as Notifications from "expo-notifications";
 import { router } from "expo-router";
 import useSleep from "../../hooks/useSleep";
 import { useAuthContext } from "../../context/AuthContext";
+import useFlags from "../../hooks/useFlags";
 
 /**
  *  Función que lo que hace es quitarle el offset de la fecha para poder trabajar con fechas locales del user y que se guarden correctamente en la BD de manera coherente
@@ -148,6 +149,9 @@ const Estadisticas = () => {
 
   const { userInfo, loading } = useAuthContext();
 
+  //llamamos a las funciones que interacionan con los endpoints relacionados con las banderas diarias del user
+  const { insertDailyFlag, deleteDailyFlag } = useFlags();
+
   const { createSleepLog, getSleepLogEndpoint, getDailySleepLog, sleepLog } =
     useSleep();
 
@@ -212,6 +216,9 @@ const Estadisticas = () => {
         // Guardamos como string en AsyncStorage
         await AsyncStorage.setItem("sleepStart", formattedDate.toISOString());
 
+        //Guardamos la bandera y el valor en la BD
+        await insertDailyFlag("sleepStart", formattedDate.toISOString());
+
         // Mandamos la notificación usando la fecha formateada
         sendNotificationWakeUp();
 
@@ -234,7 +241,9 @@ const Estadisticas = () => {
           { text: "Cancelar", style: "cancel" },
           {
             text: "Reiniciar",
-            onPress: () => {
+            onPress: async () => {
+              //Reiniciamos el valor de la bandera y la eliminamos de la BD
+              await deleteDailyFlag("sleepStart");
               setTimeout(() => setIsSleeping(false), 0);
             },
           },
@@ -406,19 +415,19 @@ const Estadisticas = () => {
         return <FitbitUserGraphs />;
       case "drmSection":
         return (
-          <View className="flex flex-col gap-6 mt-4 w-full">
+          <View className="flex flex-col w-full gap-6 mt-4">
             <Text className="mb-2 ml-2 text-lg font-semibold text-white">
               Day Reconstruction Method
             </Text>
 
             {/* Card layout for DRM buttons */}
-            <View className="flex-row gap-4 justify-between w-full">
+            <View className="flex-row justify-between w-full gap-4">
               {/* Questionnaire Card */}
               <TouchableOpacity
                 className="flex-1 p-5 rounded-xl border border-[#6366ff]/20"
                 onPress={() => router.push("/DRM")}
               >
-                <View className="justify-center items-center">
+                <View className="items-center justify-center">
                   <View className="bg-[#6366ff]/20 p-3 rounded-full mb-4">
                     <FontAwesome5
                       name="clipboard-list"
@@ -440,7 +449,7 @@ const Estadisticas = () => {
                 className="flex-1  p-5 rounded-xl border border-[#6366ff]/20"
                 onPress={() => router.push("/DrmReport")}
               >
-                <View className="justify-center items-center">
+                <View className="items-center justify-center">
                   <View className="bg-[#6366ff]/20 p-3 rounded-full mb-4">
                     <Feather name="file" color="#6366ff" size={30} />
                   </View>
@@ -492,7 +501,7 @@ const Estadisticas = () => {
 
         <View className="flex w-[95%] gap-6 px-4 py-5 rounded-lg bg-[#1e2a47]">
           {/* Título de la sección */}
-          <View className="flex flex-row gap-4 justify-start">
+          <View className="flex flex-row justify-start gap-4">
             <MaterialCommunityIcons name="bed" size={24} color="white" />
             <Text
               className="text-center font-bold color-[#6366ff]"
@@ -525,7 +534,7 @@ const Estadisticas = () => {
           )}
 
           {/* Botones para registrar las horas de sueño y abrir el modal de preguntas */}
-          <View className="flex flex-col gap-4 justify-between w-full">
+          <View className="flex flex-col justify-between w-full gap-4">
             <TouchableOpacity
               onPress={calculateSleepStart}
               className={`flex flex-row items-center justify-start p-4 gap-4 

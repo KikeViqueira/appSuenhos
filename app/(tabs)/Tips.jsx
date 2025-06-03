@@ -6,6 +6,7 @@ import {
   StyleSheet,
   RefreshControl,
   Animated,
+  ActivityIndicator,
 } from "react-native";
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { router, useFocusEffect } from "expo-router";
@@ -47,7 +48,18 @@ const Tips = () => {
   const [selectedTips, setSelectedTips] = useState([]);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const { tips, getTips, deleteTips, loading } = useTips();
+  const [loadingMore, setLoadingMore] = useState(false);
+
+  const {
+    tips,
+    getTips,
+    deleteTips,
+    loading,
+    currentPage,
+    totalPages,
+    totalElements,
+    loadNextPage,
+  } = useTips();
 
   // Ref para animación
   const selectionBarOpacity = useRef(new Animated.Value(0)).current;
@@ -92,7 +104,6 @@ const Tips = () => {
   }, []);
 
   //useEffect que se ejecutará cada vez que la pantalla reciba el foco
-
   useFocusEffect(
     useCallback(() => {
       // Evitar múltiples llamadas en un corto período de tiempo
@@ -127,6 +138,33 @@ const Tips = () => {
     }, 1000);
   }, []);
 
+  // Función para detectar cuando el usuario llega al final del scroll (scroll infinito)
+  const handleScroll = useCallback(
+    async ({ nativeEvent }) => {
+      const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
+      const paddingToBottom = 100; // Margen para activar la carga antes de llegar al final
+
+      // Verificar si el usuario está cerca del final
+      const isCloseToBottom =
+        layoutMeasurement.height + contentOffset.y >=
+        contentSize.height - paddingToBottom;
+
+      // Cargar más si: está cerca del final, no está cargando, hay más páginas, y no está en modo selección
+      if (
+        isCloseToBottom &&
+        !loadingMore &&
+        !loading &&
+        currentPage + 1 < totalPages
+      ) {
+        setLoadingMore(true);
+        console.log("LLAMANDO A LA FUNCIÓN loadNextPage");
+        await loadNextPage();
+        setLoadingMore(false);
+      }
+    },
+    [loadingMore, loading, currentPage, totalPages, loadNextPage]
+  );
+
   //Función que se encarga de poner el modo de múltiple selección activado para su uso
   const handleDeletePress = () => {
     setIsSelectionMode(true);
@@ -150,6 +188,44 @@ const Tips = () => {
       setSelectedTips([]); //Limpiamos los tips seleccionados
       setIsSelectionMode(false);
     }
+  };
+
+  // Componente para el footer con información de paginación y loading
+  const PaginationFooter = () => {
+    if (tips.length === 0) return null;
+
+    return (
+      <View className="items-center px-4 py-6">
+        {/* Indicador de carga cuando se están cargando más tips */}
+        {loadingMore && (
+          <View className="flex-row items-center mb-4">
+            <ActivityIndicator size="small" color="#6366ff" />
+            <Text className="ml-2 text-sm text-white">
+              Cargando más tips...
+            </Text>
+          </View>
+        )}
+
+        {/* Información de paginación */}
+        <View className="bg-[#1e273a]/50 px-4 py-2 rounded-full border border-[#323d4f]/30">
+          <Text className="text-xs text-center text-white/70">
+            {tips.length} de {totalElements} tips • Página {currentPage + 1} de{" "}
+            {totalPages}
+          </Text>
+        </View>
+
+        {/* Mensaje cuando no hay más contenido */}
+        {currentPage + 1 >= totalPages && totalElements > 7 && !loadingMore && (
+          <View className="flex-row items-center mt-4">
+            <View className="h-px bg-[#323d4f] flex-1" />
+            <Text className="mx-4 text-base text-white/50">
+              Has llegado al final
+            </Text>
+            <View className="h-px bg-[#323d4f] flex-1" />
+          </View>
+        )}
+      </View>
+    );
   };
 
   // tips de ejemplo para el fondo del placeholder
@@ -199,7 +275,7 @@ const Tips = () => {
       </View>
 
       {/* Foreground content */}
-      <View className="flex z-10 flex-col gap-6 justify-center items-center px-8">
+      <View className="z-10 flex flex-col items-center justify-center gap-6 px-8">
         <Entypo name="light-bulb" color="#6366ff" size={80} />
         <View className="items-center">
           <Text className="text-2xl font-bold text-[#6366ff] mb-2 text-center">
@@ -220,7 +296,7 @@ const Tips = () => {
           onPress={() => router.push("./Stats")}
           className="mt-6 bg-[#6366ff] px-12 py-4 rounded-full flex flex-row items-center justify-center"
         >
-          <View className="flex flex-row gap-4 justify-center items-center">
+          <View className="flex flex-row items-center justify-center gap-4">
             <Feather name="pie-chart" color="white" size={20} />
             <Text className="text-lg text-white font-psemibold">
               Ir a Estadísticas
@@ -233,7 +309,7 @@ const Tips = () => {
 
   return (
     <SafeAreaView className="w-full h-full bg-primary">
-      <View className="flex flex-col gap-4 justify-start items-center self-center mt-3 w-full h-full">
+      <View className="flex flex-col items-center self-center justify-start w-full h-full gap-4 mt-3">
         {/*Header*/}
         <View className="flex-row items-center justify-between w-[90%]">
           <Text
@@ -316,6 +392,8 @@ const Tips = () => {
             }}
             showsVerticalScrollIndicator={true}
             indicatorStyle="white"
+            onScroll={handleScroll}
+            scrollEventThrottle={16} // Para mejor performance del scroll
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -329,12 +407,11 @@ const Tips = () => {
             {tips.map((tip, index) => (
               <TouchableOpacity
                 //Para cada uno de los tips hacemos un botón que nos lleve a la página del tip detallado
-                key={index}
+                key={`${tip.id}-${index}`} // Mejor key para scroll infinito
                 style={{ width: "90%" }}
                 onPress={() => handleTipPress(tip)}
               >
                 <TipItem
-                  key={index}
                   title={tip.title}
                   description={tip.description}
                   icon={getIcon(tip.icon)} //Pasamos el icono correspondiente al tip
@@ -347,6 +424,9 @@ const Tips = () => {
                 />
               </TouchableOpacity>
             ))}
+
+            {/* Footer con información de paginación */}
+            <PaginationFooter />
           </ScrollView>
         ) : (
           <EmptyTipsPlaceholder />

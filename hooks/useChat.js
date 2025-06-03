@@ -6,6 +6,105 @@ import { useAuthContext } from "../context/AuthContext";
 
 const CURRENT_CHAT_ID_KEY = "current_chat_id";
 
+/*
+ * Funciones internas para guardar el chatId en el AsyncStorage junto a una marca temporal de cuando se ha hecho el chat,
+ * y función para recuperar el chatId del AsyncStorage y comprobar si es de hoy o no.
+ */
+
+const setDailyChatId = async (id) => {
+  try {
+    const now = new Date();
+    //Establecemos la expiración del id que es al final del día
+    const endOfDay = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      23,
+      59,
+      59,
+      999
+    );
+    //Creamos el objeto que vamos a guardar en el AsyncStorage
+    const data = {
+      chatId: id,
+      expiry_chatId: endOfDay.getTime(),
+    };
+    await AsyncStorage.setItem("chatId", JSON.stringify(data));
+    //Tenemos que crear bandera de si el user ha hecho un chat en el día de hoy o no
+    //Cremaos el objeto de la misma manera
+    const hasChatToday = {
+      done: true,
+      expiry_hasChatToday: endOfDay.getTime(),
+    };
+
+    await AsyncStorage.setItem("hasChatToday", JSON.stringify(hasChatToday));
+  } catch (error) {
+    console.error("Error al guardar el chatId en el AsyncStorage: ", error);
+  }
+};
+
+const getDailyChatId = async () => {
+  try {
+    const data = await AsyncStorage.getItem("chatId");
+
+    if (data) {
+      const { chatId, expiry_chatId } = JSON.parse(data);
+
+      //Comprobamos si el tiempo actual es mayor que el tiempo de expiración del chatId
+      if (Date.now() > expiry_chatId) {
+        //Si ha expirado eliminamos el chatId del AsyncStorage
+        await AsyncStorage.removeItem("chatId");
+        return null;
+      }
+      return chatId;
+    }
+    return null; // Si no hay datos, devolvemos null
+  } catch (error) {
+    console.error("Error al recuperar el chatId del AsyncStorage: ", error);
+    return null;
+  }
+};
+
+//Funciones para saber si el user ya ha hecho un chat en el día de hoy o no
+const getHasChatToday = async () => {
+  try {
+    const data = await AsyncStorage.getItem("hasChatToday");
+
+    if (data) {
+      const { done, expiry_hasChatToday } = JSON.parse(data);
+
+      if (Date.now() > expiry_hasChatToday) {
+        await AsyncStorage.removeItem("hasChatToday");
+        return false;
+      }
+      return done;
+    }
+    return false; // Si no hay bandera devolvemos false
+  } catch (error) {
+    console.error("Error al recuperar la bandera de chat de hoy: ", error);
+    return false;
+  }
+};
+
+//Funciones para guardar y recuperar el id del chat en el que estamos actualmente
+const setCurrentChatId = async (id) => {
+  try {
+    await AsyncStorage.setItem(CURRENT_CHAT_ID_KEY, id);
+  } catch (error) {
+    console.error("Error al guardar el chatId en el AsyncStorage: ", error);
+  }
+};
+
+const getCurrentChatId = async () => {
+  try {
+    const id = await AsyncStorage.getItem(CURRENT_CHAT_ID_KEY);
+    return id;
+  } catch (error) {
+    console.error("Error al recuperar el chatId del AsyncStorage: ", error);
+    return null;
+  }
+};
+
 const useChat = () => {
   const [messages, setMessages] = useState([]); // Estado que guarda todos los mensajes
   const [loading, setLoading] = useState(false); // Indica si la petición está en curso
@@ -17,104 +116,22 @@ const useChat = () => {
   const [last3MonthsChats, setLast3MonthsChats] = useState([]); // Almacena los chats de los últimos tres meses
   const [filteredChats, setFilteredChats] = useState([]); // Almacena los chats filtrados
 
-  /*
-   * Funciones internas para guardar el chatId en el AsyncStorage junto a una marca temporal de cuando se ha hecho el chat,
-   * y función para recuperar el chatId del AsyncStorage y comprobar si es de hoy o no.
-   */
+  // Estado para guardar las fechas de búsqueda actuales (para paginación de chats filtrados)
+  const [currentSearchDates, setCurrentSearchDates] = useState({
+    startDate: null,
+    endDate: null,
+  });
 
-  const setDailyChatId = async (id) => {
-    try {
-      const now = new Date();
-      //Establecemos la expiración del id que es al final del día
-      const endOfDay = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        23,
-        59,
-        59,
-        999
-      );
-      //Creamos el objeto que vamos a guardar en el AsyncStorage
-      const data = {
-        chatId: id,
-        expiry_chatId: endOfDay.getTime(),
-      };
-      await AsyncStorage.setItem("chatId", JSON.stringify(data));
-      //Tenemos que crear bandera de si el user ha hecho un chat en el día de hoy o no
-      //Cremaos el objeto de la misma manera
-      const hasChatToday = {
-        done: true,
-        expiry_hasChatToday: endOfDay.getTime(),
-      };
+  //hacemos los estados para la paginación tanto para el historial de chats como para los chats filtrados
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
 
-      await AsyncStorage.setItem("hasChatToday", JSON.stringify(hasChatToday));
-    } catch (error) {
-      console.error("Error al guardar el chatId en el AsyncStorage: ", error);
-    }
-  };
+  const [currentPageFiltered, setCurrentPageFiltered] = useState(0);
+  const [totalPagesFiltered, setTotalPagesFiltered] = useState(0);
+  const [totalElementsFiltered, setTotalElementsFiltered] = useState(0);
 
-  const getDailyChatId = async () => {
-    try {
-      const data = await AsyncStorage.getItem("chatId");
-
-      if (data) {
-        const { chatId, expiry_chatId } = JSON.parse(data);
-
-        //Comprobamos si el tiempo actual es mayor que el tiempo de expiración del chatId
-        if (Date.now() > expiry_chatId) {
-          //Si ha expirado eliminamos el chatId del AsyncStorage
-          await AsyncStorage.removeItem("chatId");
-          return null;
-        }
-        return chatId;
-      }
-      return null; // Si no hay datos, devolvemos null
-    } catch (error) {
-      console.error("Error al recuperar el chatId del AsyncStorage: ", error);
-      return null;
-    }
-  };
-
-  //Funciones para saber si el user ya ha hecho un chat en el día de hoy o no
-  const getHasChatToday = async () => {
-    try {
-      const data = await AsyncStorage.getItem("hasChatToday");
-
-      if (data) {
-        const { done, expiry_hasChatToday } = JSON.parse(data);
-
-        if (Date.now() > expiry_hasChatToday) {
-          await AsyncStorage.removeItem("hasChatToday");
-          return false;
-        }
-        return done;
-      }
-      return false; // Si no hay bandera devolvemos false
-    } catch (error) {
-      console.error("Error al recuperar la bandera de chat de hoy: ", error);
-      return false;
-    }
-  };
-
-  //Funciones para guardar y recuperar el id del chat en el que estamos actualmente
-  const setCurrentChatId = async (id) => {
-    try {
-      await AsyncStorage.setItem(CURRENT_CHAT_ID_KEY, id);
-    } catch (error) {
-      console.error("Error al guardar el chatId en el AsyncStorage: ", error);
-    }
-  };
-
-  const getCurrentChatId = async () => {
-    try {
-      const id = await AsyncStorage.getItem(CURRENT_CHAT_ID_KEY);
-      return id;
-    } catch (error) {
-      console.error("Error al recuperar el chatId del AsyncStorage: ", error);
-      return null;
-    }
-  };
+  const [pageSize, setPageSize] = useState(7);
 
   /*
    * Función para mandar un mensaje a aun chat existente o crear uno nuevo mandando un mensaje
@@ -225,8 +242,19 @@ const useChat = () => {
 
   /*
    * Endpoint para recuperar el historial de chats que tiene un user asociados a su id
+   * @param page - Número de página (opcional, por defecto 0)
+   * @param size - Tamaño de página (opcional, por defecto 7)
+   * @param sortBy - Campo por el que ordenar (opcional, por defecto 'date')
+   * @param direction - Dirección del ordenamiento (opcional, por defecto 'desc')
+   * @param append - Si es true, anexa los resultados a los existentes (para scroll infinito)
    */
-  const getHistory = async () => {
+  const getHistory = async (
+    page = 0,
+    size = 7,
+    sortBy = "date",
+    direction = "desc",
+    append = false
+  ) => {
     setError(null);
     setLoading(true);
     try {
@@ -237,16 +265,79 @@ const useChat = () => {
             Authorization: `Bearer ${accessToken}`,
             "Content-Type": "application/json",
           },
+          params: {
+            filter: "history",
+            page: page.toString(),
+            size: size.toString(),
+            sort: sortBy,
+            direction: direction,
+          },
         }
       );
       //Guardamos el historial de chats en el estado
-      if (response.status === 200) setHistory(response.data);
-      console.log("Historial de chats recuperado: ", response.data);
+      if (response.status === 200) {
+        const pageData = response.data;
+
+        // Actualizar estados de paginación
+        setCurrentPage(pageData.number);
+        setTotalPages(pageData.totalPages);
+        setTotalElements(pageData.totalElements);
+        setPageSize(pageData.size);
+
+        //Actualizamos según sea append o no
+        if (append && page > 0) {
+          setHistory((prev) => [...prev, ...pageData.content]);
+        } else {
+          setHistory(pageData.content);
+        }
+      }
+
+      if (response.status === 204) {
+        //No hay contenido
+        setHistory([]);
+        setCurrentPage(0);
+        setTotalPages(0);
+        setTotalElements(0);
+      }
     } catch (error) {
       setError(error);
+      console.error("Error al recuperar historial de chats: ", error);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Función para cargar la siguiente página dependiendo de si es para el historial de chats o para los chats filtrados
+  const loadNextPage = async (isFiltered = false) => {
+    if (isFiltered) {
+      if (currentPageFiltered + 1 < totalPagesFiltered && !loading) {
+        await getChatsByRangePaginated(
+          currentPageFiltered + 1,
+          pageSize,
+          "date",
+          "desc",
+          true
+        );
+      }
+    } else {
+      if (currentPage + 1 < totalPages && !loading) {
+        await getHistory(currentPage + 1, pageSize, "date", "desc", true);
+      }
+    }
+  };
+
+  // Función para recargar la primera página del historial
+  const refreshHistory = async () => {
+    await getHistory(0, pageSize, "date", "desc", false);
+  };
+
+  // Función para recargar la primera página de chats filtrados
+  const refreshFilteredChats = async () => {
+    // Resetear estados de paginación filtrados
+    setCurrentPageFiltered(0);
+    setTotalPagesFiltered(0);
+    setTotalElementsFiltered(0);
+    setFilteredChats([]);
   };
 
   /*
@@ -271,9 +362,11 @@ const useChat = () => {
       );
       //Guardamos estos chats en el estado correspondiente
       if (response.status === 200) setLast3MonthsChats(response.data);
-      console.log("Historial de chats recuperado: ", response.data);
+      if (response.status === 204) setLast3MonthsChats([]);
+      console.log("Chats últimos 3 meses recuperados: ", response.data);
     } catch (error) {
       setError(error);
+      console.error("Error al recuperar chats de últimos 3 meses: ", error);
     } finally {
       setLoading(false);
     }
@@ -283,10 +376,52 @@ const useChat = () => {
    * Endpoint para recuperar los chats que ha hecho el user en un rango de fechas
    */
   const getChatsByRange = async (startDateValue, endDateValue) => {
+    // Resetear estados de paginación filtrados antes de la nueva búsqueda
+    setCurrentPageFiltered(0);
+    setTotalPagesFiltered(0);
+    setTotalElementsFiltered(0);
+    setFilteredChats([]);
+
+    await getChatsByRangePaginated(
+      0,
+      pageSize,
+      "date",
+      "desc",
+      false,
+      startDateValue,
+      endDateValue
+    );
+  };
+
+  /*
+   * Función interna para manejar paginación de chats por rango de fechas
+   */
+  const getChatsByRangePaginated = async (
+    page = 0,
+    size = 7,
+    sortBy = "date",
+    direction = "desc",
+    append = false,
+    startDateValue = null,
+    endDateValue = null
+  ) => {
     setError(null);
     setLoading(true);
 
     try {
+      // Si estamos en append, usar las fechas ya almacenadas en algún estado o props
+      if (startDateValue && endDateValue) {
+        // Guardar las fechas para futuras cargas de página
+        setCurrentSearchDates({
+          startDate: startDateValue,
+          endDate: endDateValue,
+        });
+      } else if (currentSearchDates.startDate && currentSearchDates.endDate) {
+        // Usar fechas guardadas para cargas posteriores
+        startDateValue = currentSearchDates.startDate;
+        endDateValue = currentSearchDates.endDate;
+      }
+
       const response = await apiClient.get(
         `${API_BASE_URL}/users/${userId}/chats`,
         {
@@ -298,16 +433,40 @@ const useChat = () => {
             filter: "range",
             startDate: startDateValue,
             endDate: endDateValue,
+            page: page.toString(),
+            size: size.toString(),
+            sort: sortBy,
+            direction: direction,
           },
         }
       );
+
       //Guardamos estos chats en el estado correspondiente
-      if (response.status === 200) setFilteredChats(response.data);
+      if (response.status === 200) {
+        const pageData = response.data;
+
+        setCurrentPageFiltered(pageData.number);
+        setTotalPagesFiltered(pageData.totalPages);
+        setTotalElementsFiltered(pageData.totalElements);
+
+        if (append && page > 0) {
+          setFilteredChats((prev) => [...prev, ...pageData.content]);
+        } else {
+          setFilteredChats(pageData.content);
+        }
+      }
+
       //Si la respuesta por parte del server es un 204 significa que no hay chats en el rango de fechas
-      if (response.status === 204) setFilteredChats([]);
-      console.log("Historial de chats recuperado: ", response.data);
+      if (response.status === 204) {
+        setFilteredChats([]);
+        setCurrentPageFiltered(0);
+        setTotalPagesFiltered(0);
+        setTotalElementsFiltered(0);
+      }
+      console.log("Chats filtrados por rango recuperados: ", response.data);
     } catch (error) {
       setError(error);
+      console.error("Error al recuperar chats por rango: ", error);
     } finally {
       setLoading(false);
     }
@@ -383,6 +542,14 @@ const useChat = () => {
       if (response.status === 200) {
         // Actualizamos el estado eliminando los chats borrados del historial
         setHistory((prev) => prev.filter((chat) => !ids.includes(chat.id)));
+
+        //Actualizamos el total de elementos
+        setTotalElements((prevTotal) => prevTotal - ids.length);
+
+        //Tenemos que actualizar también el estado de los chats filtrados para una mayor consistencia
+        setFilteredChats((prev) =>
+          prev.filter((chat) => !ids.includes(chat.id))
+        );
 
         // Preparamos el objeto de resultado
         result.deletedOpenChat = isDeletingOpenChat;
@@ -578,6 +745,19 @@ const useChat = () => {
     filteredChats,
     getChatsByRange,
     setIsToday,
+    // Estados de paginación para historial
+    currentPage,
+    totalPages,
+    totalElements,
+    pageSize,
+    // Estados de paginación para chats filtrados
+    currentPageFiltered,
+    totalPagesFiltered,
+    totalElementsFiltered,
+    // Funciones de paginación
+    loadNextPage,
+    refreshHistory,
+    refreshFilteredChats,
   };
 };
 
