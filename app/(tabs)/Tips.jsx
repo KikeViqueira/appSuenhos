@@ -7,6 +7,7 @@ import {
   RefreshControl,
   Animated,
   ActivityIndicator,
+  FlatList,
 } from "react-native";
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { router, useFocusEffect } from "expo-router";
@@ -138,45 +139,7 @@ const Tips = () => {
     }, 1000);
   }, []);
 
-  // Función para detectar cuando el usuario llega al final del scroll (scroll infinito)
-  const handleScroll = useCallback(
-    async ({ nativeEvent }) => {
-      const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
-      const paddingToBottom = 100; // Margen para activar la carga antes de llegar al final
-
-      // Verificar si el usuario está cerca del final
-      const isCloseToBottom =
-        layoutMeasurement.height + contentOffset.y >=
-        contentSize.height - paddingToBottom;
-
-      // Cargar más si: está cerca del final, no está cargando, hay más páginas, y no está en modo selección
-      if (
-        isCloseToBottom &&
-        !loadingMore &&
-        !loading &&
-        currentPage + 1 < totalPages
-      ) {
-        setLoadingMore(true);
-        console.log("LLAMANDO A LA FUNCIÓN loadNextPage");
-        await loadNextPage();
-        setLoadingMore(false);
-      }
-    },
-    [loadingMore, loading, currentPage, totalPages, loadNextPage]
-  );
-
-  //Función que se encarga de poner el modo de múltiple selección activado para su uso
-  const handleDeletePress = () => {
-    setIsSelectionMode(true);
-  };
-
-  //Función que se encarga de cancelar la eliminación múltiple y volver al estado por default
-  const disableSelection = () => {
-    setIsSelectionMode(false);
-    setSelectedTips([]);
-  };
-
-  //Función para confirmar la eliminación de los tips que han sido seleccionados
+  // Función para confirmar la eliminación de los tips que han sido seleccionados
   const confirmDeletion = async () => {
     if (selectedTips.length > 0) {
       console.log(
@@ -188,6 +151,17 @@ const Tips = () => {
       setSelectedTips([]); //Limpiamos los tips seleccionados
       setIsSelectionMode(false);
     }
+  };
+
+  //Función que se encarga de poner el modo de múltiple selección activado para su uso
+  const handleDeletePress = () => {
+    setIsSelectionMode(true);
+  };
+
+  //Función que se encarga de cancelar la eliminación múltiple y volver al estado por default
+  const disableSelection = () => {
+    setIsSelectionMode(false);
+    setSelectedTips([]);
   };
 
   // Componente para el footer con información de paginación y loading
@@ -384,16 +358,35 @@ const Tips = () => {
         )}
 
         {tips.length > 0 ? (
-          <ScrollView
-            contentContainerStyle={{
-              flexGrow: 1, //Puede crecer y adaptarse al nuevo tamaño y scroll
-              gap: 16,
-              alignItems: "center", // Centramos los elementos
+          <FlatList
+            data={tips}
+            keyExtractor={(item, index) => `${item.id}-${index}`}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={{ width: "90%", alignSelf: "center" }}
+                onPress={() => handleTipPress(item)}
+              >
+                <TipItem
+                  title={item.title}
+                  description={item.description}
+                  icon={getIcon(item.icon)}
+                  color={item.color}
+                  isSelectionMode={isSelectionMode}
+                  isSelected={selectedTips.some((t) => t.id === item.id)}
+                />
+              </TouchableOpacity>
+            )}
+            ItemSeparatorComponent={() => <View className="h-4" />}
+            ListFooterComponent={PaginationFooter}
+            onEndReached={async () => {
+              if (!loadingMore && !loading && currentPage + 1 < totalPages) {
+                setLoadingMore(true);
+                console.log("LLAMANDO A LA FUNCIÓN loadNextPage");
+                await loadNextPage();
+                setLoadingMore(false);
+              }
             }}
-            showsVerticalScrollIndicator={true}
-            indicatorStyle="white"
-            onScroll={handleScroll}
-            scrollEventThrottle={16} // Para mejor performance del scroll
+            onEndReachedThreshold={0.3} //Se llama a la función loadNextPage cuando se ha llegado al 30% del final de la lista
             refreshControl={
               <RefreshControl
                 refreshing={refreshing}
@@ -402,32 +395,18 @@ const Tips = () => {
                 tintColor="#6366ff"
               />
             }
-            className="w-full"
-          >
-            {tips.map((tip, index) => (
-              <TouchableOpacity
-                //Para cada uno de los tips hacemos un botón que nos lleve a la página del tip detallado
-                key={`${tip.id}-${index}`} // Mejor key para scroll infinito
-                style={{ width: "90%" }}
-                onPress={() => handleTipPress(tip)}
-              >
-                <TipItem
-                  title={tip.title}
-                  description={tip.description}
-                  icon={getIcon(tip.icon)} //Pasamos el icono correspondiente al tip
-                  color={tip.color}
-                  isSelectionMode={isSelectionMode}
-                  /*
-                   *Recorre el arreglo selectedTips con .some(), devuelve true si encuentra un elemento con el mismo id que el tip actual.
-                   */
-                  isSelected={selectedTips.some((t) => t.id === tip.id)}
-                />
-              </TouchableOpacity>
-            ))}
-
-            {/* Footer con información de paginación */}
-            <PaginationFooter />
-          </ScrollView>
+            showsVerticalScrollIndicator={true}
+            indicatorStyle="white"
+            contentContainerStyle={{
+              paddingVertical: 16,
+              flexGrow: 1,
+            }}
+            removeClippedSubviews={true} //Solo los tips visibles y algunos cercanos están en memoria, no todos
+            initialNumToRender={7} //Cantidad de tips que se renderizan al inicio
+            maxToRenderPerBatch={7} //Cantidad de tips que se renderizan en cada batch
+            windowSize={10} //Cantidad de tips que se renderizan en el viewport
+            className="flex-1 w-full"
+          />
         ) : (
           <EmptyTipsPlaceholder />
         )}

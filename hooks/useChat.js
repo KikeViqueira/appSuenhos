@@ -758,6 +758,8 @@ const useChat = () => {
     loadNextPage,
     refreshHistory,
     refreshFilteredChats,
+    setFilteredChats,
+    setTotalElementsFiltered,
   };
 };
 

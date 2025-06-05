@@ -15,10 +15,11 @@ import PictureOptions from "../../components/PictureOptions";
 import { router } from "expo-router";
 import LogOutModal from "../../components/LogOutModal";
 import ChangePasswordModal from "../../components/ChangePasswordModal";
+import DisableNotificationsModal from "../../components/DisableNotificationsModal";
 import ChatContributionGraph from "../../components/ChatContributionGraph";
 import { useAuthContext } from "../../context/AuthContext";
 import useUser from "../../hooks/useUser";
-import useFlags from "../../hooks/useFlags";
+import useNotifications from "../../hooks/useNotifications";
 
 const Profile = () => {
   //Recuperamos la info del user que se ha logueado en la app mediante el contexto de Auth y la función para cerrar sesión
@@ -29,14 +30,22 @@ const Profile = () => {
   const [showModal, setshowModal] = useState(false);
   const [showModalLogOut, setshowModalLogOut] = useState(false);
   const [showModalChangePassword, setshowModalChangePassword] = useState(false);
-  const [isSwitchEnabled, setIsSwitchEnabled] = useState(false);
+  //Estado para controlar el modal de desactivar notificaciones
+  const [showModalDisableNotifications, setShowModalDisableNotifications] =
+    useState(false);
   //Estado para saber si el user tiene una foto de perfil propia o tiene el placeholder
   const [hasCustomImage, setHasCustomImage] = useState(false);
 
   //Importamos la llamada al endpoint de updateUser
   const { deleteProfilePicture, updateProfilePicture } = useUser();
 
-  const { updateConfigFlagValue } = useFlags();
+  //Importamos las funciones para manejar notificaciones
+  const {
+    notificationsEnabled,
+    loading: notificationsLoading,
+    enableNotifications,
+    disableNotifications,
+  } = useNotifications();
 
   //Cuando carguemos la pantalla tenemos que cargar la foto de perfil que el user tenga en la BD
   /*
@@ -53,13 +62,39 @@ const Profile = () => {
     console.log("userInfo.profilePicture", userInfo?.profilePicture);
   }, []);
 
-  //TODO:AQUI ES DONDE TENEMOS QUE HACER EL COMPORTAMIENTO DE LA FUNCIÓN QUE SE ENCARGARÁ DE ACTIVAR/DESACTIVAR LAS NOTIFICACIONES
-  //TODO: TENEMOS QUE METER ESTO EN EL ASYNC STORAGE PARA QUE SE GUARDE EL ESTADO DE LAS NOTIFICACIONES, Y CARGARLO CON UN USEEFFECT CUANDO ENTREMOS EN LA APP
-  const toggleEnabled = async () => {
-    setIsSwitchEnabled(!isSwitchEnabled);
-    //Guardamos en la BD la preferencia dle user respecto a las notificaciones
-    await updateConfigFlagValue("notifications", isSwitchEnabled);
-    //Dependiendo del estado tenemos que cancelar todas o no, deberiamos hacer un pop up de que si las cancela no recuperará las que tenía programadas
+  //Función para manejar el toggle de notificaciones
+  const handleNotificationToggle = async () => {
+    if (notificationsEnabled) {
+      // Si están activadas y quiere desactivarlas, mostrar modal de confirmación
+      setShowModalDisableNotifications(true);
+    } else {
+      // Si están desactivadas y quiere activarlas, activar directamente
+      try {
+        await enableNotifications();
+      } catch (error) {
+        Alert.alert(
+          "Error",
+          "No se pudieron activar las notificaciones. Inténtalo de nuevo."
+        );
+      }
+    }
+  };
+
+  //Función que se ejecuta cuando el user confirma desactivar las notificaciones
+  const handleConfirmDisableNotifications = async () => {
+    try {
+      await disableNotifications();
+      Alert.alert(
+        "Notificaciones desactivadas",
+        "Se han cancelado todas las notificaciones programadas.",
+        [{ text: "Entendido" }]
+      );
+    } catch (error) {
+      Alert.alert(
+        "Error",
+        "No se pudieron desactivar las notificaciones. Inténtalo de nuevo."
+      );
+    }
   };
 
   //hacemos función de guardar foto que incluye las opciones de sacar foto o elegir una de la galería, en base al parámetro que reciba
@@ -234,22 +269,55 @@ const Profile = () => {
           </View>
 
           {/* Personal Information */}
-          <View className="bg-[#1e2a47] rounded-xl p-4">
-            <View className="flex-row items-center justify-between mb-4">
-              <Text className="text-white font-pmedium">
-                Correo Electrónico
+          <View className="bg-[#1e2a47] rounded-xl p-6 border border-[#323d4f]/30">
+            <View className="flex-row items-center gap-3 mb-6">
+              <View className="bg-[#6366ff]/10 p-2 rounded-full">
+                <Feather name="user" size={20} color="#6366ff" />
+              </View>
+              <Text className="text-xl font-bold text-white">
+                Información Personal
               </Text>
             </View>
-            <Text className="text-white font-pregular">
-              {userInfo?.email || "user@domain.com"}
-            </Text>
-          </View>
 
-          <View className="bg-[#1e2a47] rounded-xl p-4 flex-col gap-4">
-            <Text className="text-white font-pmedium">Fecha de nacimiento</Text>
-            <Text className="text-white font-pregular">
-              {userInfo?.birthDate || "YYYY-MM-DD"}
-            </Text>
+            {/* Email Section */}
+            <View className="mb-6">
+              <View className="flex-row items-center gap-3 mb-3">
+                <View className="bg-[#15db44]/10 p-2 rounded-lg">
+                  <Feather name="mail" size={18} color="#15db44" />
+                </View>
+                <Text className="text-sm font-medium text-[#15db44] uppercase tracking-wide">
+                  Correo Electrónico
+                </Text>
+              </View>
+              <View className="bg-[#1e273a] p-4 rounded-xl border-l-4 border-[#15db44]">
+                <Text className="text-base font-medium text-white">
+                  {userInfo?.email || "user@domain.com"}
+                </Text>
+              </View>
+            </View>
+
+            {/* Birth Date Section */}
+            <View>
+              <View className="flex-row items-center gap-3 mb-3">
+                <View className="bg-[#6366ff]/10 p-2 rounded-lg">
+                  <Feather name="calendar" size={18} color="#6366ff" />
+                </View>
+                <Text className="text-sm font-medium text-[#6366ff] uppercase tracking-wide">
+                  Fecha de Nacimiento
+                </Text>
+              </View>
+              <View className="bg-[#1e273a] p-4 rounded-xl border-l-4 border-[#6366ff]">
+                <Text className="text-base font-medium text-white">
+                  {userInfo?.birthDate
+                    ? new Date(userInfo.birthDate).toLocaleDateString("es-ES", {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })
+                    : "No especificada"}
+                </Text>
+              </View>
+            </View>
           </View>
 
           {/* Disable Notifications Switch */}
@@ -265,10 +333,17 @@ const Profile = () => {
               thumbColor="#FFFFFF"
               ios_backgroundColor="#FFFFFF"
               //TODO: TENEMOS QUE IMPLEMENTAR LA LOGICA PARA DESACTIVAR O ACTIVAR LAS NOTIFICACIONES DEPENDIENDO DEL ESTADO DEL SWITCH
-              onValueChange={toggleEnabled}
-              value={isSwitchEnabled}
+              onValueChange={handleNotificationToggle}
+              value={notificationsEnabled}
             />
           </View>
+
+          {/* Disable Notifications Modal */}
+          <DisableNotificationsModal
+            visible={showModalDisableNotifications}
+            setModalVisible={setShowModalDisableNotifications}
+            onConfirmDisable={handleConfirmDisableNotifications}
+          />
 
           {/* Change Password Button */}
           <TouchableOpacity
@@ -316,7 +391,7 @@ const Profile = () => {
           {/* Help Button */}
           <TouchableOpacity
             className="bg-[#1e2a47] p-4 rounded-xl items-start"
-            //TODO: Tenemos que hacer una panatlla donde el user pueda recibir ayuda en caso de problemas
+            onPress={() => router.push("../Help")}
           >
             <View className="flex-row items-center gap-2">
               <Feather name="help-circle" color="white" size={24} />

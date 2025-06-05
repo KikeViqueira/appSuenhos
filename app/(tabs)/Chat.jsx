@@ -18,7 +18,7 @@ import { useAuthContext } from "../../context/AuthContext";
 import { router } from "expo-router";
 import LoadingBanner from "../../components/LoadingBanner";
 import { useLocalSearchParams } from "expo-router/build/hooks";
-import Markdown from "react-native-markdown-display";
+import NotFound from "../../components/NotFound";
 
 const Chat = () => {
   //recuperamos las funcionalidades y estados del hook de chat
@@ -38,6 +38,8 @@ const Chat = () => {
   const [initializing, setInitializing] = useState(true);
   //Estado para saber si el chat puede hacer un chat nuevo o no
   const [canCreateNewChat, setCanCreateNewChat] = useState(false);
+  //Estado para saber si no se ha podido recuperar la conversación de un chat
+  const [conversationNotFound, setConversationNotFound] = useState(false);
 
   //Tenemos que recuperar el nombre del user para enseñarlo en el mensaje inicial que se pone en el chat antes de iniciar la conversación
   const { userInfo } = useAuthContext();
@@ -75,6 +77,10 @@ const Chat = () => {
         if (chatId) {
           // Caso especial si venimos de eliminar el chat en el que estábamos y en caso de que exista el chatId, lo cargamos también está reservado para el caso de que cargemos una conversación de un chat seleccionado del historial
           await getConversationChat(chatId);
+          //Una vez llamamos a la función si los mensajes están vacíos significa que la conversación no se ha podido recuperar asi que ponemos el estado de convers no encontrada en true
+          if (messages.length === 0) {
+            setConversationNotFound(true);
+          }
         } else if (hasChatToday) {
           console.log("VALOR DE HASCHAT TODAY: ", hasChatToday);
           //En caso de que el user haya hecho hoy un chat pero no tenemos la id primero lo que hacemos es llamar a la función que intenta recuperarel chat de hoy
@@ -166,21 +172,24 @@ const Chat = () => {
         className="flex-1"
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
       >
-        <View className="flex flex-row items-center justify-start gap-4 p-4 android:pt-6">
-          <TouchableOpacity
-            //Cuando pinchemos en el menú hamburguesa se abre el modal
-            onPress={toggleModal}
-          >
-            <Feather name="menu" size={32} color="#6366ff" />
-          </TouchableOpacity>
+        {/*En caso de que no se puedacargar ka conversación, ocultamos el header de la sección para dejar la pantalla más profesional */}
+        {!conversationNotFound && (
+          <View className="flex flex-row items-center justify-start gap-4 p-4 android:pt-6">
+            <TouchableOpacity
+              //Cuando pinchemos en el menú hamburguesa se abre el modal
+              onPress={toggleModal}
+            >
+              <Feather name="menu" size={32} color="#6366ff" />
+            </TouchableOpacity>
 
-          <Text
-            className="text-center font-bold text-[#6366ff] py-4"
-            style={{ fontSize: 24 }}
-          >
-            Diario de Sueños y Análisis AI
-          </Text>
-        </View>
+            <Text
+              className="text-center font-bold text-[#6366ff] py-4"
+              style={{ fontSize: 24 }}
+            >
+              Diario de Sueños y Análisis AI
+            </Text>
+          </View>
+        )}
 
         {/**
          * En caso de que estemos inicializando o no haya mensajes, mostramos la pantalla de bienvenida
@@ -210,6 +219,51 @@ const Chat = () => {
                   </View>
                 </View>
               </View>
+            </View>
+          </View>
+        ) : conversationNotFound ? (
+          // Pantalla cuando no se puede cargar la conversación
+          <View className="items-center flex-1 w-[90%] justify-center self-center">
+            <NotFound />
+            <Text className="mb-3 text-xl font-bold text-white">
+              Conversación no encontrada
+            </Text>
+            <Text className="text-base text-center text-[#8a94a6] px-4 mb-6">
+              No se ha podido cargar la conversación seleccionada. Es posible
+              que haya sido eliminada o que haya ocurrido un error.
+            </Text>
+
+            <View className="flex flex-col w-full gap-3">
+              <TouchableOpacity
+                onPress={() => {
+                  //Si volvemos al inicio, eliminamos el estado de la conversación no encontrada
+                  setConversationNotFound(false);
+                  //Esperamos a que se renderice la pantalla para que se pueda volver al chat principal
+                  setTimeout(() => {
+                    router.replace("/(tabs)/Chat");
+                  }, 0);
+                }}
+                className="bg-[#6366ff] px-12 py-4 rounded-full flex flex-row items-center justify-center"
+              >
+                <View className="flex-row items-center justify-center gap-2">
+                  <Feather name="home" size={16} color="#ffffff" />
+                  <Text className="font-medium text-white">
+                    Ir al chat principal
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() => router.push("../ChatsHistory")}
+                className="bg-[#323d4f] px-12 py-4 rounded-full flex flex-row items-center justify-center"
+              >
+                <View className="flex-row items-center justify-center gap-2">
+                  <Feather name="message-square" size={16} color="#ffffff" />
+                  <Text className="font-medium text-white">
+                    Ver historial de chats
+                  </Text>
+                </View>
+              </TouchableOpacity>
             </View>
           </View>
         ) : messages.length === 0 ? (

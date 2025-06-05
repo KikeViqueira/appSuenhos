@@ -79,6 +79,8 @@ const ChatsHistory = () => {
     loadNextPage,
     refreshHistory,
     refreshFilteredChats,
+    setFilteredChats,
+    setTotalElementsFiltered,
   } = useChat();
 
   // Animar la entrada y salida de la barra de selección
@@ -595,10 +597,26 @@ const ChatsHistory = () => {
         {/*Renderizamos los chats filtrados por rango de fechas*/}
         {hasSearched && filteredChats.length > 0 && (
           <View className="w-[90%] self-center mb-4">
-            <Text className="mb-4 text-lg font-semibold text-white">
-              Resultados de búsqueda (
-              {totalElementsFiltered || filteredChats.length})
-            </Text>
+            <View className="flex-row items-center justify-between mb-4">
+              <Text className="text-lg font-semibold text-white">
+                Resultados de búsqueda (
+                {totalElementsFiltered || filteredChats.length})
+              </Text>
+
+              <TouchableOpacity
+                onPress={() => {
+                  setFilteredChats([]);
+                  setHasSearched(false);
+                  setTotalElementsFiltered(0);
+                }}
+                className="bg-[#ff4757]/10 px-3 py-2 rounded-full flex-row items-center gap-1"
+              >
+                <Feather name="x" size={16} color="#ff4757" />
+                <Text className="text-base font-medium text-[#ff4757]">
+                  Limpiar filtros
+                </Text>
+              </TouchableOpacity>
+            </View>
             <FlatList
               data={filteredChats}
               keyExtractor={(item) => `filtered-${item.id}`}
@@ -628,8 +646,8 @@ const ChatsHistory = () => {
               }}
               showsVerticalScrollIndicator={false}
               removeClippedSubviews={true}
-              initialNumToRender={10}
-              maxToRenderPerBatch={5}
+              initialNumToRender={7}
+              maxToRenderPerBatch={7}
               windowSize={10}
             />
           </View>
@@ -687,8 +705,8 @@ const ChatsHistory = () => {
               nestedScrollEnabled={true}
               showsVerticalScrollIndicator={false}
               removeClippedSubviews={true}
-              initialNumToRender={10}
-              maxToRenderPerBatch={5}
+              initialNumToRender={7}
+              maxToRenderPerBatch={7}
               windowSize={10}
               contentContainerStyle={{
                 paddingBottom: 10,

@@ -327,6 +327,9 @@ const Estadisticas = () => {
         // Actualizamos los estados
         setIsSleeping(false);
         setHasDailySleepLog(true);
+
+        //tenemos que hacer una llamada a la info del user en los últimos 7 días para tener la UI actualizada en tiempo real sin tener que esperar a la ejecución del useEffect dentro del componente de las graficas generales del user
+        await getSleepLogEndpoint("7");
       }
     } catch (error) {
       console.error("Error al guardar la respuesta:", error);
