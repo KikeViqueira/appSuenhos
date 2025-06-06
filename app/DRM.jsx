@@ -84,6 +84,7 @@ const DRM = () => {
   const checkDailyReportStatus = async () => {
     try {
       const reportFlag = await getDailyReportFlag();
+      console.log("REPORT FLAG GETTED: ", reportFlag);
       if (reportFlag) {
         setReportButtonState("generated");
       } else {
@@ -106,7 +107,7 @@ const DRM = () => {
       case "generating":
         return "Generando informe...";
       case "generated":
-        return "✓ Informe de hoy generado";
+        return "Informe de hoy generado";
       default:
         return "Generar informe detallado";
     }

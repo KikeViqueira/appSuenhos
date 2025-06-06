@@ -14,23 +14,12 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { questions } from "../assets/wakeUpQuestions";
 import OptionQuestion from "./OptionQuestion";
 
-/**
- *  Función que lo que hace es quitarle el offset de la fecha para poder trabajar con fechas locales del user y que se guarden correctamente en la BD de manera coherente
- * @param {Date} date - Fecha que se quiere formatear
- * @return {string} - Fecha formateada en el formato que espera la API
- */
-const formatDateToLocalDate = (date) => {
-  const tzOffset = date.getTimezoneOffset() * 60000; // Offset en milisegundos
-  const localDate = new Date(date - tzOffset);
-  return localDate;
-};
-
 const WakeUpForm = ({ isVisible, onClose, onSave }) => {
   //Definimos los estados para guardar las distintas partes de la respuesta
-  const [time, setTime] = useState(formatDateToLocalDate(new Date()));
+  const [time, setTime] = useState(new Date());
   //Respuestas al cuestionario
   const [answers, setAnswers] = useState({
-    wakeUpTime: formatDateToLocalDate(new Date()),
+    wakeUpTime: new Date(),
     question1: "",
     question2: "",
   });
@@ -47,7 +36,7 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
 
   useEffect(() => {
     if (isVisible) {
-      const currentTime = formatDateToLocalDate(new Date());
+      const currentTime = new Date();
       setTime(currentTime);
 
       // Al abrir el modal, también establecemos la hora actual como la hora de despertar predeterminada
@@ -57,6 +46,14 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
 
   useEffect(() => {
     console.log("Respuestas al cuestionario matutino: ", answers);
+    console.log(
+      "Hora de despertar sin usar UTC: ",
+      answers.wakeUpTime.toLocaleTimeString()
+    );
+    console.log(
+      "Hora de despertar usando UTC: ",
+      answers.wakeUpTime.toISOString()
+    );
   }, [answers]);
 
   //Función que se encarga de validar si se han respondido todas las preguntas
@@ -88,7 +85,7 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
 
     //Una vez guardamos la respuesta, tenemos que poner el estado a valores por defecto para la próxima vez
     setAnswers({
-      wakeUpTime: formatDateToLocalDate(new Date()),
+      wakeUpTime: new Date(),
       question1: "",
       question2: "",
     });
@@ -108,9 +105,8 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
       if (selectedTime > new Date()) {
         selectedTime.setDate(selectedTime.getDate() - 1); //Le restamos un día
       }
-      const wakeUpTime = formatDateToLocalDate(selectedTime); //Limpiamos el objeto date para operar correctamente
-      setTime(wakeUpTime);
-      handleAnswer("wakeUpTime", wakeUpTime);
+      setTime(selectedTime);
+      handleAnswer("wakeUpTime", selectedTime);
       setIsValidTime(true);
     }
   };

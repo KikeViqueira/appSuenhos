@@ -5,9 +5,9 @@ import {
   SafeAreaView,
   ScrollView,
   TouchableOpacity,
-  StatusBar,
 } from "react-native";
 import React from "react";
+import NotFound from "./NotFound";
 import { MaterialCommunityIcons, Feather, AntDesign } from "@expo/vector-icons";
 
 const SleepLogResponses = ({ isVisible, onClose, sleepLog }) => {
@@ -101,24 +101,24 @@ const SleepLogResponses = ({ isVisible, onClose, sleepLog }) => {
             </View>
           </View>
 
-          <ScrollView
-            className="flex-1"
-            contentContainerStyle={{
-              paddingVertical: 20,
-              paddingHorizontal: 16,
-              gap: 16,
-            }}
-            showsVerticalScrollIndicator={true}
-            indicatorStyle="white"
-          >
-            {hasData ? (
+          {hasData ? (
+            <ScrollView
+              className="flex-1"
+              contentContainerStyle={{
+                paddingVertical: 20,
+                paddingHorizontal: 16,
+                gap: 16,
+              }}
+              showsVerticalScrollIndicator={true}
+              indicatorStyle="white"
+            >
               <View className="w-full">
                 {/* Sleep time - Enhanced card */}
                 <View className="mb-4 overflow-hidden bg-[#1e2a47] rounded-xl shadow-lg">
                   <View className="flex-row">
                     <View className="w-2 h-full bg-[#4834d4]" />
                     <View className="flex-1 p-5">
-                      <View className="flex-row gap-2 items-center mb-3">
+                      <View className="flex-row items-center gap-2 mb-3">
                         <MaterialCommunityIcons
                           name="sleep"
                           size={22}
@@ -140,7 +140,7 @@ const SleepLogResponses = ({ isVisible, onClose, sleepLog }) => {
                   <View className="flex-row">
                     <View className="w-2 h-full bg-[#ff6b6b]" />
                     <View className="flex-1 p-5">
-                      <View className="flex-row gap-2 items-center mb-3">
+                      <View className="flex-row items-center gap-2 mb-3">
                         <Feather name="clock" size={22} color="#6366ff" />
                         <Text className="text-xl font-bold color-[#6366ff]">
                           Hora de despertar
@@ -158,7 +158,7 @@ const SleepLogResponses = ({ isVisible, onClose, sleepLog }) => {
                   <View className="flex-row">
                     <View className="w-2 h-full bg-[#feca57]" />
                     <View className="flex-1 p-5">
-                      <View className="flex-row gap-2 items-center mb-3">
+                      <View className="flex-row items-center gap-2 mb-3">
                         <AntDesign name="hourglass" size={22} color="#6366ff" />
                         <Text className="text-xl font-bold color-[#6366ff]">
                           Duración del sueño
@@ -185,7 +185,7 @@ const SleepLogResponses = ({ isVisible, onClose, sleepLog }) => {
                       <View className="flex-row">
                         <View className="w-2 h-full bg-[#1dd1a1]" />
                         <View className="flex-1 p-5">
-                          <View className="flex-row gap-2 items-center mb-3">
+                          <View className="flex-row items-center gap-2 mb-3">
                             {getQuestionIcon(key)}
                             <Text className="text-xl font-bold color-[#6366ff]">
                               {getQuestionText(key)}
@@ -200,30 +200,32 @@ const SleepLogResponses = ({ isVisible, onClose, sleepLog }) => {
                   );
                 })}
               </View>
-            ) : (
-              <View className="w-full items-center justify-center p-8 bg-[#1e2a47] rounded-xl mt-4">
-                <View className="p-4 mb-4 rounded-full bg-[#2a2a4a]">
-                  <Feather name="alert-triangle" size={60} color="#ff4757" />
-                </View>
-                <Text className="mb-2 text-2xl font-bold text-center color-white">
-                  No hay datos disponibles
+            </ScrollView>
+          ) : (
+            <View className="items-center justify-center flex-1 px-6">
+              <NotFound />
+
+              <View className="items-center mb-8">
+                <Text className="mb-3 text-2xl font-bold text-center text-white">
+                  Cuestionario pendiente
                 </Text>
-                <Text className="mb-6 text-base text-center color-[#8a94a6] px-4">
-                  Completa el cuestionario matutino para ver tus respuestas
-                  aquí.
+                <Text className="text-base text-center text-[#8a94a6] px-6 leading-relaxed">
+                  No se ha completado el cuestionario matutino de hoy o ha
+                  habido un error al recuperar las respuestas
                 </Text>
-                <TouchableOpacity
-                  onPress={onClose}
-                  className="py-3 px-6 bg-[#6366ff] rounded-xl"
-                  activeOpacity={0.7}
-                >
-                  <Text className="text-base font-medium text-white">
-                    Volver
-                  </Text>
-                </TouchableOpacity>
               </View>
-            )}
-          </ScrollView>
+
+              <TouchableOpacity
+                onPress={onClose}
+                className="py-4 px-8 bg-[#6366ff] rounded-xl shadow-lg"
+                activeOpacity={0.8}
+              >
+                <Text className="text-base font-semibold text-white">
+                  Volver
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </SafeAreaView>
       </Modal>
     </View>

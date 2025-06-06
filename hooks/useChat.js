@@ -26,14 +26,14 @@ const setDailyChatId = async (id) => {
     );
     //Creamos el objeto que vamos a guardar en el AsyncStorage
     const data = {
-      chatId: id,
+      chatId: id.toString(),
       expiry_chatId: endOfDay.getTime(),
     };
     await AsyncStorage.setItem("chatId", JSON.stringify(data));
     //Tenemos que crear bandera de si el user ha hecho un chat en el día de hoy o no
     //Cremaos el objeto de la misma manera
     const hasChatToday = {
-      done: true,
+      done: "true",
       expiry_hasChatToday: endOfDay.getTime(),
     };
 
@@ -89,7 +89,7 @@ const getHasChatToday = async () => {
 //Funciones para guardar y recuperar el id del chat en el que estamos actualmente
 const setCurrentChatId = async (id) => {
   try {
-    await AsyncStorage.setItem(CURRENT_CHAT_ID_KEY, id);
+    await AsyncStorage.setItem(CURRENT_CHAT_ID_KEY, id.toString());
   } catch (error) {
     console.error("Error al guardar el chatId en el AsyncStorage: ", error);
   }

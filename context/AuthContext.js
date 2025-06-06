@@ -66,10 +66,14 @@ export const AuthProvider = ({ children }) => {
    *
    */
   const saveFlagsToCache = async (flags) => {
-    //usamos el operador spread para sacar las banderas de los correspondientes mapas que tenga el estado
+    console.log("Flags recibidas de la API:", flags);
+
+    // Aplanamos la estructura anidada combinando todos los objetos de las secciones (acc es el acumulador y section es el grupo de banderas que estamos procesando actualmente)
     const flatFlags = Object.values(flags).reduce((acc, section) => {
-      return [...acc, ...section];
-    }, {});
+      return { ...acc, ...section };
+    }, {}); // {} es el valor inicial del acumulador
+
+    console.log("Flags aplanadas:", flatFlags);
 
     const groupedFlags = {};
     //hacemos un set para evitar banderas que esten duplicadas
@@ -77,23 +81,35 @@ export const AuthProvider = ({ children }) => {
 
     //Primero guardamos en el objeto groupedFlags las banderas que vienen de la api y necesitan formar un objeto
     for (const key in groupedFlagsMap) {
-      groupedFlags[key] = {};
-      //Estamos haciendo lo siguiente
-      /*
-      groupedFlags = {
-        chatId: {}
-      }
-      */
+      const tempGroup = {};
+
       //Recorremos el array asociado a esta bandera en el map que hemos hecho arriba
       for (const subKey of groupedFlagsMap[key]) {
-        groupedFlags[key][subKey] = flags[subKey]; //Cogemos de la respuesta de la api el valor que no interesa para esta key
-        usedKeys.add(subKey); //Añadimos la key a nuestro set para evitar duplicados
+        // Solo procesamos la bandera si existe en las flags recibidas
+        if (
+          // Comprobamos que la propiedad está dentro del objeto
+          flatFlags.hasOwnProperty(subKey) &&
+          flatFlags[subKey] !== undefined &&
+          flatFlags[subKey] !== null
+        ) {
+          tempGroup[subKey] = flatFlags[subKey]; //Cogemos de las flags aplanadas el valor que nos interesa para esta key
+          usedKeys.add(subKey); //Añadimos la key a nuestro set para evitar duplicados
+        }
+      }
+
+      // Solo guardamos el grupo si tiene al menos una bandera válida
+      if (Object.keys(tempGroup).length > 0) {
+        groupedFlags[key] = tempGroup;
       }
     }
 
     //metemos en nuestro objeto ahora las banderas que son simples
     for (const key in flatFlags) {
-      if (!usedKeys.has(key)) {
+      if (
+        !usedKeys.has(key) &&
+        flatFlags[key] !== undefined &&
+        flatFlags[key] !== null
+      ) {
         groupedFlags[key] = flatFlags[key];
       }
     }
@@ -107,7 +123,14 @@ export const AuthProvider = ({ children }) => {
       await AsyncStorage.setItem(key, serializedValue);
     }
 
-    console.log("Banderas guardadas en AsyncStorage:", groupedFlags);
+    console.log(
+      "BANDERAS AGRUPADAS:",
+      Object.keys(groupedFlags).filter((key) => groupedFlagsMap[key])
+    );
+    console.log(
+      "BANDERAS SIMPLES:",
+      Object.keys(groupedFlags).filter((key) => !groupedFlagsMap[key])
+    );
   };
 
   //Al cargar la app, intentamos cargar el token de la memoria segura
@@ -141,9 +164,6 @@ export const AuthProvider = ({ children }) => {
         }
         //Se pone fuera del if pq se puede dar el caso de que el user se haya logeado y no haya completado el onboarding
         setOnboardingCompleted(onboardingStatus);
-
-        //llamamos al endpoint de recuperar las banderas para que se actualice la cache del dispositivo y asi tener un estado consistente
-        //await getUserFlags();
       } catch (error) {
         console.error("Error al cargar los datos del user: ", error);
       } finally {

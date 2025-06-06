@@ -152,10 +152,14 @@ export default function useSleep() {
         }
       }
     } catch (error) {
-      console.error(
-        "Error al recuperar el registro matutino de sueño: ",
-        error
-      );
+      if (error.response) {
+        if (error.response.status !== 404) {
+          console.error(
+            "Error al recuperar el registro matutino de sueño: ",
+            error
+          );
+        }
+      }
       setError(error);
     } finally {
       setLoading(false);
