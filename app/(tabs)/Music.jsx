@@ -379,7 +379,10 @@ const Music = () => {
       }
 
       //Actualizamos el estado de la bandera en la BD
-      await updateConfigFlagValue("preferredTimerDuration", duration);
+      await updateConfigFlagValue(
+        "preferredTimerDuration",
+        duration.toString()
+      );
     } else {
       await cancelTimer();
     }

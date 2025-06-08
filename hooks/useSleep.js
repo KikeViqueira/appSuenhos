@@ -69,6 +69,7 @@ export default function useSleep() {
   const createSleepLog = async (sleepLog) => {
     setError(null);
     setLoading(true);
+
     try {
       // Formatear el objeto sleepLog para enviar a la API
       // Nos aseguramos de que sleepTime sea un string con formato ISO
@@ -104,14 +105,26 @@ export default function useSleep() {
         }
       );
 
-      if (response.status === 200) {
+      if (response.status === 200 || response.status === 201) {
         await saveSleepLog();
         // Actualizamos el estado local con el valor más reciente
         setSleepLog(formattedSleepLog);
+
+        // Devolver resultado exitoso
+        return {
+          success: true,
+          message: "Registro de sueño guardado exitosamente",
+        };
       }
     } catch (error) {
       console.error("Error al crear el registro matutino de sueño: ", error);
       setError(error);
+
+      // Devolver resultado de fallo
+      return {
+        success: false,
+        error: error.message || "Error desconocido",
+      };
     } finally {
       setLoading(false);
     }

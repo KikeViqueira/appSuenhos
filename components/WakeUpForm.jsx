@@ -23,8 +23,6 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
     question1: "",
     question2: "",
   });
-  //Estado para comprobar si la hora que se ha seleccionado es válida o no debido a que date no se puede poner a null
-  const [isValidTime, setIsValidTime] = useState(true);
 
   //Función para guardar la respuesta de una pregunta (id y respuesta que es el formato que espera la api para guardar la petición)
   const handleAnswer = (id, answer) => {
@@ -71,15 +69,6 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
       return;
     }
 
-    //Si no se ejecuta la alarma anterior y llegamos a este if sabemos que las preguntas han sido respondidas y ahora solo nos queda comprobar si la hora ha sido registrada correctamente
-    if (!isValidTime) {
-      Alert.alert(
-        "Formato Incorrecto",
-        "Por favor, introduce una hora menor o igual a la actual para obetener medidas correctas"
-      );
-      return;
-    }
-
     //Ambas funciones se reciben del componente padre, en este caso WakeUpForm.jsx
     onSave(answers);
 
@@ -107,7 +96,6 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
       }
       setTime(selectedTime);
       handleAnswer("wakeUpTime", selectedTime);
-      setIsValidTime(true);
     }
   };
 
@@ -180,8 +168,6 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
                   display={Platform.OS === "ios" ? "spinner" : "default"}
                   textColor={Platform.OS === "ios" ? "white" : undefined}
                   accentColor="#6366ff" // Android specific color accent
-                  //E valor maximo que se seleccione no puede superar la hora actual
-                  maximumDate={new Date()}
                   //Cada vez que cambiamos la hora se guarda en el estado de tiempo
                   onChange={handleTimeChange}
                 />

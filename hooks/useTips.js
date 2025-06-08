@@ -24,7 +24,7 @@ const setDailyTipFlag = async () => {
     );
     //Creamos el objeto que vamos a guardar en el AsyncStorage
     const data = {
-      tipCreated: true,
+      tipFlag: true,
       expiry_tip_of_the_day: endOfDay.getTime(),
     };
     await AsyncStorage.setItem("tipFlag", JSON.stringify(data));
@@ -40,12 +40,12 @@ export const getDailyTipFlag = async () => {
   try {
     const data = await AsyncStorage.getItem("tipFlag");
     if (data) {
-      const { tipCreated, expiry_tip_of_the_day } = JSON.parse(data);
+      const { tipFlag, expiry_tip_of_the_day } = JSON.parse(data);
       if (Date.now() > expiry_tip_of_the_day) {
         await AsyncStorage.removeItem("tipFlag");
         return null;
       }
-      return tipCreated;
+      return tipFlag;
     }
   } catch (error) {
     console.error(

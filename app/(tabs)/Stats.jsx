@@ -108,18 +108,19 @@ const calculateSleepDuration = async (wakeUpTime) => {
     if (duration < 0) {
       Alert.alert(
         "Tiempo inválido",
-        "La hora de despertar debe ser posterior a la hora en que te fuiste a dormir"
+        "La fecha de despertar que se ha introducido es anterior a la hora en que se ha ido a dormir o no es válida"
       );
       return null;
     }
 
-    const hours = Math.floor(duration / 3600000);
-
-    //Limpiamos los estados, almacenamiento y notificaciones
-    await AsyncStorage.removeItem("sleepStart");
-
-    // Canelamos las notificaciones programadas
-    await Notifications.cancelAllScheduledNotificationsAsync();
+    //Si la resta da más de 24 horas no es un caso posible ya que el cuestionario solo esta activo durante 24 horas
+    if (duration > 24 * 60 * 60 * 1000) {
+      Alert.alert(
+        "Tiempo inválido",
+        "La diferencia entre la hora de despertar y la hora en la que se ha ido a dormir es superior a 24 horas"
+      );
+      return null;
+    }
 
     //De la función de calcular la duración de lo que ha dormido el user devolvemos tanto la duración como la hora en la que se ha ido a dormir
     const response = {
@@ -210,6 +211,8 @@ const Estadisticas = () => {
       console.log("Valor de isSleeping en el if: ", isSleeping);
       try {
         const now = new Date();
+
+        console.log("Hora actual: ", now.toISOString());
         //Eliminamos offset para trabajar con fechas locales
         const formattedDate = formatDateToLocalDate(now);
 
@@ -219,15 +222,20 @@ const Estadisticas = () => {
         //Guardamos la bandera y el valor en la BD
         await insertDailyFlag("sleepStart", formattedDate.toISOString());
 
-        // Mandamos la notificación usando la fecha formateada
-        sendNotificationWakeUp();
+        // Mandamos la notificación usando la fecha formateada si el user tiene como preferencia que quiere recibir notificaciones
+        const notificationsEnabled = await AsyncStorage.getItem(
+          "notifications"
+        );
+        if (notificationsEnabled) {
+          sendNotificationWakeUp();
+        }
 
         // Actualizamos el estado después de que se haya guardado la hora
         setTimeout(() => setIsSleeping(true), 0);
 
         console.log(
           "Hora en la que el user se ha ido a dormir que se va a guardar en el storage: ",
-          formattedDate
+          formattedDate.toISOString()
         );
       } catch (error) {
         console.error("Error al guardar la hora de inicio de sueño: ", error);
@@ -272,10 +280,11 @@ const Estadisticas = () => {
   //Función para guardar la respuesta a las preguntas sobre la calidad del sueño
   const saveResponse = async (wakeUpFormResponse) => {
     try {
-      // Validar que la hora de despertar sea válida
-      const response = await calculateSleepDuration(
+      // Validar que la hora de despertar sea válida, tenemos que pasarla en el mismo formato que tenemos la de cuando nos vamos a dormir
+      const formattedWakeUpTime = formatDateToLocalDate(
         wakeUpFormResponse.wakeUpTime
       );
+      const response = await calculateSleepDuration(formattedWakeUpTime);
 
       //Comprobamos si el objeto devuelto es null o no
       if (response) {
@@ -309,27 +318,68 @@ const Estadisticas = () => {
         const newResponse = {
           sleepTime: formatDateToApiFormat(response.sleepTime),
           duration: response.duration,
-          wakeUpTime: formatDateToApiFormat(wakeUpFormResponse.wakeUpTime),
+          wakeUpTime: formatDateToApiFormat(formattedWakeUpTime),
           question1: wakeUpFormResponse.question1,
           question2: wakeUpFormResponse.question2,
         };
 
         console.log("Enviando a la API:", newResponse);
 
-        //Guardamos la respuesta del user en la BD
-        await createSleepLog(newResponse);
+        try {
+          //Guardamos la respuesta del user en la BD
+          const result = await createSleepLog(newResponse);
 
-        /*
-         * Cuando el user ha completado el cuestionario matutino y no se haya producido errores de la api al guardar la respuesta,
-         * tenemos que eliminar la bandera de sleepStart del AsyncStorage
-         */
-        await AsyncStorage.removeItem("sleepStart");
-        // Actualizamos los estados
-        setIsSleeping(false);
-        setHasDailySleepLog(true);
+          // Verificar que la operación fue exitosa
+          if (result && result.success === true) {
+            /*
+             * Solo cuando el user ha completado exitosamente el cuestionario matutino,
+             * ejecutamos las operaciones de limpieza y actualización de estado
+             */
 
-        //tenemos que hacer una llamada a la info del user en los últimos 7 días para tener la UI actualizada en tiempo real sin tener que esperar a la ejecución del useEffect dentro del componente de las graficas generales del user
-        await getSleepLogEndpoint("7");
+            await AsyncStorage.removeItem("sleepStart");
+
+            await Notifications.cancelAllScheduledNotificationsAsync();
+
+            setIsSleeping(false);
+            setHasDailySleepLog(true);
+
+            await getSleepLogEndpoint("7");
+          } else {
+            // Si la API devuelve un resultado no exitoso, mostrar el error específico
+            const errorMessage =
+              result?.error || "Error desconocido del servidor";
+
+            Alert.alert(
+              "Error al guardar",
+              `No se pudo guardar tu registro: ${errorMessage}`,
+              [
+                {
+                  text: "Reintentar",
+                  onPress: () => saveResponse(wakeUpFormResponse),
+                },
+                { text: "Cancelar", style: "cancel" },
+              ]
+            );
+
+            // No ejecutar operaciones de limpieza si falla la API
+            return;
+          }
+        } catch (apiError) {
+          Alert.alert(
+            "Error de conexión",
+            "No se pudo conectar con el servidor. Verifica tu conexión a internet e inténtalo de nuevo.",
+            [
+              {
+                text: "Reintentar",
+                onPress: () => saveResponse(wakeUpFormResponse),
+              },
+              { text: "Cancelar", style: "cancel" },
+            ]
+          );
+
+          // No ejecutar operaciones de limpieza si hay error de conexión
+          return;
+        }
       }
     } catch (error) {
       console.error("Error al guardar la respuesta:", error);

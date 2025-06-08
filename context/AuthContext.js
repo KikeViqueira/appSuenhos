@@ -143,6 +143,8 @@ export const AuthProvider = ({ children }) => {
         //await AsyncStorage.removeItem("hasCompletedOnboarding");
         //await AsyncStorage.setItem("hasCompletedOnboarding", "true");
         //await AsyncStorage.removeItem("hasChatToday");
+        //await AsyncStorage.removeItem("sleepStart");
+        // await AsyncStorage.removeItem("sleepLog");
 
         //Estas banderas dependen exclusivamente del dispositivo asi que no se tienen en cuenta para la sincronización
         const userAccessToken = await SecureStore.getItemAsync(
@@ -186,7 +188,7 @@ export const AuthProvider = ({ children }) => {
      *CUANDO EL USER HAYA INICIADO SESIÓN Y SE TENGA TANTO EL ID COMO EL TOKEN DE ACCESO
      * SE LLAMA A LA FUNCIÓN DE GETUSERFLAGS PARA RECUPERAR LAS BANDERAS DEL USER Y SINCRONIZAR LA CACHE DEL DISPOSITIVO
      */
-    //if (userId && accessToken) getUserFlags();
+    if (userId && accessToken) getUserFlags();
     /**
      * El primer getUser que se llamará será cuando el user se haya logueado y haya completado el onboarding
      * a partir de ahí, cada vez que se actualice el token de acceso (ya sea debido al inicio de sesión o por el refresco del propio token), se llamará a getUser para recuperar la info del user

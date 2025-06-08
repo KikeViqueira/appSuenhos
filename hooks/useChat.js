@@ -33,7 +33,7 @@ const setDailyChatId = async (id) => {
     //Tenemos que crear bandera de si el user ha hecho un chat en el día de hoy o no
     //Cremaos el objeto de la misma manera
     const hasChatToday = {
-      done: "true",
+      hasChatToday: true,
       expiry_hasChatToday: endOfDay.getTime(),
     };
 
@@ -71,13 +71,13 @@ const getHasChatToday = async () => {
     const data = await AsyncStorage.getItem("hasChatToday");
 
     if (data) {
-      const { done, expiry_hasChatToday } = JSON.parse(data);
+      const { hasChatToday, expiry_hasChatToday } = JSON.parse(data);
 
       if (Date.now() > expiry_hasChatToday) {
         await AsyncStorage.removeItem("hasChatToday");
         return false;
       }
-      return done;
+      return hasChatToday;
     }
     return false; // Si no hay bandera devolvemos false
   } catch (error) {
