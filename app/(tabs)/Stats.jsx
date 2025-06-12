@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Alert,
   Animated,
+  Platform,
 } from "react-native";
 import React, { useState, useEffect, useRef } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -638,7 +639,7 @@ const Estadisticas = () => {
           justifyContent: "start",
           gap: 5,
           width: "100%",
-          paddingBottom: 20,
+          paddingBottom: Platform.OS === "android" ? 0 : 20, //Borramos el padding inferior en Android
         }}
         bounces={true}
         decelerationRate="normal" // O "fast" según el comportamiento deseado

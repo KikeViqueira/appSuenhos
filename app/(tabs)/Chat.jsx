@@ -31,6 +31,8 @@ const Chat = () => {
     getConversationChat,
     getHasChatToday,
     setIsToday,
+    conversationLoaded,
+    hasAttemptedLoad,
   } = useChat();
   //Input que guarda el mensaje que se quiere enviar
   const [newMessage, setNewMessage] = useState("");
@@ -77,21 +79,12 @@ const Chat = () => {
         if (chatId) {
           // Caso especial si venimos de eliminar el chat en el que estábamos y en caso de que exista el chatId, lo cargamos también está reservado para el caso de que cargemos una conversación de un chat seleccionado del historial
           await getConversationChat(chatId);
-          //Una vez llamamos a la función si los mensajes están vacíos significa que la conversación no se ha podido recuperar asi que ponemos el estado de convers no encontrada en true
-          if (messages.length === 0) {
-            setConversationNotFound(true);
-          }
         } else if (hasChatToday) {
           console.log("VALOR DE HASCHAT TODAY: ", hasChatToday);
           //En caso de que el user haya hecho hoy un chat pero no tenemos la id primero lo que hacemos es llamar a la función que intenta recuperarel chat de hoy
           await getTodayChat();
-          //Si los mensajes que se han recuperado son cero, significa que el user ha borrado el chat de hoy y por lo tanto tiene que esperar a mañana a crear uno nuevo
-          if (messages.length === 0) {
-            setCanCreateNewChat(false);
-          }
         } else {
           console.log("VALOR de canCreateNewChat: ", canCreateNewChat);
-          //En caso de que el user no haya hecho un chat hoy dejamos que cree uno nuevo
           setCanCreateNewChat(true);
           setIsToday(true);
         }
@@ -110,6 +103,26 @@ const Chat = () => {
     };
   }, [chatId, showTomorrowMessage]);
 
+  useEffect(() => {
+    const renderChat = async () => {
+      //Si se ha intentado cargar la conversación y se ha logrado, dependiendo del caso setteamos el resto de estados de manera correcta en vez de hacerlo en el anterior useEffect dando lugar a carreras críticas
+      if (conversationLoaded && hasAttemptedLoad) {
+        if (chatId && messages.length === 0) {
+          //En este caso no ha sido posible cargar la conversación
+          setConversationNotFound(true);
+        } else {
+          //Tenemos que ver si el user ha chateado hoy aunque haya borrado el chat
+          const hasChatToday = await getHasChatToday();
+          //Si los mensajes que se han recuperado son cero, significa que el user ha borrado el chat de hoy y por lo tanto tiene que esperar a mañana a crear uno nuevo
+          if (hasChatToday && messages.length === 0) {
+            setCanCreateNewChat(false);
+          }
+        }
+      }
+    };
+
+    renderChat();
+  }, [conversationLoaded, hasAttemptedLoad]);
   // Mostramos logs de depuración
   useEffect(() => {
     console.log("Mensajes desde el useEffect: ", messages);
@@ -170,7 +183,7 @@ const Chat = () => {
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 20 : 20}
       >
         {/*En caso de que no se puedacargar ka conversación, ocultamos el header de la sección para dejar la pantalla más profesional */}
         {!conversationNotFound && (
@@ -351,7 +364,7 @@ const Chat = () => {
           //Si no se ha inicializado o no puede crear un nuevo chat hoy ocultamos el input y el botón de enviar
           !initializing &&
           canCreateNewChat && (
-            <View className="flex-row items-center p-4 pb-0 border-t border-gray-700 ios:mb-0 android:mb-2">
+            <View className="flex-row items-center p-4 pb-0 border-t border-gray-700">
               <TextInput
                 className="flex-1 bg-[#323d4f] text-white p-3 rounded-xl mr-2"
                 value={newMessage}
@@ -380,7 +393,7 @@ const Chat = () => {
             </View>
           )
         ) : messages.length > 0 ? (
-          <View className="p-4 pb-0 border-t border-gray-700 ios:mb-0 android:mb-2">
+          <View className="p-4 pb-0 border-t border-gray-700">
             <Text className="p-3 text-center text-gray-400">
               Este chat no es de hoy por lo que está en modo lectura. No puedes
               enviar nuevos mensajes.

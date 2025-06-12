@@ -8,6 +8,7 @@ import {
   ScrollView,
   Modal,
   Animated,
+  ActivityIndicator,
 } from "react-native";
 import { Audio } from "expo-av";
 import { Feather, FontAwesome, Ionicons, AntDesign } from "@expo/vector-icons";
@@ -27,6 +28,8 @@ const Music = () => {
     getUserSounds,
     deleteUserSound,
     postSound,
+    loading,
+    error,
   } = useSound();
 
   const [currentSound, setCurrentSound] = useState(null); //Guardamos el sonido que está sonando actualmente
@@ -44,6 +47,13 @@ const Music = () => {
   const [timerActive, setTimerActive] = useState(false);
   const timerOpacityAnim = useRef(new Animated.Value(1)).current;
   const progressAnim = useRef(new Animated.Value(0)).current;
+
+  // Estados para indicadores de carga
+  const [loadingModalVisible, setLoadingModalVisible] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("");
+  const [loadingType, setLoadingType] = useState(""); // "upload" o "delete"
+  const [deletingSoundId, setDeletingSoundId] = useState(null);
+  const loadingProgressAnim = useRef(new Animated.Value(0)).current;
 
   const { updateConfigFlagValue } = useFlags();
 
@@ -495,10 +505,19 @@ const Music = () => {
           {/* Botón para eliminar sonidos si estos han sido subidos por el user */}
           {!item.isDefault && (
             <TouchableOpacity
-              className="p-2 rounded-full bg-[#ff6b6b]/20"
-              onPress={() => deleteUserSound(item.id)}
+              className={`p-2 rounded-full ${
+                deletingSoundId === item.id
+                  ? "bg-gray-500/20"
+                  : "bg-[#ff6b6b]/20"
+              }`}
+              onPress={() => handleDeleteSound(item.id)}
+              disabled={deletingSoundId === item.id}
             >
-              <Feather name="trash-2" color="#ff6b6b" size={20} />
+              {deletingSoundId === item.id ? (
+                <ActivityIndicator size="small" color="#9ca3af" />
+              ) : (
+                <Feather name="trash-2" color="#ff6b6b" size={20} />
+              )}
             </TouchableOpacity>
           )}
         </View>
@@ -574,7 +593,27 @@ const Music = () => {
           return;
         }
 
-        //TODO: Mostrar un mensaje de carga
+        // Mostrar indicador de carga
+        setLoadingType("upload");
+        setLoadingMessage("Subiendo el sonido...");
+        setLoadingModalVisible(true);
+
+        // Iniciar animación de progreso
+        loadingProgressAnim.setValue(0);
+        Animated.loop(
+          Animated.sequence([
+            Animated.timing(loadingProgressAnim, {
+              toValue: 1,
+              duration: 1500,
+              useNativeDriver: true,
+            }),
+            Animated.timing(loadingProgressAnim, {
+              toValue: 0,
+              duration: 1500,
+              useNativeDriver: true,
+            }),
+          ])
+        ).start();
 
         const { extension, mimeType } = getFileType(result.assets[0].uri);
 
@@ -598,12 +637,69 @@ const Music = () => {
         //Una vez subido el sonido por parte del user tenemos que llamar a la función que recupera los sonidos del user
         await getUserSounds();
         console.log(userSounds);
+
+        // Ocultar indicador de carga
+        loadingProgressAnim.stopAnimation();
+        setLoadingModalVisible(false);
+
+        // Mostrar mensaje de éxito
+        Alert.alert("¡Éxito!", "Tu sonido se ha subido correctamente");
       }
     } catch (error) {
       console.error("Error completo al subir el sonido:", error);
+      loadingProgressAnim.stopAnimation();
+      setLoadingModalVisible(false);
       Alert.alert(
         "Error",
         `No se pudo subir el sonido: ${error.message || "Error desconocido"}`
+      );
+    }
+  };
+
+  // Función mejorada para eliminar sonidos con indicador de carga
+  const handleDeleteSound = async (soundId) => {
+    try {
+      setDeletingSoundId(soundId);
+      setLoadingType("delete");
+      setLoadingMessage("Eliminando sonido...");
+      setLoadingModalVisible(true);
+
+      // Iniciar animación de progreso
+      loadingProgressAnim.setValue(0);
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(loadingProgressAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(loadingProgressAnim, {
+            toValue: 0,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+
+      await deleteUserSound(soundId);
+
+      loadingProgressAnim.stopAnimation();
+      setLoadingModalVisible(false);
+      setDeletingSoundId(null);
+
+      // Mostrar mensaje de éxito
+      Alert.alert(
+        "¡Sonido eliminado!",
+        "El sonido se ha eliminado correctamente"
+      );
+    } catch (error) {
+      console.error("Error al eliminar el sonido:", error);
+      loadingProgressAnim.stopAnimation();
+      setLoadingModalVisible(false);
+      setDeletingSoundId(null);
+      Alert.alert(
+        "Error",
+        `No se pudo eliminar el sonido: ${error.message || "Error desconocido"}`
       );
     }
   };
@@ -760,6 +856,70 @@ const Music = () => {
           />
         </View>
       </ScrollView>
+
+      {/* Modal de carga */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={loadingModalVisible}
+        onRequestClose={() => {}} // Evitamos que se cierre accidentalmente
+      >
+        <View className="items-center justify-center flex-1 bg-black/70">
+          <View className="w-[80%] bg-[#1e2a47] p-8 rounded-2xl items-center">
+            <View
+              className={`w-16 h-16 rounded-full items-center justify-center mb-4 ${
+                loadingType === "upload" ? "bg-[#6366ff]/20" : "bg-[#ff6b6b]/20"
+              }`}
+            >
+              {loadingType === "upload" ? (
+                <Feather name="upload" color="#6366ff" size={28} />
+              ) : (
+                <Feather name="trash-2" color="#ff6b6b" size={28} />
+              )}
+            </View>
+
+            <ActivityIndicator
+              size="large"
+              color={loadingType === "upload" ? "#6366ff" : "#ff6b6b"}
+              className="mb-4"
+            />
+
+            <Text className="mb-2 text-xl font-bold text-center text-white">
+              {loadingType === "upload"
+                ? "Subiendo sonido"
+                : "Eliminando sonido"}
+            </Text>
+
+            <Text className="text-base text-center text-gray-300">
+              {loadingMessage}
+            </Text>
+
+            {/* Barra de progreso animada */}
+            <View className="w-full h-2 bg-[#323d4f] rounded-full mt-4 overflow-hidden">
+              <Animated.View
+                className={`h-full rounded-full ${
+                  loadingType === "upload" ? "bg-[#6366ff]" : "bg-[#ff6b6b]"
+                }`}
+                style={{
+                  width: "30%",
+                  transform: [
+                    {
+                      translateX: loadingProgressAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [0, 300], // Se mueve de izquierda a derecha
+                      }),
+                    },
+                  ],
+                  opacity: loadingProgressAnim.interpolate({
+                    inputRange: [0, 0.5, 1],
+                    outputRange: [0.3, 1, 0.3], // Efecto de pulsación
+                  }),
+                }}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       {/* Modal del temporizador */}
       <Modal

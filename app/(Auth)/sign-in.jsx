@@ -73,7 +73,7 @@ const signIn = () => {
       <View className="flex justify-start items-center h-[90%] w-[85%]">
         <Image
           source={require("../../assets/images/Logo.png")}
-          className="self-center mt-8 w-32 h-32"
+          className="self-center w-32 h-32 mt-8"
           resizeMode="contain"
           style={{ opacity: 0.9 }}
         />
@@ -90,7 +90,7 @@ const signIn = () => {
           className="min-h-[220px]"
         >
           {/*Cuerpo del formulario*/}
-          <View className="flex flex-col gap-3 justify-center items-start w-full">
+          <View className="flex flex-col items-start justify-center w-full gap-3">
             <CustomInput
               name="Email"
               inputType={form.email}
@@ -112,7 +112,7 @@ const signIn = () => {
         </KeyboardAvoidingView>
 
         {/*Boton para iniciar sesión o ir a la pantalla de registro*/}
-        <View className="flex flex-col gap-6 items-center mt-8 w-full">
+        <View className="flex flex-col items-center w-full gap-6 mt-8">
           <TouchableOpacity
             onPress={submit}
             className="flex w-full justify-center items-center flex-row gap-4 px-8 py-4 bg-[#6366ff] rounded-2xl "

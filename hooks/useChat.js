@@ -112,6 +112,11 @@ const useChat = () => {
   const [history, setHistory] = useState([]); // Almacena el historial de chats
   const [isToday, setIsToday] = useState(false); // Bandera que indica si el chat es de hoy o no
   const [isAiWriting, setIsAiWriting] = useState(false); // Estado para controlar cuando la IA está escribiendo
+
+  // Estados específicos para evitar condiciones de carrera
+  const [conversationLoaded, setConversationLoaded] = useState(false); // Indica si se ha completado la carga de conversación
+  const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false); // Indica si ya se intentó cargar conversación
+
   const { accessToken, userId } = useAuthContext();
   const [last3MonthsChats, setLast3MonthsChats] = useState([]); // Almacena los chats de los últimos tres meses
   const [filteredChats, setFilteredChats] = useState([]); // Almacena los chats filtrados
@@ -604,6 +609,8 @@ const useChat = () => {
   const getConversationChat = async (targetChatId) => {
     setError(null);
     setLoading(true);
+    setHasAttemptedLoad(true);
+    setConversationLoaded(false);
 
     try {
       console.log("Recuperando conversación para chat ID:", targetChatId);
@@ -644,9 +651,10 @@ const useChat = () => {
           );
         }
 
-        // Actualizamos los estados
+        // Actualizamos los estados de forma atómica
         setIsToday(chatEditable);
         setMessages(chatMessages);
+        setConversationLoaded(true);
         console.log("Chat editable:", chatEditable);
 
         // También guardamos el id del chat en la bandera aux para saber en que chat está el user
@@ -655,6 +663,7 @@ const useChat = () => {
         return true;
       } else {
         console.error("Error en respuesta:", response.status);
+        setConversationLoaded(true); // Marcar como cargado aunque haya error
         throw new Error(`Error en la respuesta: ${response.status}`);
       }
     } catch (error) {
@@ -663,6 +672,7 @@ const useChat = () => {
         targetChatId
       );
       setError(error);
+      setConversationLoaded(true); // Marcar como cargado aunque haya error
       throw error;
     } finally {
       setLoading(false);
@@ -673,6 +683,9 @@ const useChat = () => {
    * Funcion para recuperar la conversación del posible chat de hoy
    */
   const getTodayChat = async () => {
+    setHasAttemptedLoad(true);
+    setConversationLoaded(false);
+
     try {
       // Establecemos isToday a true por defecto para permitir crear un nuevo chat
       setIsToday(true);
@@ -693,17 +706,20 @@ const useChat = () => {
           // Si hay error al cargar, limpiamos los mensajes y permitimos crear un nuevo chat
           setMessages([]);
           setIsToday(true);
+          setConversationLoaded(true);
           // Limpiamos el chatId del storage ya que parece que no es válido
           await AsyncStorage.removeItem("chatId");
         }
       } else {
         setMessages([]);
+        setConversationLoaded(true);
       }
     } catch (error) {
       console.error("Error general al recuperar chat de hoy:", error);
       // En caso de error general, configuramos para que el usuario pueda crear un nuevo chat
       setMessages([]);
       setIsToday(true);
+      setConversationLoaded(true);
     }
     console.log("Valor de si se puede crear un chat:", isToday);
   };
@@ -715,6 +731,8 @@ const useChat = () => {
       setMessages([]);
       setIsToday(true); // Permitimos que se pueda escribir
       setIsAiWriting(false); // Por si había una operación pendiente
+      setConversationLoaded(false);
+      setHasAttemptedLoad(false);
 
       console.log("Chat actual limpiado correctamente");
       return true;
@@ -745,6 +763,9 @@ const useChat = () => {
     filteredChats,
     getChatsByRange,
     setIsToday,
+    // Estados específicos para manejar condiciones de carrera
+    conversationLoaded,
+    hasAttemptedLoad,
     // Estados de paginación para historial
     currentPage,
     totalPages,

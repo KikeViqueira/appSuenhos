@@ -332,7 +332,6 @@ const Profile = () => {
               trackColor={{ false: "#FFFFFF", true: "#6366FF" }}
               thumbColor="#FFFFFF"
               ios_backgroundColor="#FFFFFF"
-              //TODO: TENEMOS QUE IMPLEMENTAR LA LOGICA PARA DESACTIVAR O ACTIVAR LAS NOTIFICACIONES DEPENDIENDO DEL ESTADO DEL SWITCH
               onValueChange={handleNotificationToggle}
               value={notificationsEnabled}
             />

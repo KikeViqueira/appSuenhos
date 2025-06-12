@@ -104,7 +104,7 @@ const SleepNutritionChart = ({ foodFitbitData, sleepWeeklyFitbitData }) => {
   }
 
   return (
-    <View className="flex-col gap-4 self-center">
+    <View className="flex-col self-center gap-4">
       <LineChart
         data={chartData}
         width={Dimensions.get("window").width - 40}
@@ -143,14 +143,14 @@ const SleepNutritionChart = ({ foodFitbitData, sleepWeeklyFitbitData }) => {
         <View className="flex-row justify-between mt-2">
           <View className="flex-row items-center">
             <View
-              className="mr-2 w-3 h-3 rounded-full"
+              className="w-3 h-3 mr-2 rounded-full"
               style={{ backgroundColor: "rgba(114, 9, 183, 1)" }}
             />
             <Text className="text-sm text-white">Horas de sueño</Text>
           </View>
           <View className="flex-row items-center">
             <View
-              className="mr-2 w-3 h-3 rounded-full"
+              className="w-3 h-3 mr-2 rounded-full"
               style={{ backgroundColor: "rgba(247, 37, 133, 1)" }}
             />
             <Text className="text-sm text-white">Calorías (normalizado)</Text>
@@ -169,14 +169,14 @@ const SleepNutritionChart = ({ foodFitbitData, sleepWeeklyFitbitData }) => {
         onRequestClose={() => setModalVisible(false)}
       >
         <TouchableOpacity
-          className="flex-1 justify-center items-center bg-black/50"
+          className="items-center justify-center flex-1 bg-black/50"
           activeOpacity={1}
           onPress={() => setModalVisible(false)}
         >
           <View className="bg-[#1e2a47] p-6 rounded-xl w-[80%] max-w-[300px]">
             {selectedPoint && (
               <>
-                <View className="flex-row justify-between items-center mb-4">
+                <View className="flex-row items-center justify-between mb-4">
                   <Text className="text-lg font-bold text-[#F72585]">
                     Detalles del día
                   </Text>

@@ -258,6 +258,8 @@ export const AuthProvider = ({ children }) => {
       await SecureStore.setItemAsync("userId", response.data.userId.toString());
       console.log("Usuario logueado correctamente: ", response.data);
       setUserId(response.data.userId.toString());
+      //Una vez que hemos logueado al user, recuperamos las banderas del user
+      await getUserFlags();
     } catch (error) {
       setError(error);
       console.error("Error en el inicio de sesión: ", error);

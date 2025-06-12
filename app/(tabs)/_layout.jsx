@@ -1,4 +1,4 @@
-import { Text, Animated, View } from "react-native";
+import { Text, Animated, View, Platform } from "react-native";
 import { Tabs } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { Entypo, Feather } from "@expo/vector-icons";
@@ -20,11 +20,13 @@ const TabIcon = ({ icon: IconName = "help-circle", color, name, focused }) => {
 
   return (
     <Animated.View
-      className="flex gap-2 justify-center items-center mt-4 mb-1"
+      className="flex items-center justify-center gap-2 mt-4 mb-1"
       style={{
         transform: [{ scale: scaleAnim }],
         width: 60, // Ancho fijo para evitar que se corten los iconos
-        height: 50, // Altura fija para mantener consistencia
+        height: Platform.OS === "android" ? 45 : 50, // Menor altura en Android
+        marginTop: Platform.OS === "android" ? 10 : 16, // Menos margen superior en Android
+        marginBottom: Platform.OS === "android" ? 2 : 4, // Menos margen inferior en Android
       }}
     >
       <View style={{ padding: 2 }}>
@@ -59,9 +61,9 @@ const Tabslayout = () => {
             backgroundColor: "#323d4f",
             borderTopWidth: 1,
             borderTopColor: "#1e2a47",
-            height: 90, // Aumentamos la altura para dar más espacio
-            paddingTop: 6, // Añadimos padding superior
-            paddingBottom: 10, // Añadimos padding inferior
+            height: Platform.OS === "android" ? 115 : 90, // Mayor altura en Android
+            paddingTop: Platform.OS === "android" ? 15 : 6, // Más padding superior en Android
+            paddingBottom: Platform.OS === "android" ? 8 : 10, // Menos padding inferior en Android
           },
         }}
       >
