@@ -57,9 +57,9 @@ const ChangePasswordModal = ({
       visible={visible}
       onRequestClose={() => setModalVisible(false)}
     >
-      <View className="flex-1 justify-center items-center bg-black/50">
+      <View className="items-center justify-center flex-1 bg-black/50">
         <View className="bg-[#1e2a47] p-6 rounded-xl w-[85%] max-w-[500px] flex-col gap-4">
-          <View className="flex-row justify-between items-center">
+          <View className="flex-row items-center justify-between">
             <Text className="text-lg font-bold text-center color-white">
               Cambiar Contraseña
             </Text>
@@ -99,7 +99,7 @@ const ChangePasswordModal = ({
             />
           </KeyboardAvoidingView>
 
-          <View className="flex-row gap-4 justify-between items-center mt-4">
+          <View className="flex-row items-center justify-between gap-4 mt-4">
             <TouchableOpacity
               onPress={() => setModalVisible(false)}
               className="bg-[#6366ff] p-3 rounded-xl w-[45%]"

@@ -9,6 +9,8 @@ export default function useSleep() {
   const [error, setError] = useState(null);
   const [sleepLog, setSleepLog] = useState({});
   const [sleepLogsDuration, setSleepLogsDuration] = useState({});
+  //Estado para saber si ha hecho algun cuestionario en los ultimos 7 dias
+  const [hasMadeSleepLog, setHasMadeSleepLog] = useState(false);
 
   const { accessToken, userId } = useAuthContext();
 
@@ -161,6 +163,10 @@ export default function useSleep() {
         if (duration === "1") {
           setSleepLog(response.data);
         } else {
+          //Si alguno de los valores del mapa que recibimos es distinto de cero, sabemos que el user ha hecho algun cuestionario en los ultimos 7 dias
+          if (Object.values(response.data).some((value) => value !== 0)) {
+            setHasMadeSleepLog(true);
+          }
           setSleepLogsDuration(response.data);
         }
       }
@@ -184,6 +190,7 @@ export default function useSleep() {
     error,
     sleepLog,
     sleepLogsDuration,
+    hasMadeSleepLog,
     createSleepLog,
     getSleepLogEndpoint,
     getDailySleepLog,

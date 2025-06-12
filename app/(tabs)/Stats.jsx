@@ -45,6 +45,62 @@ const formatDateToApiFormat = (date) => {
   return date.toISOString().slice(0, 19);
 };
 
+/**
+ * Función para formatear la hora de inicio del sueño de manera legible
+ * @param {string} sleepStartTime - Hora de inicio en formato ISO
+ * @return {string} - Hora formateada de manera legible
+ */
+const formatSleepStartTime = (sleepStartTime) => {
+  if (!sleepStartTime) return null;
+
+  console.log("Hora de inicio del sueño: ", sleepStartTime);
+
+  try {
+    // Si recibimos un Date object, lo usamos directamente. Si es string, lo parseamos
+    const date =
+      sleepStartTime instanceof Date
+        ? sleepStartTime
+        : new Date(sleepStartTime);
+    const now = new Date();
+
+    console.log("Fecha de inicio del sueño: ", date);
+
+    // Para evitar problemas de zona horaria como en españa siempre el offset es negativo pues lo sumamos para no tener problemas con la hora
+    const hours = date.getHours() + date.getTimezoneOffset() / 60;
+    const minutes = date.getMinutes();
+
+    const hoursToString = hours.toString().padStart(2, "0");
+    const minutesToString = minutes.toString().padStart(2, "0");
+
+    console.log("horas: ", hoursToString);
+    console.log("minutos: ", minutesToString);
+
+    const timeString = `${hoursToString}:${minutesToString}`;
+
+    console.log("Hora formateada: ", timeString);
+
+    // Comparar fechas locales para determinar el día
+    const dateLocal = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate()
+    );
+    const nowLocal = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterdayLocal = new Date(nowLocal.getTime() - 24 * 60 * 60 * 1000);
+
+    if (dateLocal.getTime() === nowLocal.getTime()) {
+      return `hoy a las ${timeString}`;
+    } else if (dateLocal.getTime() === yesterdayLocal.getTime()) {
+      return `ayer a las ${timeString}`;
+    } else {
+      return `el ${date.toLocaleDateString("es-ES")} a las ${timeString}`;
+    }
+  } catch (error) {
+    console.error("Error al formatear la hora de inicio:", error);
+    return null;
+  }
+};
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -142,6 +198,7 @@ const Estadisticas = () => {
   const [isSleeping, setIsSleeping] = useState(false); //Estado para saber si el user esta durmiendo o no
   const [hasDailySleepLog, setHasDailySleepLog] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(false);
+  const [sleepStartDisplay, setSleepStartDisplay] = useState(null); //Estado para mostrar la hora de inicio del sueño formateada
 
   // Ref para el ScrollView y para la animación del indicador de scroll
   const scrollViewRef = useRef(null);
@@ -153,8 +210,14 @@ const Estadisticas = () => {
   //llamamos a las funciones que interacionan con los endpoints relacionados con las banderas diarias del user
   const { insertDailyFlag, deleteDailyFlag } = useFlags();
 
-  const { createSleepLog, getSleepLogEndpoint, getDailySleepLog, sleepLog } =
-    useSleep();
+  const {
+    createSleepLog,
+    getSleepLogEndpoint,
+    getDailySleepLog,
+    sleepLog,
+    sleepLogsDuration,
+    hasMadeSleepLog,
+  } = useSleep();
 
   //Función para saber si el user ha hecho hoy el registro de sueño
   const checkDailySleepLog = async () => {
@@ -188,13 +251,19 @@ const Estadisticas = () => {
         //Comprobamos si la hora en la que se ha ido a dormir lleva más de 24 horas almacenada en el storage
         if (now.getTime() - sleepStartTime.getTime() <= 24 * 60 * 60 * 1000) {
           setTimeout(() => setIsSleeping(true), 0);
+          const formattedTime = formatSleepStartTime(sleepStartTime);
+          setSleepStartDisplay(formattedTime);
         } else {
           //En este caso borramos la hora ya que al pasar tanto tiempo las medidas no serán consistentes y realistas para la hora de representarlas en la app
           await AsyncStorage.removeItem("sleepStart");
+          setSleepStartDisplay(null);
         }
+      } else {
+        setSleepStartDisplay(null);
       }
     } catch (error) {
       console.error("Error al cargar la hora de inicio de sueño: ", error);
+      setSleepStartDisplay(null);
     }
   };
 
@@ -202,7 +271,13 @@ const Estadisticas = () => {
   useEffect(() => {
     loadSleepData();
     checkDailySleepLog();
+    //llamamos a la función para recuperar la info de los sleepLogs de los ultimos 7 dias
+    getSleepLogEndpoint("7");
   }, []);
+
+  useEffect(() => {
+    console.log("Valor de sleepStartDisplay: ", sleepStartDisplay);
+  }, [sleepStartDisplay]);
 
   //Función para guardar la hora en la que el user se va a dormir
   const calculateSleepStart = async () => {
@@ -233,6 +308,10 @@ const Estadisticas = () => {
         // Actualizamos el estado después de que se haya guardado la hora
         setTimeout(() => setIsSleeping(true), 0);
 
+        // Formatear y guardar la hora de inicio para mostrarla
+        const formattedTime = formatSleepStartTime(formattedDate.toISOString());
+        setSleepStartDisplay(formattedTime);
+
         console.log(
           "Hora en la que el user se ha ido a dormir que se va a guardar en el storage: ",
           formattedDate.toISOString()
@@ -253,15 +332,15 @@ const Estadisticas = () => {
               //Reiniciamos el valor de la bandera y la eliminamos de la BD
               await deleteDailyFlag("sleepStart");
               setTimeout(() => setIsSleeping(false), 0);
+              //eliminamos la notificación de recordatorio de despertar
+              await Notifications.cancelAllScheduledNotificationsAsync();
+              //Borramos la hora de inicio de sueño si el user decide reiniciar el registro
+              await AsyncStorage.removeItem("sleepStart");
+              setSleepStartDisplay(null);
             },
           },
         ]
       );
-      //eliminamos la notificación de recordatorio de despertar
-      await Notifications.cancelAllScheduledNotificationsAsync();
-      console.log("Valor de isSleeping despues de la alerta: ", isSleeping);
-      //Borramos la hora de inicio de sueño si el user decide reiniciar el registro
-      await AsyncStorage.removeItem("sleepStart");
     }
   };
 
@@ -342,6 +421,7 @@ const Estadisticas = () => {
 
             setIsSleeping(false);
             setHasDailySleepLog(true);
+            setSleepStartDisplay(null);
 
             await getSleepLogEndpoint("7");
           } else {
@@ -463,7 +543,13 @@ const Estadisticas = () => {
             </View>
           );
         }
-        return <SleepGraphs userInfo={userInfo} />;
+        return (
+          <SleepGraphs
+            userInfo={userInfo}
+            hasMadeSleepLog={hasMadeSleepLog}
+            sleepLogsDuration={sleepLogsDuration}
+          />
+        );
       case "fitbitGraphs":
         return <FitbitUserGraphs />;
       case "drmSection":
@@ -477,8 +563,11 @@ const Estadisticas = () => {
             <View className="flex-row justify-between w-full gap-4">
               {/* Questionnaire Card */}
               <TouchableOpacity
-                className="flex-1 p-5 rounded-xl border border-[#6366ff]/20"
+                className={`flex-1 p-5 rounded-xl border border-[#6366ff]/20 ${
+                  !hasMadeSleepLog ? "opacity-20" : ""
+                }`}
                 onPress={() => router.push("/DRM")}
+                disabled={!hasMadeSleepLog}
               >
                 <View className="items-center justify-center">
                   <View className="bg-[#6366ff]/20 p-3 rounded-full mb-4">
@@ -491,9 +580,16 @@ const Estadisticas = () => {
                   <Text className="mb-2 text-base font-bold text-center text-white">
                     Cuestionario DRM
                   </Text>
-                  <Text className="text-sm text-center text-gray-400">
-                    Completa el formulario para obtener tu informe
-                  </Text>
+                  {hasMadeSleepLog ? (
+                    <Text className="text-sm text-center text-gray-400">
+                      Completa el formulario para obtener tu informe
+                    </Text>
+                  ) : (
+                    <Text className="text-sm text-center text-gray-400">
+                      Completa al menos un cuestionario de sueño en la última
+                      semana para obtener tu informe
+                    </Text>
+                  )}
                 </View>
               </TouchableOpacity>
 
@@ -571,6 +667,30 @@ const Estadisticas = () => {
               <Text className="ml-2 color-white">
                 Registro matutino completado
               </Text>
+            </View>
+          )}
+
+          {/* Mostrar hora de inicio del sueño cuando el usuario está durmiendo */}
+          {isSleeping && sleepStartDisplay && (
+            <View className="flex-row items-center justify-between bg-[#2a3952] p-4 rounded-lg border-l-4 border-[#6366ff]">
+              <View className="flex-row items-center flex-1">
+                <View className="bg-[#6366ff]/20 p-2 rounded-full mr-3">
+                  <Feather name="moon" size={16} color="#6366ff" />
+                </View>
+                <View className="flex-1">
+                  <Text className="text-sm font-medium color-white">
+                    Registro iniciado
+                  </Text>
+                  <Text className="mt-1 text-xs color-gray-400">
+                    Comenzaste a dormir {sleepStartDisplay}
+                  </Text>
+                </View>
+              </View>
+              <View className="bg-[#6366ff]/10 px-3 py-1 rounded-full">
+                <Text className="text-xs font-medium color-[#6366ff]">
+                  Activo
+                </Text>
+              </View>
             </View>
           )}
 

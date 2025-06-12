@@ -2,12 +2,10 @@ import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import React, { useState, useEffect } from "react";
 import { MaterialIcons, Feather } from "@expo/vector-icons";
 import WeeklySleepChart from "./WeeklySleepChart";
-import useSleep from "../hooks/useSleep";
 import sleepRecommendations from "../utils/sleepRecommendations";
 import UserSleepVsRecommended from "./UserSleepVsRecommended";
 
-const SleepGraphs = ({ userInfo }) => {
-  const { sleepLogsDuration, getSleepLogEndpoint } = useSleep();
+const SleepGraphs = ({ userInfo, hasMadeSleepLog, sleepLogsDuration }) => {
   const [loading, setLoading] = useState(true);
   const [sleepStats, setSleepStats] = useState({
     averageSleep: 0,
@@ -20,11 +18,6 @@ const SleepGraphs = ({ userInfo }) => {
     daysBelowRecommended: 0,
     sleepData: [], // Añadir los datos de sueño para la gráfica
   });
-
-  useEffect(() => {
-    // Obtener datos de sueño de la última semana
-    getSleepLogEndpoint("7");
-  }, []);
 
   useEffect(() => {
     if (
@@ -138,10 +131,80 @@ const SleepGraphs = ({ userInfo }) => {
     return hours.toFixed(1);
   };
 
+  // Si no hay registros en los últimos 7 días, mostrar mensaje informativo
+  if (!hasMadeSleepLog) {
+    return (
+      <View className="flex justify-center items-center w-full gap-6 px-6 py-8 rounded-lg bg-[#1e2a47] mb-6">
+        {/* Icono principal */}
+        <View className="bg-[#6366ff]/20 p-6 rounded-full mb-4">
+          <MaterialIcons name="bedtime" size={48} color="#6366ff" />
+        </View>
+
+        {/* Título */}
+        <Text className="mb-2 text-xl font-bold text-center color-white">
+          No hay datos de sueño registrados
+        </Text>
+
+        {/* Descripción */}
+        <Text className="text-sm text-center color-[#a0b0c7] mb-6 px-4 leading-6">
+          Para ver tus estadísticas y gráficas de sueño, necesitas completar al
+          menos un registro de sueño en los últimos 7 días.
+        </Text>
+
+        {/* Pasos a seguir */}
+        <View className="w-full bg-[#0e172a] p-4 rounded-xl border border-[#6366ff]/30">
+          <View className="flex flex-row items-center mb-3">
+            <Feather name="info" size={18} color="#6366ff" />
+            <Text className="ml-2 font-semibold color-white">
+              ¿Cómo empezar?
+            </Text>
+          </View>
+
+          <View className="gap-3">
+            <View className="flex flex-row items-start">
+              <View className="bg-[#6366ff] rounded-full w-5 h-5 flex items-center justify-center mr-3 mt-0.5">
+                <Text className="text-xs font-bold color-white">1</Text>
+              </View>
+              <Text className="flex-1 text-sm color-[#a0b0c7]">
+                Presiona "Me voy a dormir" cuando te acuestes
+              </Text>
+            </View>
+
+            <View className="flex flex-row items-start">
+              <View className="bg-[#6366ff] rounded-full w-5 h-5 flex items-center justify-center mr-3 mt-0.5">
+                <Text className="text-xs font-bold color-white">2</Text>
+              </View>
+              <Text className="flex-1 text-sm color-[#a0b0c7]">
+                Completa el cuestionario al despertar
+              </Text>
+            </View>
+
+            <View className="flex flex-row items-start">
+              <View className="bg-[#6366ff] rounded-full w-5 h-5 flex items-center justify-center mr-3 mt-0.5">
+                <Text className="text-xs font-bold color-white">3</Text>
+              </View>
+              <Text className="flex-1 text-sm color-[#a0b0c7]">
+                Tus estadísticas aparecerán aquí automáticamente
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Motivación adicional */}
+        <View className="flex flex-row items-center bg-[#6366ff]/10 px-4 py-3 rounded-lg mt-2">
+          <Feather name="target" size={16} color="#6366ff" />
+          <Text className="ml-2 text-sm color-[#6366ff] font-medium">
+            ¡Comienza hoy tu seguimiento de sueño!
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <ScrollView>
       <View className="flex justify-center w-full gap-6 px-4 py-5 rounded-lg bg-[#1e2a47] mb-6">
-        <View className="flex flex-row gap-4 justify-start">
+        <View className="flex flex-row justify-start gap-4">
           <MaterialIcons name="bed" size={24} color="#fff" />
           <Text
             className="text-center font-bold color-[#6366ff]"
@@ -157,7 +220,7 @@ const SleepGraphs = ({ userInfo }) => {
 
         {/* Estadísticas de sueño */}
         <View className="mt-4">
-          <View className="flex flex-row gap-4 justify-start mb-4">
+          <View className="flex flex-row justify-start gap-4 mb-4">
             <Feather name="trending-up" size={24} color="#fff" />
             <Text
               className="text-center font-bold color-[#6366ff]"
@@ -265,7 +328,7 @@ const SleepGraphs = ({ userInfo }) => {
         </View>
 
         {/* Gráfica que compara lo que ha dormido el user vs lo que debería de dormir vs un user ideal de su rango de edad */}
-        <View className="flex flex-row gap-4 justify-start mt-4">
+        <View className="flex flex-row justify-start gap-4 mt-4">
           <Feather name="heart" size={24} color="#fff" />
           <Text
             className="text-center font-bold color-[#6366ff]"
