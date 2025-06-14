@@ -24,6 +24,7 @@ import { router } from "expo-router";
 import useSleep from "../../hooks/useSleep";
 import { useAuthContext } from "../../context/AuthContext";
 import useFlags from "../../hooks/useFlags";
+import { useLocalSearchParams } from "expo-router";
 
 /**
  *  Función que lo que hace es quitarle el offset de la fecha para poder trabajar con fechas locales del user y que se guarden correctamente en la BD de manera coherente
@@ -208,6 +209,9 @@ const Estadisticas = () => {
 
   const { userInfo, loading } = useAuthContext();
 
+  //Parámetro local que le indica a stats a que sección debe acceder
+  const { section } = useLocalSearchParams();
+
   //llamamos a las funciones que interacionan con los endpoints relacionados con las banderas diarias del user
   const { insertDailyFlag, deleteDailyFlag } = useFlags();
 
@@ -274,6 +278,11 @@ const Estadisticas = () => {
     checkDailySleepLog();
     //llamamos a la función para recuperar la info de los sleepLogs de los ultimos 7 dias
     getSleepLogEndpoint("7");
+
+    //Si el user llama a replace desde DrmReport nos pasa por parametros section=drm por lo que en ese caso tenemos que reenderizar la sección de drm
+    if (section === "drm") {
+      setActiveSection("drmSection");
+    }
   }, []);
 
   useEffect(() => {

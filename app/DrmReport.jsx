@@ -19,8 +19,8 @@ import { getDailyTipFlag } from "../hooks/useTips";
 import { LinearGradient } from "expo-linear-gradient";
 
 const DrmReport = () => {
-  const { getDrmToday, error, drmToday } = useDRM();
-  const { generateTip, getTips, tips } = useTips();
+  const { getDrmToday, drmToday } = useDRM();
+  const { generateTip, error } = useTips();
   const [tipButtonState, setTipButtonState] = useState("default"); //Controla el estado del botón a la hora de generar el tip
   const [showScrollIndicator, setShowScrollIndicator] = useState(true);
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -37,7 +37,7 @@ const DrmReport = () => {
 
     const layoutHeight = event.nativeEvent.layoutMeasurement.height;
     const contentHeight = event.nativeEvent.contentSize.height;
-    
+
     // Si el scroll está cerca del final, ocultar el indicador (similar a Stats.jsx)
     if (layoutHeight + offsetY >= contentHeight - 20) {
       setShowScrollIndicator(false);
@@ -45,7 +45,7 @@ const DrmReport = () => {
       setShowScrollIndicator(true);
     }
   };
-  
+
   // Efecto para manejar la animación del indicador cuando cambia su visibilidad
   useEffect(() => {
     if (showScrollIndicator) {
@@ -71,26 +71,31 @@ const DrmReport = () => {
     setTipButtonState("generating");
     try {
       await generateTip();
-      setTipButtonState("generated");
-
-      // Actualizar los tips para asegurar que se muestra el nuevo tip en la lista
-      await getTips();
-
-      // Mostrar mensaje al usuario
-      Alert.alert(
-        "Tip generado",
-        "Se ha generado un nuevo tip personalizado. ¿Quieres verlo ahora?",
-        [
-          {
-            text: "Más tarde",
-            style: "cancel",
-          },
-          {
-            text: "Ver ahora",
-            onPress: () => router.push("./(tabs)/Tips"),
-          },
-        ]
-      );
+      //Tenemos que comprobar si se ha producido un error al generar el tip, si es asi volvemos al estado inicial dando feedback al user de que está pasando, si no da se crea correctamente el tip
+      if (!error) {
+        setTipButtonState("generated");
+        // Mostrar mensaje al usuario
+        Alert.alert(
+          "Tip generado",
+          "Se ha generado un nuevo tip personalizado. ¿Quieres verlo ahora?",
+          [
+            {
+              text: "Más tarde",
+              style: "cancel",
+            },
+            {
+              text: "Ver ahora",
+              onPress: () => router.push("./(tabs)/Tips"),
+            },
+          ]
+        );
+      } else {
+        setTipButtonState("default");
+        Alert.alert(
+          "Error",
+          "No se pudo generar el tip. Inténtalo de nuevo más tarde."
+        );
+      }
     } catch (error) {
       console.error("Error generando tip:", error);
       setTipButtonState("default");
@@ -119,8 +124,8 @@ const DrmReport = () => {
   // Cargar los datos iniciales cuando el componente se monta
   useEffect(() => {
     const loadInitialData = async () => {
-      // Ejecutar ambas operaciones en paralelo para mejor rendimiento
-      await Promise.all([getDrmToday(), getTips()]);
+      // Intentamos cargar el informe DRM del día de hoy
+      await getDrmToday();
 
       // Verificar estado del tip diario después de cargar los datos
       await checkDailyTipStatus();
@@ -146,54 +151,93 @@ const DrmReport = () => {
           <meta charset="utf-8">
           <style>
             body {
-              font-family: Arial, sans-serif;
-              margin: 50px;
-              color: #000;
+              font-family: 'Segoe UI', Arial, sans-serif;
+              margin: 40px;
+              color: #1e2a47;
+              background-color: #f8f9fa;
+            }
+            .container {
+              max-width: 800px;
+              margin: 0 auto;
+              background-color: white;
+              padding: 40px;
+              border-radius: 12px;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             }
             .date {
-              font-size: 12px;
+              font-size: 14px;
               text-align: right;
-              margin-bottom: 20px;
+              margin-bottom: 30px;
+              color: #6366ff;
+              font-weight: 500;
             }
             .header {
               text-align: center;
               margin-bottom: 40px;
+              padding-bottom: 20px;
+              border-bottom: 2px solid #6366ff;
             }
             .title {
-              font-size: 24px;
+              font-size: 28px;
               font-weight: bold;
               margin: 0;
+              color: #1e2a47;
             }
             .subtitle {
-              font-size: 18px;
-              margin: 5px 0 0 0;
+              font-size: 20px;
+              margin: 10px 0 0 0;
+              color: #6366ff;
+              font-weight: 500;
             }
             .content {
-              font-size: 14px;
-              line-height: 1.6;
+              font-size: 16px;
+              line-height: 1.8;
               margin-bottom: 60px;
+              color: #323d4f;
+            }
+            .content h2 {
+              color: #1e2a47;
+              font-size: 20px;
+              margin-top: 30px;
+              margin-bottom: 15px;
+            }
+            .content p {
+              margin-bottom: 15px;
             }
             .footer {
-              position: fixed;
-              bottom: 20px;
-              left: 0;
-              right: 0;
               text-align: center;
-              font-size: 12px;
+              font-size: 14px;
+              color: #6366ff;
+              padding-top: 20px;
+              border-top: 1px solid #e2e8f0;
+            }
+            .logo {
+              text-align: center;
+              margin-bottom: 20px;
+            }
+            .logo-text {
+              font-size: 24px;
+              font-weight: bold;
+              color: #6366ff;
             }
           </style>
         </head>
         <body>
-          <div class="date">${drmToday.timeStamp}</div>
-          <div class="header">
-            <div class="title">INFORME DRM</div>
-            <div class="subtitle">${userInfo.name}</div>
-          </div>
-          <div class="content">
-            ${drmToday.report}
-          </div>
-          <div class="footer">
-            Generado por ZzzTime
+          <div class="container">
+            <div class="date">${drmToday.timeStamp}</div>
+            <div class="header">
+              <div class="logo">
+                <span class="logo-text">ZzzTime</span>
+              </div>
+              <div class="title">INFORME DRM</div>
+              <div class="subtitle">${userInfo.name}</div>
+            </div>
+            <div class="content">
+              ${drmToday.report}
+            </div>
+            <div class="footer">
+              Generado por ZzzTime - Tu compañero de sueño
+            </div>
           </div>
         </body>
       </html>
@@ -247,11 +291,11 @@ const DrmReport = () => {
   return (
     <SafeAreaView className="flex-1 w-full h-full bg-primary">
       <View className="flex flex-row items-center justify-between py-4 w-[90%] self-center">
-        <View className="flex flex-row gap-4 justify-start items-center">
+        <View className="flex flex-row items-center justify-start gap-4">
           <TouchableOpacity
-            //Dejamos que el user pueda volver a las gráficas en caso de que haya entrado sin querer en la pestaña
-            onPress={() => router.back()}
-            className="flex flex-row gap-2 items-center py-2"
+            //Tenemos que usar replace ya que podemos acceder a esta pestaña desde dos sitios distintos
+            onPress={() => router.replace("./(tabs)/Stats?section=drm")}
+            className="flex flex-row items-center gap-2 py-2"
           >
             <Feather name="chevron-left" size={24} color="white" />
           </TouchableOpacity>
@@ -263,7 +307,7 @@ const DrmReport = () => {
           </Text>
         </View>
         {hasReportData && (
-          <View className="flex-row gap-4 items-center">
+          <View className="flex-row items-center gap-4">
             <TouchableOpacity
               //Cuando pinchemos en el botón de descargar el informe llamamos a la función para pasarlo a PDF
               onPress={createPDF}
@@ -345,7 +389,7 @@ const DrmReport = () => {
             </TouchableOpacity>
           </>
         ) : (
-          <View className="flex-1 justify-center items-center w-full">
+          <View className="items-center justify-center flex-1 w-full">
             <View className="w-full items-center justify-center p-8 bg-[#1e2a47] rounded-xl flex gap-5">
               <View className="flex-row w-full">
                 <View className="w-2 h-full bg-[#ff4757]" />
@@ -364,7 +408,7 @@ const DrmReport = () => {
                 </View>
               </View>
 
-              <View className="p-4 w-full rounded-xl">
+              <View className="w-full p-4 rounded-xl">
                 <View className="flex-row items-center mb-3">
                   <FontAwesome5
                     name="clipboard-list"

@@ -16,9 +16,9 @@ const Help = () => {
   const faqData = [
     {
       id: 1,
-      question: "¿Cómo funciona el análisis de sueños con IA?",
+      question: "¿Cómo se generan los tips personalizados?",
       answer:
-        "ZzzTime AI utiliza algoritmos avanzados de procesamiento de lenguaje natural para analizar tus descripciones de sueños. La IA identifica patrones, emociones y símbolos comunes para ofrecerte interpretaciones personalizadas y consejos para mejorar tu descanso.",
+        "Nuestro sistema de generación de tips utiliza un enfoque multicapa que analiza tu información personal, patrones de sueño registrados, respuestas a los cuestionarios matutinos y datos del DRM. Además, mantiene un registro de los tips que ya has recibido para evitar repeticiones y asegurar que cada consejo sea único y relevante para tu situación específica. Cuantos más datos proporciones a través de los cuestionarios, más precisos y personalizados serán tus tips.",
     },
     {
       id: 2,
