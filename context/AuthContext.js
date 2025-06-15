@@ -65,6 +65,46 @@ export const AuthProvider = ({ children }) => {
     setModalType(null);
   };
 
+  //Función para limpiar todas las banderas del almacenamiento del dispositivo
+  const clearAllFlags = async () => {
+    try {
+      // Obtener todas las banderas agrupadas del mapa existente
+      const groupedFlagKeys = Object.keys(groupedFlagsMap);
+
+      // Lista de banderas adicionales que pueden estar almacenadas
+      const additionalFlags = [
+        "hasCompletedOnboarding",
+        "sleepStart",
+        "current_chat_id",
+        "preferredTimerDuration",
+        "notifications",
+      ];
+
+      // Combinar todas las banderas a eliminar
+      const flagsToRemove = [...groupedFlagKeys, ...additionalFlags];
+
+      console.log("Limpiando banderas:", flagsToRemove);
+
+      // Eliminamos todas las banderas conocidas
+      const removePromises = flagsToRemove.map((key) =>
+        AsyncStorage.removeItem(key).catch((error) =>
+          console.warn(`Error al eliminar bandera ${key}:`, error)
+        )
+      );
+
+      await Promise.all(removePromises);
+
+      console.log(
+        "✅ Todas las banderas han sido eliminadas del almacenamiento local"
+      );
+    } catch (error) {
+      console.error(
+        "❌ Error al limpiar las banderas del almacenamiento:",
+        error
+      );
+    }
+  };
+
   //Función que tiene el mapa de las banderas que se usan en la app en las que guardamos un objeto y no un simple valor
   const groupedFlagsMap = {
     chatId: ["chatId", "expiry_chatId"],
@@ -165,21 +205,17 @@ export const AuthProvider = ({ children }) => {
           "userAccessToken"
         );
         const idUser = await SecureStore.getItemAsync("userId");
-        const onboardingStatus = await hasCompletedOnboarding();
 
         console.log(
           "Valores para el token y el id del user: ",
           userAccessToken,
-          idUser,
-          onboardingStatus
+          idUser
         );
 
         if (userAccessToken && idUser) {
           setAccessToken(userAccessToken);
           setUserId(idUser);
         }
-        //Se pone fuera del if pq se puede dar el caso de que el user se haya logeado y no haya completado el onboarding
-        setOnboardingCompleted(onboardingStatus);
       } catch (error) {
         console.error("Error al cargar los datos del user: ", error);
       } finally {
@@ -202,13 +238,46 @@ export const AuthProvider = ({ children }) => {
      *CUANDO EL USER HAYA INICIADO SESIÓN Y SE TENGA TANTO EL ID COMO EL TOKEN DE ACCESO
      * SE LLAMA A LA FUNCIÓN DE GETUSERFLAGS PARA RECUPERAR LAS BANDERAS DEL USER Y SINCRONIZAR LA CACHE DEL DISPOSITIVO
      */
-    if (userId && accessToken) getUserFlags();
+    if (userId && accessToken) {
+      getUserFlags();
+    }
     /**
      * El primer getUser que se llamará será cuando el user se haya logueado y haya completado el onboarding
      * a partir de ahí, cada vez que se actualice el token de acceso (ya sea debido al inicio de sesión o por el refresco del propio token), se llamará a getUser para recuperar la info del user
      * */
-    if (userId && accessToken && onboardingCompleted) getUser();
+    if (userId && accessToken && onboardingCompleted) {
+      getUser();
+    }
   }, [userId, accessToken, onboardingCompleted]);
+
+  /*
+   * Definimos el endpoint por si el user quiere eliminar su cuenta
+   * */
+  const deleteAccount = async () => {
+    setError(null);
+    setLoading(true);
+
+    try {
+      const response = await apiClient.delete(
+        `${API_BASE_URL}/users/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        await logout();
+      }
+      console.log("Cuenta eliminada correctamente: ", response.data);
+    } catch (error) {
+      setError(error);
+      console.error("Error al eliminar la cuenta del user: ", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   /*
    * Endpoint que se encargará de recuperar todas las banderas que esten relacionadas con el user para comprobar
@@ -221,6 +290,9 @@ export const AuthProvider = ({ children }) => {
 
     try {
       //Comprobamos que se ha recuperado la info del secureStorage de manera correcta para poder hacer la petición
+      if (!accessToken) throw new Error("No hay token de acceso");
+      if (!userId) throw new Error("No hay id de usuario");
+
       //hacemos la petición get al endpoint de getUser
       const response = await apiClient.get(
         `${API_BASE_URL}/users/${userId}/flags`,
@@ -233,6 +305,11 @@ export const AuthProvider = ({ children }) => {
 
       if (response.status === 200) {
         await saveFlagsToCache(response.data);
+
+        // Después de sincronizar las flags, actualizamos el estado del onboarding
+        // con el valor real que viene del servidor
+        const updatedOnboardingStatus = await hasCompletedOnboarding();
+        setOnboardingCompleted(updatedOnboardingStatus);
       }
       console.log("Banderas recuperadas del user: ", response.data);
     } catch (error) {
@@ -271,8 +348,7 @@ export const AuthProvider = ({ children }) => {
       await SecureStore.setItemAsync("userId", response.data.userId.toString());
       console.log("Usuario logueado correctamente: ", response.data);
       setUserId(response.data.userId.toString());
-      //Una vez que hemos logueado al user, recuperamos las banderas del user
-      await getUserFlags();
+      //El useEffect se encargará de llamar a getUserFlags() cuando userId y accessToken estén establecidos
     } catch (error) {
       if (error.response) {
         if (error.response.status !== 403) {
@@ -368,14 +444,30 @@ export const AuthProvider = ({ children }) => {
 
   //Función para cerrar la sesión
   const logout = async () => {
-    router.push("/(Auth)/sign-in");
+    try {
+      //Antes de nada navegamos a la pantalla de login para que no se vean eliminaciones por parte del sistema en la UI del user
+      //router.push("/(Auth)/sign-in");
+      // Limpiar todas las banderas del almacenamiento local
+      await clearAllFlags();
 
-    setAccessToken(null);
-    setUserInfo(null);
-    setUserId(null);
-    await SecureStore.deleteItemAsync("userAccessToken");
-    await SecureStore.deleteItemAsync("userRefreshToken");
-    await SecureStore.deleteItemAsync("userId");
+      // Limpiar datos de autenticación del SecureStore
+      await SecureStore.deleteItemAsync("userAccessToken");
+      await SecureStore.deleteItemAsync("userRefreshToken");
+      await SecureStore.deleteItemAsync("userId");
+
+      // Limpiar estados en memoria
+      setAccessToken(null);
+      setUserInfo(null);
+      setUserId(null);
+      setOnboardingCompleted(null);
+
+      console.log("Logout completado - todos los datos eliminados");
+    } catch (error) {
+      console.error("Error durante el logout:", error);
+    } finally {
+      //Navegar a la pantalla de login independientemente de si hubo errores
+      router.push("/(Auth)/sign-in");
+    }
   };
 
   return (
@@ -403,6 +495,7 @@ export const AuthProvider = ({ children }) => {
         updateOnboardingStatus,
         showModal,
         hideModal,
+        deleteAccount,
       }}
     >
       {children}

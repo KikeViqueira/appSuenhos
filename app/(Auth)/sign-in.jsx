@@ -49,17 +49,23 @@ const signIn = () => {
      * incluso con await, el estado token puede no actualizarse inmediatamente porque React agrupa las actualizaciones de estado.
      * Por lo tanto, no podemos confiar en el valor de token inmediatamente después de llamar a LoginRequest.
      * En su lugar, debemos usar el efecto de cambio de token para navegar a la siguiente pantalla.
+     *
+     * IMPORTANTE: Solo navegamos cuando tenemos tanto el accessToken como el estado de onboardingCompleted definido (no null)
      */
-    if (accessToken) {
+    if (accessToken && onboardingCompleted !== null) {
       // Limpiar el formulario inmediatamente cuando se obtiene el token
       setForm({ email: "", password: "" });
 
+      console.log("--------------------------------");
+      console.log("onboardingCompleted: ", onboardingCompleted);
+      console.log("accessToken: ", accessToken);
+
       if (onboardingCompleted) {
         router.replace("/Stats"); // Si ya completó onboarding, vamos a la pantalla principal
-        console.log("Redirigiendo a Stats");
+        console.log("Redirigiendo a Stats - Onboarding completado");
       } else {
         router.replace("/(Onboarding)/Onboarding"); // Sino, vamos al onboarding
-        console.log("Redirigiendo a Onboarding");
+        console.log("Redirigiendo a Onboarding - Onboarding pendiente");
       }
     }
   }, [accessToken, onboardingCompleted]);
