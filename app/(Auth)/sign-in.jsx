@@ -6,18 +6,25 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
-  Alert,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { router } from "expo-router";
 import CustomInput from "../../components/CustomInput";
 import { useAuthContext } from "../../context/AuthContext";
 import Icon from "react-native-vector-icons/FontAwesome";
+import AuthModal from "../../components/AuthModal";
 
 const signIn = () => {
-  //Recuperamos las dunciones y estados del hook de useAuth
-  const { accessToken, error, LoginRequest, onboardingCompleted } =
-    useAuthContext();
+  //Recuperamos las funciones y estados del hook de useAuth
+  const {
+    accessToken,
+    error,
+    LoginRequest,
+    onboardingCompleted,
+    modalVisible,
+    modalType,
+    hideModal,
+  } = useAuthContext();
 
   //Definimos un estado para saber los valores que el usuario introduce en los campos del formulario
   const [form, setForm] = useState({
@@ -29,17 +36,12 @@ const signIn = () => {
   const submit = async () => {
     /*
      * antes de realizar la comparación tenemos que hacer que lo que haya introducido el user en campo de email no sea sensible a mayúsculas o minúsculas
-     *
-     * Tenemos que usar el setForm para actualizar el estado del email y ponerlo en minúsculas, en vez de hacerlo directamente en el objeto form.email
      */
     const emailLower = form.email.toLowerCase();
-    setForm({ ...form, email: emailLower });
-
-    //router.push("/Stats");
 
     //llamamos al endpoint de nuestra api para hacer el login y en caso de que sea correcto obtener el token para autenticar al user en el resto de endpoints
     //Esperamos a una respuesta de la función LoginRequest ya que es una función asíncrona y asi no pasamos a la siguiente línea de código hasta que no se haya resuelto la promesa
-    await LoginRequest(form.email, form.password);
+    await LoginRequest(emailLower, form.password);
   };
 
   useEffect(() => {
@@ -47,26 +49,27 @@ const signIn = () => {
      * incluso con await, el estado token puede no actualizarse inmediatamente porque React agrupa las actualizaciones de estado.
      * Por lo tanto, no podemos confiar en el valor de token inmediatamente después de llamar a LoginRequest.
      * En su lugar, debemos usar el efecto de cambio de token para navegar a la siguiente pantalla.
-     *
-     * En caso de que se de un error el useEffect también se disparará y mostraremos un mensaje de error al usuario
      */
-    if (error) {
-      Alert.alert(
-        "Error Inicio de Sesión",
-        "El email o la contraseña son incorrectos"
-      );
-    } else if (accessToken) {
-      setTimeout(() => {
-        if (onboardingCompleted) {
-          router.push("/Stats"); // Si ya completó onboarding, vamos a la pantalla principal
-          console.log("Redirigiendo a Stats");
-        } else {
-          router.push("/(Onboarding)/Onboarding"); // Sino, vamos al onboarding
-          console.log("Redirigiendo a Onboarding");
-        }
-      }, 0);
+    if (accessToken) {
+      // Limpiar el formulario inmediatamente cuando se obtiene el token
+      setForm({ email: "", password: "" });
+
+      if (onboardingCompleted) {
+        router.replace("/Stats"); // Si ya completó onboarding, vamos a la pantalla principal
+        console.log("Redirigiendo a Stats");
+      } else {
+        router.replace("/(Onboarding)/Onboarding"); // Sino, vamos al onboarding
+        console.log("Redirigiendo a Onboarding");
+      }
     }
-  }, [accessToken, error, onboardingCompleted]);
+  }, [accessToken, onboardingCompleted]);
+
+  // Función para manejar el cierre del modal, en el caso de login como solo se dispara i ha insertado mal el email o la contraseña, lo que hace la función es simplemente cerrar el modal
+  const handleModalClose = (action) => {
+    hideModal();
+    // Limpiar el formulario después de un error para evitar que el gestor de contraseñas intente guardar credenciales incorrectas
+    setForm({ email: "", password: "" });
+  };
 
   return (
     <SafeAreaView className="flex items-center w-full h-full bg-primary">
@@ -144,6 +147,13 @@ const signIn = () => {
           </View>
         </View>
       </View>
+
+      {/* Modal de autenticación */}
+      <AuthModal
+        visible={modalVisible}
+        onClose={handleModalClose}
+        type={modalType}
+      />
     </SafeAreaView>
   );
 };

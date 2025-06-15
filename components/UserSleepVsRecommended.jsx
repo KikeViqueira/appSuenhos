@@ -100,7 +100,7 @@ const UserSleepVsRecommended = ({ sleepLogsDuration, userAge }) => {
   );
 
   return (
-    <View className="flex-col gap-4 self-center">
+    <View className="flex-col self-center gap-4">
       <LineChart
         data={{
           labels: formattedSleepData.map((data) => data.day),
@@ -166,7 +166,7 @@ const UserSleepVsRecommended = ({ sleepLogsDuration, userAge }) => {
         withShadow={false}
         getDotColor={(dataPoint, index) => {
           const sleepHours = formattedSleepData[index].hours;
-          if (sleepHours >= recommendation.ideal) return "#4ade80";
+          if (sleepHours >= recommendation.ideal) return "#15db44";
           if (sleepHours >= recommendation.min) return "#fbbf24";
           return "#ff6b6b";
         }}
@@ -175,7 +175,7 @@ const UserSleepVsRecommended = ({ sleepLogsDuration, userAge }) => {
       />
 
       <View className="bg-[#0e172a] p-4 w-[80%] rounded-xl flex-col self-center gap-2 border border-[#6366ff]">
-        <View className="flex-col gap-4 justify-start">
+        <View className="flex-col justify-start gap-4">
           <Text className="text-base font-bold color-[#6366ff]">
             Parámetros de sueño recomendados
           </Text>
@@ -225,18 +225,18 @@ const UserSleepVsRecommended = ({ sleepLogsDuration, userAge }) => {
           </View>
         </View>
 
-        <View className="flex-col gap-4 justify-start">
+        <View className="flex-col justify-start gap-4">
           <Text className="text-base font-bold color-white">
             Tu calidad de sueño
           </Text>
 
-          <View className="flex-row gap-4 justify-between">
+          <View className="flex-row justify-between gap-4">
             <View className="flex-row items-center">
               <View
                 style={{
                   width: 12,
                   height: 12,
-                  backgroundColor: "#4ade80",
+                  backgroundColor: "#15db44",
                   borderRadius: 6,
                   marginRight: 4,
                 }}
@@ -285,14 +285,14 @@ const UserSleepVsRecommended = ({ sleepLogsDuration, userAge }) => {
         onRequestClose={() => setModalVisible(false)}
       >
         <TouchableOpacity
-          className="flex-1 justify-center items-center bg-black/50"
+          className="items-center justify-center flex-1 bg-black/50"
           activeOpacity={1}
           onPress={() => setModalVisible(false)}
         >
           <View className="bg-[#1e2a47] p-6 rounded-xl w-[80%] max-w-[300px]">
             {selectedPoint && (
               <>
-                <View className="flex-row justify-between items-center mb-4">
+                <View className="flex-row items-center justify-between mb-4">
                   <Text className="text-lg font-bold color-[#6366ff]">
                     Detalles del sueño
                   </Text>
@@ -315,7 +315,7 @@ const UserSleepVsRecommended = ({ sleepLogsDuration, userAge }) => {
                         height: 10,
                         backgroundColor:
                           selectedPoint.hours >= recommendation.ideal
-                            ? "#4ade80"
+                            ? "#15db44"
                             : selectedPoint.hours >= recommendation.min
                             ? "#fbbf24"
                             : "#ff6b6b",

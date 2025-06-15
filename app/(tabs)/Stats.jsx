@@ -673,7 +673,7 @@ const Estadisticas = () => {
           {/* Estado visual del registro, si el user ha completado el cuestionario matutino. Como cuando lo haya completado va a poder empezar otro, tenemos enseñar el mensaje solo si no esta durmiendo */}
           {hasDailySleepLog && !isSleeping && (
             <View className="flex-row items-center bg-[#2a3952] p-4 rounded-lg">
-              <FontAwesome5 name="clipboard-check" size={18} color="#4cd964" />
+              <FontAwesome5 name="clipboard-check" size={18} color="#15db44" />
               <Text className="ml-2 color-white">
                 Registro matutino completado
               </Text>

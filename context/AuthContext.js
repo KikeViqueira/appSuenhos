@@ -30,6 +30,8 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(false); // Indica si la petición está en curso
   const [error, setError] = useState(null); // Almacena el error en caso de que ocurra
+  const [modalVisible, setModalVisible] = useState(false); // Controla la visibilidad del modal
+  const [modalType, setModalType] = useState(null); // Tipo de modal a mostrar
   /*
    * Estos dos estados los tenemos que hacer para tener la info centralizada en un solo lugar para usarlos en toda la app,
    * lo que guaradamos en el secureStorage sirve para que una vez que se cierra la app no se pierda la info.
@@ -49,6 +51,18 @@ export const AuthProvider = ({ children }) => {
   //Función para actualizar el estado del onboarding
   const updateOnboardingStatus = (status) => {
     setOnboardingCompleted(status);
+  };
+
+  //Función para mostrar el modal con el tipo específico
+  const showModal = (type) => {
+    setModalType(type);
+    setModalVisible(true);
+  };
+
+  //Función para cerrar el modal
+  const hideModal = () => {
+    setModalVisible(false);
+    setModalType(null);
   };
 
   //Función que tiene el mapa de las banderas que se usan en la app en las que guardamos un objeto y no un simple valor
@@ -249,7 +263,6 @@ export const AuthProvider = ({ children }) => {
         email: email,
         password: password,
       });
-
       //Una vez que hemos recibido los tokens, guardamos el accessToken en el estado
       setAccessToken(response.data.accessToken);
       //Guardamos el refreshToken y el accessToken en la memoria segura para que cuando el user cierre la app y la vuelva a abrir, la app sepa el valor del token
@@ -261,8 +274,17 @@ export const AuthProvider = ({ children }) => {
       //Una vez que hemos logueado al user, recuperamos las banderas del user
       await getUserFlags();
     } catch (error) {
-      setError(error);
-      console.error("Error en el inicio de sesión: ", error);
+      if (error.response) {
+        if (error.response.status !== 403) {
+          setError(error);
+          console.error("Error en el inicio de sesión: ", error);
+        } else {
+          // Mostrar modal de error de login
+          showModal("loginError");
+        }
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -291,10 +313,19 @@ export const AuthProvider = ({ children }) => {
         password: user.password,
       });
       console.log("Usuario registrado correctamente: ", response.data);
+      // Mostrar modal de éxito
+      showModal("registrationSuccess");
+      return { success: true };
     } catch (error) {
-      //Si hay un error, lo guardamos en el estado de error
-      setError(error);
-      console.error("Error al registrar el usuario: ", error);
+      if (error.response) {
+        if (error.response.status !== 409) {
+          setError(error);
+          console.error("Error al registrar el usuario: ", error);
+        } else {
+          showModal("emailExists");
+        }
+      }
+      return { success: false, error };
     } finally {
       //Desactivamos el estado de carga una vez que la petición ha terminado
       setLoading(false);
@@ -361,6 +392,8 @@ export const AuthProvider = ({ children }) => {
         loading,
         error,
         isAuthLoading,
+        modalVisible,
+        modalType,
         setUserInfo,
         LoginRequest,
         logout,
@@ -368,6 +401,8 @@ export const AuthProvider = ({ children }) => {
         registerUser,
         getUser,
         updateOnboardingStatus,
+        showModal,
+        hideModal,
       }}
     >
       {children}
