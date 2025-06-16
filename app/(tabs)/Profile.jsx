@@ -402,13 +402,16 @@ const Profile = () => {
 
           {/* Logout Button */}
           <TouchableOpacity
-            className="bg-[#ff6b6b] py-4 rounded-xl items-center"
+            className="bg-[#ff4757] py-4 rounded-xl items-center"
             //Cuando presionemos el botón enseñaremos al user un pop-up de confirmación
             onPress={() => setshowModalLogOut(true)}
           >
-            <Text className="text-lg text-white font-psemibold">
-              Cerrar Sesión
-            </Text>
+            <View className="flex-row items-center gap-2">
+              <Feather name="log-out" color="white" size={20} />
+              <Text className="text-lg text-white font-psemibold">
+                Cerrar Sesión
+              </Text>
+            </View>
           </TouchableOpacity>
 
           {/* LogOut Modal */}
@@ -420,12 +423,28 @@ const Profile = () => {
 
           {/* Delete Account Button */}
           <TouchableOpacity
-            className="bg-[#ff6b6b] py-4 rounded-xl items-center"
+            className="items-center py-4 border-2 border-red-600 shadow-lg bg-gradient-to-r from-red-900 to-red-800 rounded-xl"
+            style={{
+              backgroundColor: "#e53935",
+              borderWidth: 2,
+              borderColor: "#dc2626",
+              shadowColor: "#ef4444",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.3,
+              shadowRadius: 8,
+              elevation: 8,
+            }}
             //Cuando presionemos el botón enseñaremos al user un pop-up de confirmación
             onPress={() => setshowModalDeleteAccount(true)}
           >
-            <Text className="text-lg text-white font-psemibold">
-              Eliminar Cuenta
+            <View className="flex-row items-center gap-2">
+              <Feather name="trash-2" color="#fef2f2" size={20} />
+              <Text className="text-lg tracking-wide text-red-50 font-pbold">
+                Eliminar Cuenta
+              </Text>
+            </View>
+            <Text className="mt-1 text-xs text-red-200 opacity-80">
+              Esta acción es irreversible
             </Text>
           </TouchableOpacity>
 

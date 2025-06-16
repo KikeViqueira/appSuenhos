@@ -168,7 +168,7 @@ const UserSleepVsRecommended = ({ sleepLogsDuration, userAge }) => {
           const sleepHours = formattedSleepData[index].hours;
           if (sleepHours >= recommendation.ideal) return "#15db44";
           if (sleepHours >= recommendation.min) return "#fbbf24";
-          return "#ff6b6b";
+          return "#ff4757";
         }}
         hidePointsAtIndex={[]}
         renderDotContent={() => null}
@@ -266,7 +266,7 @@ const UserSleepVsRecommended = ({ sleepLogsDuration, userAge }) => {
                 style={{
                   width: 12,
                   height: 12,
-                  backgroundColor: "#ff6b6b",
+                  backgroundColor: "#ff4757",
                   borderRadius: 6,
                   marginRight: 4,
                 }}
@@ -318,7 +318,7 @@ const UserSleepVsRecommended = ({ sleepLogsDuration, userAge }) => {
                             ? "#15db44"
                             : selectedPoint.hours >= recommendation.min
                             ? "#fbbf24"
-                            : "#ff6b6b",
+                            : "#ff4757",
                         borderRadius: 5,
                         marginRight: 6,
                       }}

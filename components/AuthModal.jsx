@@ -7,12 +7,12 @@ const AuthModal = ({ visible, onClose, type }) => {
   const modalConfig = {
     loginError: {
       icon: "exclamation-triangle",
-      iconColor: "#ff6b6b",
+      iconColor: "#ff4757",
       title: "Error de Inicio de Sesión",
       message:
         "El email o la contraseña son incorrectos. Por favor, verifica tus credenciales e inténtalo de nuevo.",
       buttonText: "Intentar de nuevo",
-      buttonColor: "#ff6b6b",
+      buttonColor: "#ff4757",
     },
     emailExists: {
       icon: "user-times",
@@ -27,12 +27,12 @@ const AuthModal = ({ visible, onClose, type }) => {
     },
     passwordMismatch: {
       icon: "lock",
-      iconColor: "#ff6b6b",
+      iconColor: "#ff4757",
       title: "Contraseñas no coinciden",
       message:
         "Las contraseñas ingresadas no coinciden. Por favor, verifica que ambas contraseñas sean idénticas.",
       buttonText: "Entendido",
-      buttonColor: "#ff6b6b",
+      buttonColor: "#ff4757",
     },
     registrationSuccess: {
       icon: "check-circle",

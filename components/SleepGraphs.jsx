@@ -242,7 +242,7 @@ const SleepGraphs = ({ userInfo, hasMadeSleepLog, sleepLogsDuration }) => {
                   {formatHours(sleepStats.averageSleep)}h
                 </Text>
                 {sleepStats.sleepDeficit > 0 ? (
-                  <Feather name="alert-triangle" size={16} color="#ff6b6b" />
+                  <Feather name="alert-triangle" size={16} color="#ff4757" />
                 ) : (
                   <Feather name="award" size={16} color="#4ade80" />
                 )}
@@ -287,7 +287,7 @@ const SleepGraphs = ({ userInfo, hasMadeSleepLog, sleepLogsDuration }) => {
                     ? "color-[#4ade80]"
                     : sleepStats.sleepQuality === "Regular"
                     ? "color-[#fbbf24]"
-                    : "color-[#ff6b6b]"
+                    : "color-[#ff4757]"
                 }`}
               >
                 {sleepStats.sleepQuality}

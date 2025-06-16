@@ -20,6 +20,8 @@ import { router } from "expo-router";
 import { getDailyReportFlag } from "../hooks/useDRM";
 import useDRM from "../hooks/useDRM";
 import { LinearGradient } from "expo-linear-gradient";
+import useNotifications from "../hooks/useNotifications";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const DRM = () => {
   const { saveDrmAnswers, loading, error } = useDRM();
@@ -29,6 +31,62 @@ const DRM = () => {
   const [reportButtonState, setReportButtonState] = useState("default"); //Controla el estado del botón a la hora de generar el informe
   //Estado para saber si tenemos que enseñar al user el contenido de que vuelva mañana a hacer el siguiente form cuando ha hecho el de hoy
   const [hasCompletedToday, setHasCompletedToday] = useState(false);
+
+  // Hook de notificaciones
+  const { scheduleNotificationWithId } = useNotifications();
+
+  // Función utilitaria para programar notificación de recordatorio de tip diario
+  const createDailyTipNotification = async () => {
+    try {
+      // Calcular el trigger: 2 horas después de la hora actual
+      const now = new Date();
+      const triggerTime = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+
+      // Obtener la medianoche del mismo día
+      const midnightToday = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        23,
+        59,
+        59,
+        999
+      );
+
+      // Verificar que el trigger no sea superior a las 12 de la noche del mismo día
+      if (triggerTime > midnightToday) {
+        console.log(
+          "⏰ No se programa notificación de tip: el horario excede las 12 de la noche"
+        );
+        return null;
+      }
+
+      const notificationData = {
+        content: {
+          title: "💡 ¡Crea tu tip personalizado!",
+          body: "Genera un consejo único basado en tu informe DRM. Solo disponible una vez al día. 🌟",
+        },
+        trigger: {
+          type: "date",
+          date: triggerTime,
+        },
+      };
+
+      const notificationId = await scheduleNotificationWithId(
+        "DailyTip",
+        notificationData
+      );
+
+      if (notificationId) {
+        console.log(
+          "🔔 Notificación de tip diario programada para:",
+          triggerTime
+        );
+      }
+    } catch (error) {
+      console.error("Error programando notificación de tip diario:", error);
+    }
+  };
 
   useEffect(() => {
     console.log("Respuestas del cuestionario actualmente: ", answers);
@@ -72,6 +130,14 @@ const DRM = () => {
       await saveDrmAnswers(answers);
       setReportButtonState("generated");
       setHasCompletedToday(true);
+
+      //tenemos que comprobar el valor de las notificaciones en el AsyncStorage
+      const notificationsEnabled = await AsyncStorage.getItem("notifications");
+      if (notificationsEnabled !== "false" && notificationsEnabled !== null) {
+        // Programar notificación de recordatorio para generar tip personalizado
+        await createDailyTipNotification();
+      }
+
       //Una vez que se ha generado el informe lo primero es borrar las respuestas para que no se queden guardadas
       setAnswers({});
     } catch (error) {

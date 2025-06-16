@@ -110,7 +110,7 @@ const ChangePasswordModal = ({
             </TouchableOpacity>
             <TouchableOpacity
               onPress={handleSubmit}
-              className="bg-[#ff6b6b] p-3 rounded-xl w-[45%]"
+              className="bg-[#ff4757] p-3 rounded-xl w-[45%]"
             >
               <Text className="font-semibold text-center text-white">
                 Confirmar

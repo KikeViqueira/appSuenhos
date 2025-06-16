@@ -47,6 +47,7 @@ export const AuthProvider = ({ children }) => {
   const [onboardingCompleted, setOnboardingCompleted] = useState(null); // Estado que guarda si el user ha completado el cuestionario de onboarding
   const [userInfo, setUserInfo] = useState(null); // Estado que guarda la info del user más actualizada que hay en la BD
   const [isAuthLoading, setIsAuthLoading] = useState(true); // Estado para controlar si la autenticación está en curso
+  const [isFlagsLoading, setIsFlagsLoading] = useState(false); // Estado para controlar si la sincronización de flags está en curso
 
   //Función para actualizar el estado del onboarding
   const updateOnboardingStatus = (status) => {
@@ -165,6 +166,7 @@ export const AuthProvider = ({ children }) => {
         flatFlags[key] !== null
       ) {
         groupedFlags[key] = flatFlags[key];
+        // Ya no seteamos el onboarding aquí, se settea antes en getUserFlags para mejor timing
       }
     }
 
@@ -287,6 +289,7 @@ export const AuthProvider = ({ children }) => {
   const getUserFlags = async () => {
     setError(null);
     setLoading(true);
+    setIsFlagsLoading(true); // Indicamos que estamos cargando flags
 
     try {
       //Comprobamos que se ha recuperado la info del secureStorage de manera correcta para poder hacer la petición
@@ -304,12 +307,29 @@ export const AuthProvider = ({ children }) => {
       );
 
       if (response.status === 200) {
-        await saveFlagsToCache(response.data);
+        console.log("Flags recibidas del servidor:", response.data);
 
-        // Después de sincronizar las flags, actualizamos el estado del onboarding
-        // con el valor real que viene del servidor
-        const updatedOnboardingStatus = await hasCompletedOnboarding();
-        setOnboardingCompleted(updatedOnboardingStatus);
+        // PRIMERO: Verificamos si tenemos la bandera de onboarding en la respuesta del servidor
+        const flatFlags = Object.values(response.data).reduce(
+          (acc, section) => {
+            return { ...acc, ...section };
+          },
+          {}
+        );
+
+        // Si tenemos la bandera de onboarding, la actualizamos INMEDIATAMENTE
+        if (flatFlags.hasOwnProperty("hasCompletedOnboarding")) {
+          const onboardingFromServer =
+            flatFlags.hasCompletedOnboarding === "true";
+          console.log(
+            "🔄 Actualizando onboarding desde servidor:",
+            onboardingFromServer
+          );
+          setOnboardingCompleted(onboardingFromServer);
+        }
+
+        // DESPUÉS: Guardamos todas las flags en cache
+        await saveFlagsToCache(response.data);
       }
       console.log("Banderas recuperadas del user: ", response.data);
     } catch (error) {
@@ -319,6 +339,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       //Desactivamos el estado de carga una vez que la petición ha terminado
       setLoading(false);
+      setIsFlagsLoading(false); // Indicamos que terminó la carga de flags
     }
   };
 
@@ -484,6 +505,7 @@ export const AuthProvider = ({ children }) => {
         loading,
         error,
         isAuthLoading,
+        isFlagsLoading,
         modalVisible,
         modalType,
         setUserInfo,

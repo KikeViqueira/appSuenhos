@@ -60,13 +60,16 @@ const signIn = () => {
       console.log("onboardingCompleted: ", onboardingCompleted);
       console.log("accessToken: ", accessToken);
 
-      if (onboardingCompleted) {
-        router.replace("/Stats"); // Si ya completó onboarding, vamos a la pantalla principal
-        console.log("Redirigiendo a Stats - Onboarding completado");
-      } else {
-        router.replace("/(Onboarding)/Onboarding"); // Sino, vamos al onboarding
-        console.log("Redirigiendo a Onboarding - Onboarding pendiente");
-      }
+      // Pequeño delay para asegurar que todos los estados estén sincronizados
+      setTimeout(() => {
+        if (onboardingCompleted) {
+          router.replace("/Stats"); // Si ya completó onboarding, vamos a la pantalla principal
+          console.log("Redirigiendo a Stats - Onboarding completado");
+        } else {
+          router.replace("/(Onboarding)/Onboarding"); // Sino, vamos al onboarding
+          console.log("Redirigiendo a Onboarding - Onboarding pendiente");
+        }
+      }, 100); // Delay mínimo para evitar condiciones de carrera
     }
   }, [accessToken, onboardingCompleted]);
 

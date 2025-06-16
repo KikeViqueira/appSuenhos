@@ -302,7 +302,7 @@ const Tips = () => {
               onPress={handleDeletePress}
               className="bg-[#1e273a] p-2 rounded-full"
             >
-              <Feather name="trash-2" color="#ff6b6b" size={24} />
+              <Feather name="trash-2" color="#ff4757" size={24} />
             </TouchableOpacity>
           )}
         </View>
@@ -326,8 +326,8 @@ const Tips = () => {
           >
             <View className="flex-row items-center justify-between bg-[#1e273a] p-3 rounded-xl border border-[#323d4f]">
               <View className="flex-row items-center">
-                <View className="bg-[#ff6b6b]/10 p-2 rounded-full mr-3">
-                  <Feather name="alert-circle" color="#ff6b6b" size={20} />
+                <View className="bg-[#ff4757]/10 p-2 rounded-full mr-3">
+                  <Feather name="alert-circle" color="#ff4757" size={20} />
                 </View>
                 <Text className="text-base text-white">
                   {selectedTips.length}{" "}
@@ -346,7 +346,7 @@ const Tips = () => {
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={confirmDeletion}
-                  className="bg-[#ff6b6b] p-2 rounded-lg"
+                  className="bg-[#ff4757] p-2 rounded-lg"
                   disabled={selectedTips.length === 0}
                   style={{ opacity: selectedTips.length === 0 ? 0.5 : 1 }}
                 >

@@ -508,7 +508,7 @@ const Music = () => {
               className={`p-2 rounded-full ${
                 deletingSoundId === item.id
                   ? "bg-gray-500/20"
-                  : "bg-[#ff6b6b]/20"
+                  : "bg-[#ff4757]/20"
               }`}
               onPress={() => handleDeleteSound(item.id)}
               disabled={deletingSoundId === item.id}
@@ -516,7 +516,7 @@ const Music = () => {
               {deletingSoundId === item.id ? (
                 <ActivityIndicator size="small" color="#9ca3af" />
               ) : (
-                <Feather name="trash-2" color="#ff6b6b" size={20} />
+                <Feather name="trash-2" color="#ff4757" size={20} />
               )}
             </TouchableOpacity>
           )}
@@ -723,7 +723,7 @@ const Music = () => {
       <View className="w-[95%] self-center">
         <TouchableOpacity
           className={`${
-            userSounds.length >= maxSounds ? "bg-[#ff6b6b]" : "bg-[#6366ff]"
+            userSounds.length >= maxSounds ? "bg-[#ff4757]" : "bg-[#6366ff]"
           } w-full self-center flex p-6 gap-4 rounded-3xl border border-[#323d4f]`}
           onPress={uploadSound}
         >
@@ -782,9 +782,9 @@ const Music = () => {
               {timerActive && (
                 <TouchableOpacity
                   onPress={cancelTimer}
-                  className="bg-[#ff6b6b]/20 p-2 rounded-full"
+                  className="bg-[#ff4757]/20 p-2 rounded-full"
                 >
-                  <FontAwesome name="times" color="#ff6b6b" size={18} />
+                  <FontAwesome name="times" color="#ff4757" size={18} />
                 </TouchableOpacity>
               )}
             </View>
@@ -819,7 +819,7 @@ const Music = () => {
         {userSounds.length > 0 && (
           <View className="mb-6">
             <View className="flex-row items-center mt-2 mb-4 ml-4">
-              <View className="w-1 h-5 bg-[#ff6b6b] rounded-full mr-2" />
+              <View className="w-1 h-5 bg-[#ff4757] rounded-full mr-2" />
               <Text
                 className="font-bold text-white text-start"
                 style={{ fontSize: 18 }}
@@ -868,19 +868,19 @@ const Music = () => {
           <View className="w-[80%] bg-[#1e2a47] p-8 rounded-2xl items-center">
             <View
               className={`w-16 h-16 rounded-full items-center justify-center mb-4 ${
-                loadingType === "upload" ? "bg-[#6366ff]/20" : "bg-[#ff6b6b]/20"
+                loadingType === "upload" ? "bg-[#6366ff]/20" : "bg-[#ff4757]/20"
               }`}
             >
               {loadingType === "upload" ? (
                 <Feather name="upload" color="#6366ff" size={28} />
               ) : (
-                <Feather name="trash-2" color="#ff6b6b" size={28} />
+                <Feather name="trash-2" color="#ff4757" size={28} />
               )}
             </View>
 
             <ActivityIndicator
               size="large"
-              color={loadingType === "upload" ? "#6366ff" : "#ff6b6b"}
+              color={loadingType === "upload" ? "#6366ff" : "#ff4757"}
               className="mb-4"
             />
 
@@ -898,7 +898,7 @@ const Music = () => {
             <View className="w-full h-2 bg-[#323d4f] rounded-full mt-4 overflow-hidden">
               <Animated.View
                 className={`h-full rounded-full ${
-                  loadingType === "upload" ? "bg-[#6366ff]" : "bg-[#ff6b6b]"
+                  loadingType === "upload" ? "bg-[#6366ff]" : "bg-[#ff4757]"
                 }`}
                 style={{
                   width: "30%",

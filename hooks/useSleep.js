@@ -1,4 +1,4 @@
-import { useEffect, useState, Alert } from "react";
+import { useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { apiClient } from "../services/apiClient";
 import { API_BASE_URL } from "../config/config";
@@ -119,14 +119,29 @@ export default function useSleep() {
         };
       }
     } catch (error) {
-      console.error("Error al crear el registro matutino de sueño: ", error);
-      setError(error);
-
-      // Devolver resultado de fallo
-      return {
-        success: false,
-        error: error.message || "Error desconocido",
-      };
+      if (error.response) {
+        if (error.response.status === 409) {
+          // Error 409: Conflicto - ya existe un registro para este día
+          return {
+            success: false,
+            errorType: "DUPLICATE_ENTRY",
+            error: "Ya existe un registro de sueño para este día",
+            statusCode: 409,
+          };
+        } else {
+          console.error(
+            "Error al crear el registro matutino de sueño: ",
+            error
+          );
+          setError(error);
+          return {
+            success: false,
+            errorType: "API_ERROR",
+            error: error.message || "Error del servidor",
+            statusCode: error.response.status,
+          };
+        }
+      }
     } finally {
       setLoading(false);
     }

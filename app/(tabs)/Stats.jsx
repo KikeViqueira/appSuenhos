@@ -19,11 +19,11 @@ import SleepLogResponses from "../../components/SleepLogResponses";
 import SleepGraphs from "../../components/SleepGraphs";
 import FitbitUserGraphs from "../../components/FitbitUserGraphs";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as Notifications from "expo-notifications";
 import { router } from "expo-router";
 import useSleep from "../../hooks/useSleep";
 import { useAuthContext } from "../../context/AuthContext";
 import useFlags from "../../hooks/useFlags";
+import useNotifications from "../../hooks/useNotifications";
 import { useLocalSearchParams } from "expo-router";
 
 /**
@@ -103,32 +103,44 @@ const formatSleepStartTime = (sleepStartTime) => {
   }
 };
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
-
-//Función para mandar una notificación cuando hayan pasado 8 horas desde que el user se haya ido a dormir
-const sendNotificationWakeUp = async () => {
+// Función utilitaria para programar notificación de despertar
+const createNotification = async (scheduleNotificationWithId, type) => {
   // Calculamos 8 horas después de la hora actual
-  const trigger = new Date(new Date().getTime() + 8 * 60 * 60 * 1000);
+  if (type === "WakeUpReminder") {
+    const trigger = new Date(new Date().getTime() + 8 * 60 * 60 * 1000);
+  } else if (type === "SleepLogNearEnd") {
+    //Se programa una notificación que se va a disparar pasadas 20 horas desde que el user se ha ido a dormir
+    const trigger = new Date(new Date().getTime() + 20 * 60 * 60 * 1000);
+  }
+
   try {
-    await Notifications.scheduleNotificationAsync({
+    const notificationData = {
       content: {
-        title: "¿Pilas recargadas?",
-        body: "No olvides registrar tu hora de despertar para calcular tu sueño.",
+        title:
+          type === "WakeUpReminder"
+            ? "¿Pilas recargadas? 🔋"
+            : "¡No lo dejes para el final! 💪",
+        body:
+          type === "WakeUpReminder"
+            ? "No olvides registrar tu hora de despertar para calcular tu sueño. 💤"
+            : "Quedan 4 horas para rellenar el cuestionario de hoy y obtener resultados. 🔥",
       },
       trigger: {
         type: "date",
         date: trigger,
       },
-    });
-    console.log("Notification scheduled for wake up: ", trigger);
+    };
+
+    const notificationId = await scheduleNotificationWithId(
+      type,
+      notificationData
+    );
+
+    if (notificationId) {
+      console.log("Notification scheduled for wake up: ", trigger);
+    }
   } catch (error) {
-    alert("La notificación no pudo ser programada");
+    console.error("Error programando notificación de despertar:", error);
   }
 };
 
@@ -214,6 +226,10 @@ const Estadisticas = () => {
 
   //llamamos a las funciones que interacionan con los endpoints relacionados con las banderas diarias del user
   const { insertDailyFlag, deleteDailyFlag } = useFlags();
+
+  // Hook de notificaciones
+  const { cancelNotificationById, scheduleNotificationWithId } =
+    useNotifications();
 
   const {
     createSleepLog,
@@ -311,8 +327,17 @@ const Estadisticas = () => {
         const notificationsEnabled = await AsyncStorage.getItem(
           "notifications"
         );
-        if (notificationsEnabled) {
-          sendNotificationWakeUp();
+        if (notificationsEnabled !== "false" && notificationsEnabled !== null) {
+          //llamamos a la función para programar la notificación de despertar pasando por argumentos la función scheduleNotificationWithId del hook de notificaciones
+          await createNotification(
+            scheduleNotificationWithId,
+            "WakeUpReminder"
+          );
+          //llamamos a la función para programar la notificación de recordatorio para decirle al user que se le acaba el tiempo de hacer el cuestionario de hoy
+          await createNotification(
+            scheduleNotificationWithId,
+            "SleepLogNearEnd"
+          );
         }
 
         // Actualizamos el estado después de que se haya guardado la hora
@@ -342,8 +367,9 @@ const Estadisticas = () => {
               //Reiniciamos el valor de la bandera y la eliminamos de la BD
               await deleteDailyFlag("sleepStart");
               setTimeout(() => setIsSleeping(false), 0);
-              //eliminamos la notificación de recordatorio de despertar
-              await Notifications.cancelAllScheduledNotificationsAsync();
+              //eliminamos las notificaciones de recordatorio de despertar y de recordatorio para decirle al user que se le acaba el tiempo de hacer el cuestionario de hoy
+              cancelNotificationById("WakeUpReminder");
+              cancelNotificationById("SleepLogNearEnd");
               //Borramos la hora de inicio de sueño si el user decide reiniciar el registro
               await AsyncStorage.removeItem("sleepStart");
               setSleepStartDisplay(null);
@@ -427,7 +453,9 @@ const Estadisticas = () => {
 
             await AsyncStorage.removeItem("sleepStart");
 
-            await Notifications.cancelAllScheduledNotificationsAsync();
+            // cancelamos las notificaciones que habían sido programadas
+            cancelNotificationById("WakeUpReminder");
+            cancelNotificationById("SleepLogNearEnd");
 
             setIsSleeping(false);
             setHasDailySleepLog(true);
@@ -435,24 +463,45 @@ const Estadisticas = () => {
 
             await getSleepLogEndpoint("7");
           } else {
-            // Si la API devuelve un resultado no exitoso, mostrar el error específico
-            const errorMessage =
-              result?.error || "Error desconocido del servidor";
+            // Manejar específicamente el caso de entrada duplicada
+            if (result?.errorType === "DUPLICATE_ENTRY") {
+              let alertMessage =
+                "Ya existe un registro de sueño para este día.\n\n Asegúrate de que la fecha de despertar no coincide con la fecha de hoy.\n\n ¿Quieres modificar tus respuestas y volver a intentarlo?";
 
-            Alert.alert(
-              "Error al guardar",
-              `No se pudo guardar tu registro: ${errorMessage}`,
-              [
-                {
-                  text: "Reintentar",
-                  onPress: () => saveResponse(wakeUpFormResponse),
-                },
+              Alert.alert("Registro duplicado", alertMessage, [
                 { text: "Cancelar", style: "cancel" },
-              ]
-            );
+                {
+                  text: "Sí, modificar",
+                  onPress: () => {
+                    // Mantener el modal abierto para que pueda modificar las respuestas
+                    console.log("Usuario eligió modificar las respuestas");
+                    // El modal permanece abierto automáticamente
+                  },
+                },
+              ]);
 
-            // No ejecutar operaciones de limpieza si falla la API
-            return;
+              // No ejecutar operaciones de limpieza para permitir modificación
+              return;
+            } else {
+              // Otros tipos de error de la API
+              const errorMessage =
+                result?.error || "Error desconocido del servidor";
+
+              Alert.alert(
+                "Error al guardar",
+                `No se pudo guardar tu registro: ${errorMessage}`,
+                [
+                  {
+                    text: "Reintentar",
+                    onPress: () => saveResponse(wakeUpFormResponse),
+                  },
+                  { text: "Cancelar", style: "cancel" },
+                ]
+              );
+
+              // No ejecutar operaciones de limpieza si falla la API
+              return;
+            }
           }
         } catch (apiError) {
           Alert.alert(

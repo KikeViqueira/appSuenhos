@@ -38,8 +38,8 @@ const DisableNotificationsModal = ({
         <View className="w-[85%] bg-[#1e2a47] rounded-2xl p-6">
           {/* Header con icono */}
           <View className="items-center mb-4">
-            <View className="bg-[#ff6b6b]/10 p-4 rounded-full mb-3">
-              <Feather name="bell-off" size={32} color="#ff6b6b" />
+            <View className="bg-[#ff4757]/10 p-4 rounded-full mb-3">
+              <Feather name="bell-off" size={32} color="#ff4757" />
             </View>
             <Text className="text-xl font-bold text-center text-white">
               Desactivar Notificaciones
@@ -54,9 +54,9 @@ const DisableNotificationsModal = ({
 
             <View className="bg-[#323d4f]/30 p-4 rounded-xl mb-4">
               <View className="flex-row items-start gap-3">
-                <Feather name="alert-triangle" size={20} color="#ff6b6b" />
+                <Feather name="alert-triangle" size={20} color="#ff4757" />
                 <View className="flex-1">
-                  <Text className="text-sm font-medium text-[#ff6b6b] mb-1">
+                  <Text className="text-sm font-medium text-[#ff4757] mb-1">
                     Importante:
                   </Text>
                   <Text className="text-sm text-[#8a94a6]">
@@ -88,7 +88,7 @@ const DisableNotificationsModal = ({
             </TouchableOpacity>
 
             <TouchableOpacity
-              className="bg-[#ff6b6b] p-3 rounded-xl w-[45%]"
+              className="bg-[#ff4757] p-3 rounded-xl w-[45%]"
               onPress={handleConfirmDisable}
               disabled={isProcessing}
             >

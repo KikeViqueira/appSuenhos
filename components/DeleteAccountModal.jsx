@@ -20,7 +20,7 @@ const DeleteAccountModal = ({ visible, setModalVisible, deleteAccount }) => {
         <View className="bg-[#1e2a47] rounded-2xl p-6 w-[85%] max-w-[400px]">
           {/* Header con icono triste */}
           <View className="items-center mb-4">
-            <View className="bg-[#ff6b6b]/10 p-4 rounded-full mb-3">
+            <View className="bg-[#ff4757]/10 p-4 rounded-full mb-3">
               <Text style={{ fontSize: 32 }}>😢</Text>
             </View>
             <Text className="text-xl font-bold text-center text-white">
@@ -36,9 +36,9 @@ const DeleteAccountModal = ({ visible, setModalVisible, deleteAccount }) => {
 
             <View className="bg-[#323d4f]/30 p-4 rounded-xl mb-4">
               <View className="flex-row items-start gap-3 mb-3">
-                <Feather name="alert-triangle" size={20} color="#ff6b6b" />
+                <Feather name="alert-triangle" size={20} color="#ff4757" />
                 <View className="flex-1">
-                  <Text className="text-sm font-medium text-[#ff6b6b] mb-1">
+                  <Text className="text-sm font-medium text-[#ff4757] mb-1">
                     Eliminación Permanente:
                   </Text>
                   <Text className="text-sm text-gray-400">
@@ -72,7 +72,7 @@ const DeleteAccountModal = ({ visible, setModalVisible, deleteAccount }) => {
             </TouchableOpacity>
 
             <TouchableOpacity
-              className="flex-1 bg-[#ff6b6b] py-3 rounded-xl"
+              className="flex-1 bg-[#ff4757] py-3 rounded-xl"
               onPress={handleDeleteAccount}
             >
               <Text className="font-medium text-center text-white">

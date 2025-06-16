@@ -15,13 +15,13 @@ const LogOutModal = ({ visible, setModalVisible, logOut }) => {
       visible={visible}
       onRequestClose={() => setModalVisible(false)}
     >
-      <View className="flex-1 justify-center items-center bg-black/50">
+      <View className="items-center justify-center flex-1 bg-black/50">
         <View className="bg-[#1e2a47] p-6 rounded-xl w-[85%] max-w-[500px] flex-col gap-6">
           <Text className="text-lg font-bold text-center color-white">
             ¿Estás seguro de que quieres cerrar sesión?
           </Text>
 
-          <View className="flex-row gap-4 justify-between items-center">
+          <View className="flex-row items-center justify-between gap-4">
             <TouchableOpacity
               onPress={() => setModalVisible(false)}
               className="bg-[#6366ff] p-3 rounded-xl w-[45%]"
@@ -31,7 +31,7 @@ const LogOutModal = ({ visible, setModalVisible, logOut }) => {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              className="bg-[#ff6b6b] p-3 rounded-xl w-[45%]"
+              className="bg-[#ff4757] p-3 rounded-xl w-[45%]"
               onPress={closeLogOutModal}
             >
               <Text className="text-center text-white font-psemibold">

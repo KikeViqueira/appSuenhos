@@ -17,6 +17,8 @@ import * as Sharing from "expo-sharing";
 import useTips from "../hooks/useTips";
 import { getDailyTipFlag } from "../hooks/useTips";
 import { LinearGradient } from "expo-linear-gradient";
+import useNotifications from "../hooks/useNotifications";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const DrmReport = () => {
   const { getDrmToday, drmToday } = useDRM();
@@ -29,6 +31,10 @@ const DrmReport = () => {
 
   //Recuperamos la info del user ya que necesitamos su nombre para poner en el informe que el user va a descargar
   const { userInfo } = useAuthContext();
+
+  // Hook de notificaciones
+  const { cancelNotificationById, scheduleNotificationWithId } =
+    useNotifications();
 
   // Función para detectar si estamos al final del scroll
   const handleScroll = (event) => {
@@ -74,6 +80,10 @@ const DrmReport = () => {
       //Tenemos que comprobar si se ha producido un error al generar el tip, si es asi volvemos al estado inicial dando feedback al user de que está pasando, si no da se crea correctamente el tip
       if (!error) {
         setTipButtonState("generated");
+
+        // Cancelar la notificación de recordatorio ya que el usuario generó el tip
+        cancelNotificationById("DailyTip");
+
         // Mostrar mensaje al usuario
         Alert.alert(
           "Tip generado",

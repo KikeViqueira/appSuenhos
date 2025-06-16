@@ -16,11 +16,11 @@ const TipItem = ({
     <View
       //Si el tip se ha marcado para ser eliminado cambiamos el color de su borde a rojo
       className={`bg-[#1e273a] w-full p-6 gap-4 rounded-lg border ${
-        isSelected ? " border-[#ff6b6b]" : " border-[#323d4f]"
+        isSelected ? " border-[#ff4757]" : " border-[#323d4f]"
       } `}
     >
-      <View className="flex-row justify-between items-center">
-        <View className="flex-row flex-1 gap-6 items-center">
+      <View className="flex-row items-center justify-between">
+        <View className="flex-row items-center flex-1 gap-6">
           {/*Gap que equivale a los mismos px del p del contenedor asi tenemos el icono centrado y bien distanciado */}
           <View className={`justify-center items-center`}>
             <IconParameter color={color} size={20} />
@@ -35,11 +35,11 @@ const TipItem = ({
         {isSelectionMode && (
           <View
             className={`p-2 rounded-full ${
-              isSelected ? "bg-[#ff6b6b]/20" : "bg-white/5"
+              isSelected ? "bg-[#ff4757]/20" : "bg-white/5"
             }`}
           >
             {isSelected ? (
-              <Feather name="check-square" color="#ff6b6b" size={24} />
+              <Feather name="check-square" color="#ff4757" size={24} />
             ) : (
               <Feather name="square" color="white" size={24} />
             )}

@@ -138,7 +138,7 @@ const SleepLogResponses = ({ isVisible, onClose, sleepLog }) => {
                 {/* Wake up time - Enhanced card */}
                 <View className="mb-4 overflow-hidden bg-[#1e2a47] rounded-xl shadow-lg">
                   <View className="flex-row">
-                    <View className="w-2 h-full bg-[#ff6b6b]" />
+                    <View className="w-2 h-full bg-[#ff4757]" />
                     <View className="flex-1 p-5">
                       <View className="flex-row items-center gap-2 mb-3">
                         <Feather name="clock" size={22} color="#6366ff" />

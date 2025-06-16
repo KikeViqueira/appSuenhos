@@ -8,19 +8,19 @@ const ChatItem = ({ item, isSelectionMode, isSelected }) => {
   return (
     <View
       className={`w-full rounded-xl border ${
-        isSelected ? "border-[#ff6b6b]" : "border-[#323d4f]"
+        isSelected ? "border-[#ff4757]" : "border-[#323d4f]"
       }`}
     >
-      <View className="flex-row justify-between items-center p-5">
-        <View className="flex-row flex-1 items-center">
+      <View className="flex-row items-center justify-between p-5">
+        <View className="flex-row items-center flex-1">
           <View
             className={`w-10 h-10 rounded-full mr-3 items-center justify-center ${
-              isSelected ? "bg-[#ff6b6b]/20" : "bg-[#6366ff]/20"
+              isSelected ? "bg-[#ff4757]/20" : "bg-[#6366ff]/20"
             }`}
           >
             <Feather
               name="message-square"
-              color={isSelected ? "#ff6b6b" : "#6366ff"}
+              color={isSelected ? "#ff4757" : "#6366ff"}
               size={20}
             />
           </View>
@@ -29,7 +29,7 @@ const ChatItem = ({ item, isSelectionMode, isSelected }) => {
               {item.name}
             </Text>
             <Text
-              className={`${isSelected ? "text-[#ff6b6b]" : "text-[#6366ff]"}`}
+              className={`${isSelected ? "text-[#ff4757]" : "text-[#6366ff]"}`}
             >
               {item.date}
             </Text>
@@ -40,11 +40,11 @@ const ChatItem = ({ item, isSelectionMode, isSelected }) => {
         {isSelectionMode && (
           <View
             className={`p-2 rounded-full ${
-              isSelected ? "bg-[#ff6b6b]/20" : "bg-white/5"
+              isSelected ? "bg-[#ff4757]/20" : "bg-white/5"
             }`}
           >
             {isSelected ? (
-              <Feather name="check-square" color="#ff6b6b" size={24} />
+              <Feather name="check-square" color="#ff4757" size={24} />
             ) : (
               <Feather name="square" color="white" size={24} />
             )}
