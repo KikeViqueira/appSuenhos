@@ -423,29 +423,29 @@ const Profile = () => {
 
           {/* Delete Account Button */}
           <TouchableOpacity
-            className="items-center py-4 border-2 border-red-600 shadow-lg bg-gradient-to-r from-red-900 to-red-800 rounded-xl"
+            className="flex-row items-center bg-[#ff4757]/10 p-4 rounded-2xl border border-[#ff4757]/20 shadow-lg"
             style={{
-              backgroundColor: "#e53935",
-              borderWidth: 2,
-              borderColor: "#dc2626",
-              shadowColor: "#ef4444",
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.3,
+              shadowColor: "#ff4757",
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.2,
               shadowRadius: 8,
-              elevation: 8,
+              elevation: 3,
             }}
             //Cuando presionemos el botón enseñaremos al user un pop-up de confirmación
             onPress={() => setshowModalDeleteAccount(true)}
           >
-            <View className="flex-row items-center gap-2">
-              <Feather name="trash-2" color="#fef2f2" size={20} />
-              <Text className="text-lg tracking-wide text-red-50 font-pbold">
+            <View className="bg-[#ff4757]/10 p-3 rounded-xl mr-4">
+              <Feather name="trash-2" size={24} color="#ff4757" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-lg font-bold text-white">
                 Eliminar Cuenta
               </Text>
+              <Text className="text-sm text-white/70">
+                Esta acción es irreversible
+              </Text>
             </View>
-            <Text className="mt-1 text-xs text-red-200 opacity-80">
-              Esta acción es irreversible
-            </Text>
+            <Feather name="chevron-right" size={20} color="#ff4757" />
           </TouchableOpacity>
 
           {/* Delete Account Modal */}

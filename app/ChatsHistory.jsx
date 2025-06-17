@@ -244,9 +244,11 @@ const ChatsHistory = () => {
     }
   };
 
-  //Función que se encargará de poner el modo de múltiple selección activado para su uso y ocultar los chtas que se han filtrado en caso de que el user haya hecho una búsqueda
+  //Función que se encargará de poner el modo de múltiple selección activado para su uso y ocultar los chtas que se han filtrado en caso de que el user haya hecho una búsqueda, además tenemos que reiniciar el estado de búsqueda para no estar en estados inconsistentes
   const handleDeletePress = () => {
     setIsSelectionMode(true);
+    setFilteredChats([]);
+    setHasSearched(false);
   };
 
   //Función que se encarga de cancelar la eliminación múltiple y volver al estado por default
@@ -461,8 +463,9 @@ const ChatsHistory = () => {
           paddingBottom: 20,
         }}
       >
-        {history.length > 0 && (
-          <View className="w-[90%] self-center bg-[#1e2a47] p-4 rounded-xl mb-4">
+        {/*En caso de que esté el modo eliminación activado no dejamos hacer la búsqueda*/}
+        {history.length > 0 && !isSelectionMode && (
+          <View className="w-[90%] self-center bg-[#1e2a47] border-[#323d4f] p-4 rounded-xl mb-4">
             <Text className="mb-3 text-lg font-semibold text-white">
               Buscar chats por rango de fechas
             </Text>
@@ -632,6 +635,7 @@ const ChatsHistory = () => {
                     isSelected={selectedChats.some(
                       (chat) => chat.id === item.id
                     )}
+                    isFiltered={true}
                   />
                 </TouchableOpacity>
               )}
@@ -676,7 +680,7 @@ const ChatsHistory = () => {
               {!isSelectionMode && (
                 <TouchableOpacity
                   onPress={handleDeletePress}
-                  className="bg-[#1e273a] p-2 rounded-full"
+                  className="bg-[#ff4757]/10 p-3 rounded-full border border-[#ff4757]/20"
                 >
                   <Feather name="trash-2" color="#ff4757" size={24} />
                 </TouchableOpacity>
@@ -695,6 +699,7 @@ const ChatsHistory = () => {
                     isSelected={selectedChats.some(
                       (chat) => chat.id === item.id
                     )}
+                    isFiltered={false}
                   />
                 </TouchableOpacity>
               )}

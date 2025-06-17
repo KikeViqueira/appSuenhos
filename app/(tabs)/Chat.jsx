@@ -284,13 +284,49 @@ const Chat = () => {
             // Pantalla de bienvenida si no hay mensajes en el caso de que se abra el teclado y el user quiera cerrarlo tenemos que englobar esta vista en un Pressable para que se cierre el teclado
             <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
               <View className="items-center justify-center flex-1 android:px-6">
-                <View className="items-center justify-center flex-1">
+                {/* Esquina superior izquierda */}
+                <View
+                  className="absolute w-16 h-16 bg-[#6366ff]/15 rounded-full"
+                  style={{ top: 30, left: 20 }}
+                />
+
+                {/* Esquina superior derecha */}
+                <View
+                  className="absolute w-12 h-12 bg-[#6366ff]/5 rounded-full"
+                  style={{ top: 50, right: 24 }}
+                />
+
+                {/* Centro izquierda */}
+                <View
+                  className="absolute w-10 h-10 bg-[#6366ff]/5 rounded-full"
+                  style={{ top: "45%", left: 16 }}
+                />
+
+                {/* Centro derecha */}
+                <View
+                  className="absolute w-14 h-14 bg-[#6366ff]/15 rounded-full"
+                  style={{ top: "55%", right: 20 }}
+                />
+
+                {/* Esquina inferior izquierda */}
+                <View
+                  className="absolute w-8 h-8 bg-[#6366ff]/15 rounded-full"
+                  style={{ bottom: 100, left: 24 }}
+                />
+
+                {/* Esquina inferior derecha */}
+                <View
+                  className="absolute w-20 h-20 bg-[#6366ff]/5 rounded-full"
+                  style={{ bottom: 80, right: 28 }}
+                />
+
+                <View className="items-center justify-center flex-1 gap-3">
                   <Text className="text-center text-[#6366ff] text-3xl font-bold mb-2">
-                    Hola, {userInfo?.name || "User"}!
+                    ¡Hola, {userInfo?.name || "User"}!
                   </Text>
-                  <Text className="text-lg italic text-center text-white">
-                    ¿Coméntame sobre tu sueño de hoy y te ayudaré a
-                    comprenderlo?
+                  <Text className="px-4 text-lg italic text-center text-white">
+                    Cuéntame sobre tu sueño de anoche y te ayudaré a
+                    comprenderlo
                   </Text>
                 </View>
               </View>

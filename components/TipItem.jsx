@@ -22,12 +22,17 @@ const TipItem = ({
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center flex-1 gap-6">
           {/*Gap que equivale a los mismos px del p del contenedor asi tenemos el icono centrado y bien distanciado */}
-          <View className={`justify-center items-center`}>
-            <IconParameter color={color} size={20} />
+          <View
+            className="items-center justify-center p-3 rounded-full"
+            style={{ backgroundColor: `${color || "#6366ff"}20` }}
+          >
+            <IconParameter color={color || "#6366ff"} size={24} />
           </View>
           <View className="flex-1">
             <Text className="mb-1 text-xl font-bold text-white">{title}</Text>
             <Text className="text-base text-gray-300">{description}</Text>
+            {/* Línea decorativa debajo de la descripción */}
+            <View className="mt-3 h-px bg-[#323d4f] w-16" />
           </View>
         </View>
 

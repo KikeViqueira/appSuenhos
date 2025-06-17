@@ -105,12 +105,14 @@ const formatSleepStartTime = (sleepStartTime) => {
 
 // Función utilitaria para programar notificación de despertar
 const createNotification = async (scheduleNotificationWithId, type) => {
+  //hacemos la variable de trigger con tipo let para que dentro de los ifs se pueda reasignar el valor de la variable
+  let trigger;
   // Calculamos 8 horas después de la hora actual
   if (type === "WakeUpReminder") {
-    const trigger = new Date(new Date().getTime() + 8 * 60 * 60 * 1000);
+    trigger = new Date(new Date().getTime() + 8 * 60 * 60 * 1000);
   } else if (type === "SleepLogNearEnd") {
     //Se programa una notificación que se va a disparar pasadas 20 horas desde que el user se ha ido a dormir
-    const trigger = new Date(new Date().getTime() + 20 * 60 * 60 * 1000);
+    trigger = new Date(new Date().getTime() + 20 * 60 * 60 * 1000);
   }
 
   try {

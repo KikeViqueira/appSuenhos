@@ -300,7 +300,7 @@ const Tips = () => {
           {!isSelectionMode && tips.length > 0 && (
             <TouchableOpacity
               onPress={handleDeletePress}
-              className="bg-[#1e273a] p-2 rounded-full"
+              className="bg-[#ff4757]/10 p-3 rounded-full border border-[#ff4757]/20"
             >
               <Feather name="trash-2" color="#ff4757" size={24} />
             </TouchableOpacity>
