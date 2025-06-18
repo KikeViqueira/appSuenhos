@@ -17,6 +17,11 @@
       "bundleIdentifier": "com.kike.tfg",
       "statusBar": {
         "style": "light"
+      },
+      "infoPlist": {
+        "NSCameraUsageDescription": "ZzzTime necesita acceso a la cámara para que puedas tomar tu foto de perfil.",
+        "NSPhotoLibraryUsageDescription": "ZzzTime necesita acceso a tu galería de fotos para que puedas personalizar tu foto de perfil.",
+        "NSUserNotificationsUsageDescription": "ZzzTime te enviará recordatorios personalizados para mejorar tu rutina de sueño y bienestar."
       }
     },
     "android": {
@@ -24,7 +29,17 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.kike.tfg"
+      "package": "com.kike.tfg",
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SCHEDULE_EXACT_ALARM",
+        "android.permission.RECEIVE_BOOT_COMPLETED",
+        "android.permission.WAKE_LOCK",
+        "android.permission.VIBRATE"
+      ],
+      "notificationIcon": "./assets/images/Logo.png"
     },
     "web": {
       "bundler": "metro",
@@ -34,7 +49,23 @@
     "plugins": [
       "expo-router",
       "expo-font",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "ZzzTime necesita acceso a tus fotos para permitirte personalizar tu foto de perfil.",
+          "cameraPermission": "ZzzTime necesita acceso a la cámara para tomar tu foto de perfil."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/Logo.png",
+          "color": "#6366ff",
+          "sounds": ["./assets/sounds/notification.wav"],
+          "mode": "production"
+        }
+      ]
     ],
     "experiments": {
       "newArchEnabled": true,

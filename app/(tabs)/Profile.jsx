@@ -107,15 +107,25 @@ const Profile = () => {
 
     if (mode === "gallery") {
       try {
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
+        const permissionResult =
+          await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+        if (permissionResult.granted === false) {
+          Alert.alert(
+            "Permisos requeridos",
+            "ZzzTime necesita acceso a tu galería de fotos para cambiar tu foto de perfil."
+          );
+          return;
+        }
+
         result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ["image/*"],
+          mediaTypes: ["images"],
           allowsEditing: true,
           aspect: [4, 3],
           quality: 1,
         });
       } catch (error) {
-        //Notificamos al usuario de que ha sucedido un error a la hora de seleccionar una determinada foto de la galería
+        console.log("Error al acceder a la galería:", error);
         Alert.alert(
           "Error",
           "Ha sucedido un error a la hora de seleccionar la foto de la galería, inténtalo de nuevo"
@@ -124,7 +134,17 @@ const Profile = () => {
     } else {
       //Estamos en el caso de que el user sube una foto de perfil sacada directamente desde la cámara
       try {
-        await ImagePicker.requestCameraPermissionsAsync();
+        const permissionResult =
+          await ImagePicker.requestCameraPermissionsAsync();
+
+        if (permissionResult.granted === false) {
+          Alert.alert(
+            "Permisos requeridos",
+            "ZzzTime necesita acceso a tu cámara para tomar tu foto de perfil."
+          );
+          return;
+        }
+
         result = await ImagePicker.launchCameraAsync({
           cameraType: ImagePicker.CameraType.front, //hacemos que la cámara por defecto sea la frontal a la hora de sacar la foto
           allowsEditing: true,
@@ -132,7 +152,7 @@ const Profile = () => {
           quality: 1,
         });
       } catch (error) {
-        //Notificamos al usuario de que ha sucedido un error a la hora de sacar la foto
+        console.log("Error al acceder a la cámara:", error);
         Alert.alert(
           "Error",
           "Ha sucedido un error a la hora de sacar la foto, inténtalo de nuevo"
@@ -163,7 +183,6 @@ const Profile = () => {
         setHasCustomImage(false);
         setshowModal(false);
       }
-      //TODO: DECIRLE AL USER QUE ES LO QUE ESTA PASANDO SI ESO
     } catch (error) {
       Alert.alert(
         "Error",
@@ -209,7 +228,7 @@ const Profile = () => {
 
   return (
     <SafeAreaView className="w-full h-full bg-primary">
-      <View className="flex flex-col w-full h-full gap-4 px-4 mt-4">
+      <View className="flex flex-col gap-4 px-4 mt-4 w-full h-full">
         {/* Header */}
         <Text
           className="text-center font-bold text-[#6366ff] py-4 "
@@ -252,7 +271,7 @@ const Profile = () => {
           />
           {/*GRÁFICA QUE MUESTRA CUANTOS DÍAS DEL MES EL USER HA INTERACCIONADO CON EL CHAT Y HA HABLADO SOBRE SUS SUEÑOS*/}
           <View className="flex flex-col items-center bg-[#1e2a47] rounded-xl p-4 mb-4">
-            <View className="flex flex-row items-center gap-2 mb-2">
+            <View className="flex flex-row gap-2 items-center mb-2">
               <Octicons name="verified" size={20} color="#fff" />
               <Text
                 className="text-lg font-bold color-[#6366ff]"
@@ -272,7 +291,7 @@ const Profile = () => {
 
           {/* Personal Information */}
           <View className="bg-[#1e2a47] rounded-xl p-6 border border-[#323d4f]/30">
-            <View className="flex-row items-center gap-3 mb-6">
+            <View className="flex-row gap-3 items-center mb-6">
               <View className="bg-[#6366ff]/10 p-2 rounded-full">
                 <Feather name="user" size={20} color="#6366ff" />
               </View>
@@ -283,7 +302,7 @@ const Profile = () => {
 
             {/* Email Section */}
             <View className="mb-6">
-              <View className="flex-row items-center gap-3 mb-3">
+              <View className="flex-row gap-3 items-center mb-3">
                 <View className="bg-[#15db44]/10 p-2 rounded-lg">
                   <Feather name="mail" size={18} color="#15db44" />
                 </View>
@@ -300,7 +319,7 @@ const Profile = () => {
 
             {/* Birth Date Section */}
             <View>
-              <View className="flex-row items-center gap-3 mb-3">
+              <View className="flex-row gap-3 items-center mb-3">
                 <View className="bg-[#6366ff]/10 p-2 rounded-lg">
                   <Feather name="calendar" size={18} color="#6366ff" />
                 </View>
@@ -324,7 +343,7 @@ const Profile = () => {
 
           {/* Disable Notifications Switch */}
           <View className="bg-[#1e2a47] p-4 rounded-xl flex-row justify-between">
-            <View className="flex-row items-center gap-2">
+            <View className="flex-row gap-2 items-center">
               <Feather name="bell" color="white" size={20} />
               <Text className="text-lg text-white font-psemibold">
                 Notificaciones Activas
@@ -352,7 +371,7 @@ const Profile = () => {
             //Cuando pinchamos en el botón tenemos que enseñar el modal de cambiar la contraseña
             onPress={() => setshowModalChangePassword(true)}
           >
-            <View className="flex-row items-center gap-2">
+            <View className="flex-row gap-2 items-center">
               <Feather name="lock" color="white" size={20} />
               <Text className="text-lg text-white font-psemibold">
                 Cambiar Contraseña
@@ -377,7 +396,7 @@ const Profile = () => {
             //Cuando presionamos el botón tenemos que navegar a la pantalla de mis tips favoritos
             onPress={() => router.push("../FavTips")}
           >
-            <View className="flex-row items-center gap-2">
+            <View className="flex-row gap-2 items-center">
               <MaterialCommunityIcons
                 name="bookmark-outline"
                 color="white"
@@ -394,7 +413,7 @@ const Profile = () => {
             className="bg-[#1e2a47] p-4 rounded-xl items-start"
             onPress={() => router.push("../Help")}
           >
-            <View className="flex-row items-center gap-2">
+            <View className="flex-row gap-2 items-center">
               <Feather name="help-circle" color="white" size={24} />
               <Text className="text-lg text-white font-psemibold">Ayuda</Text>
             </View>
@@ -406,7 +425,7 @@ const Profile = () => {
             //Cuando presionemos el botón enseñaremos al user un pop-up de confirmación
             onPress={() => setshowModalLogOut(true)}
           >
-            <View className="flex-row items-center gap-2">
+            <View className="flex-row gap-2 items-center">
               <Feather name="log-out" color="white" size={20} />
               <Text className="text-lg text-white font-psemibold">
                 Cerrar Sesión
