@@ -10,7 +10,7 @@ import {
 // Crear la instancia de axios con la URL base
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000, // timeout de 10 segundos
+  timeout: 45000, // timeout de 45 segundos para conexiones lentas
 });
 
 // Interceptor para manejar errores de autenticación y refresh token
@@ -18,6 +18,18 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+
+    // Manejar errores de timeout silenciosamente
+    if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
+      console.log("Request timeout - network connection may be slow");
+      // No mostrar error al usuario, simplemente fallar silenciosamente
+      return Promise.reject({
+        ...error,
+        isTimeout: true,
+        message: "Connection timeout - please check your internet connection",
+      });
+    }
+
     // Si el error es 401 o 403 y no hemos intentado hacer refresh
     if (
       (error.response?.status === 401 || error.response?.status === 403) &&

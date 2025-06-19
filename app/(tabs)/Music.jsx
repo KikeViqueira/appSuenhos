@@ -18,6 +18,7 @@ import * as DocumentPicker from "expo-document-picker";
 import useSound from "../../hooks/useSound";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import useFlags from "../../hooks/useFlags";
+import LoadingModal from "../../components/LoadingModal";
 
 const Music = () => {
   //Recuperamos las funcionalidades del useSound para usar en este componente
@@ -53,7 +54,6 @@ const Music = () => {
   const [loadingMessage, setLoadingMessage] = useState("");
   const [loadingType, setLoadingType] = useState(""); // "upload" o "delete"
   const [deletingSoundId, setDeletingSoundId] = useState(null);
-  const loadingProgressAnim = useRef(new Animated.Value(0)).current;
 
   const { updateConfigFlagValue } = useFlags();
 
@@ -444,7 +444,7 @@ const Music = () => {
         currentSound?.id === item.id ? "border-[#8a8cff]" : "border-[#323d4f]"
       } shadow-md mb-1`}
     >
-      <View className="flex-row items-center justify-between mb-3">
+      <View className="flex-row justify-between items-center mb-3">
         <Text
           className={`text-lg font-semibold ${
             currentSound?.id === item.id ? "text-white" : "text-gray-200"
@@ -455,7 +455,7 @@ const Music = () => {
             : item.name}
         </Text>
 
-        <View className="flex-row items-center gap-4">
+        <View className="flex-row gap-4 items-center">
           {/* Botón para repetir o no el audio */}
           <TouchableOpacity
             className={`p-2 rounded-full ${
@@ -525,7 +525,7 @@ const Music = () => {
 
       {/* Control y visualización del reproductor */}
       {currentSound?.id === item.id && (
-        <View className="w-full mt-1">
+        <View className="mt-1 w-full">
           <Slider
             minimumValue={0}
             maximumValue={duration}
@@ -598,23 +598,6 @@ const Music = () => {
         setLoadingMessage("Subiendo el sonido...");
         setLoadingModalVisible(true);
 
-        // Iniciar animación de progreso
-        loadingProgressAnim.setValue(0);
-        Animated.loop(
-          Animated.sequence([
-            Animated.timing(loadingProgressAnim, {
-              toValue: 1,
-              duration: 1500,
-              useNativeDriver: true,
-            }),
-            Animated.timing(loadingProgressAnim, {
-              toValue: 0,
-              duration: 1500,
-              useNativeDriver: true,
-            }),
-          ])
-        ).start();
-
         const { extension, mimeType } = getFileType(result.assets[0].uri);
 
         //Limpiamos el nombre del audio, nos quedamos con lo que haya antes del punto
@@ -639,7 +622,6 @@ const Music = () => {
         console.log(userSounds);
 
         // Ocultar indicador de carga
-        loadingProgressAnim.stopAnimation();
         setLoadingModalVisible(false);
 
         // Mostrar mensaje de éxito
@@ -647,7 +629,6 @@ const Music = () => {
       }
     } catch (error) {
       console.error("Error completo al subir el sonido:", error);
-      loadingProgressAnim.stopAnimation();
       setLoadingModalVisible(false);
       Alert.alert(
         "Error",
@@ -664,26 +645,8 @@ const Music = () => {
       setLoadingMessage("Eliminando sonido...");
       setLoadingModalVisible(true);
 
-      // Iniciar animación de progreso
-      loadingProgressAnim.setValue(0);
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(loadingProgressAnim, {
-            toValue: 1,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-          Animated.timing(loadingProgressAnim, {
-            toValue: 0,
-            duration: 1000,
-            useNativeDriver: true,
-          }),
-        ])
-      ).start();
-
       await deleteUserSound(soundId);
 
-      loadingProgressAnim.stopAnimation();
       setLoadingModalVisible(false);
       setDeletingSoundId(null);
 
@@ -694,7 +657,6 @@ const Music = () => {
       );
     } catch (error) {
       console.error("Error al eliminar el sonido:", error);
-      loadingProgressAnim.stopAnimation();
       setLoadingModalVisible(false);
       setDeletingSoundId(null);
       Alert.alert(
@@ -727,7 +689,7 @@ const Music = () => {
           } w-full self-center flex p-6 gap-4 rounded-3xl border border-[#323d4f]`}
           onPress={uploadSound}
         >
-          <View className="flex-row items-center justify-between">
+          <View className="flex-row justify-between items-center">
             <Text className="text-lg text-white font-psemibold">
               {userSounds.length >= maxSounds
                 ? "Elimina sonidos para subir nuevos"
@@ -755,7 +717,7 @@ const Music = () => {
             onPress={() => setTimerModalVisible(true)}
             className="bg-[#1e273a] p-4 rounded-xl shadow border border-[#323d4f] overflow-hidden"
           >
-            <View className="flex-row items-center justify-between">
+            <View className="flex-row justify-between items-center">
               <View className="flex-row items-center">
                 <View className="bg-[#6366ff]/20 p-2 rounded-full mr-3">
                   <Ionicons name="timer-outline" color="#6366ff" size={20} />
@@ -858,68 +820,13 @@ const Music = () => {
       </ScrollView>
 
       {/* Modal de carga */}
-      <Modal
-        animationType="fade"
-        transparent={true}
+      <LoadingModal
         visible={loadingModalVisible}
+        operationType={loadingType}
+        contentType="sound"
+        message={loadingMessage}
         onRequestClose={() => {}} // Evitamos que se cierre accidentalmente
-      >
-        <View className="items-center justify-center flex-1 bg-black/70">
-          <View className="w-[80%] bg-[#1e2a47] p-8 rounded-2xl items-center">
-            <View
-              className={`w-16 h-16 rounded-full items-center justify-center mb-4 ${
-                loadingType === "upload" ? "bg-[#6366ff]/20" : "bg-[#ff4757]/20"
-              }`}
-            >
-              {loadingType === "upload" ? (
-                <Feather name="upload" color="#6366ff" size={28} />
-              ) : (
-                <Feather name="trash-2" color="#ff4757" size={28} />
-              )}
-            </View>
-
-            <ActivityIndicator
-              size="large"
-              color={loadingType === "upload" ? "#6366ff" : "#ff4757"}
-              className="mb-4"
-            />
-
-            <Text className="mb-2 text-xl font-bold text-center text-white">
-              {loadingType === "upload"
-                ? "Subiendo sonido"
-                : "Eliminando sonido"}
-            </Text>
-
-            <Text className="text-base text-center text-gray-300">
-              {loadingMessage}
-            </Text>
-
-            {/* Barra de progreso animada */}
-            <View className="w-full h-2 bg-[#323d4f] rounded-full mt-4 overflow-hidden">
-              <Animated.View
-                className={`h-full rounded-full ${
-                  loadingType === "upload" ? "bg-[#6366ff]" : "bg-[#ff4757]"
-                }`}
-                style={{
-                  width: "30%",
-                  transform: [
-                    {
-                      translateX: loadingProgressAnim.interpolate({
-                        inputRange: [0, 1],
-                        outputRange: [0, 300], // Se mueve de izquierda a derecha
-                      }),
-                    },
-                  ],
-                  opacity: loadingProgressAnim.interpolate({
-                    inputRange: [0, 0.5, 1],
-                    outputRange: [0.3, 1, 0.3], // Efecto de pulsación
-                  }),
-                }}
-              />
-            </View>
-          </View>
-        </View>
-      </Modal>
+      />
 
       {/* Modal del temporizador */}
       <Modal
@@ -928,9 +835,9 @@ const Music = () => {
         visible={timerModalVisible}
         onRequestClose={() => setTimerModalVisible(false)}
       >
-        <View className="items-center justify-center flex-1 bg-black/60">
+        <View className="flex-1 justify-center items-center bg-black/60">
           <View className="w-[85%] bg-[#1e2a47] p-6 rounded-2xl">
-            <View className="flex-row items-center justify-between mb-5">
+            <View className="flex-row justify-between items-center mb-5">
               <Text className="text-xl font-bold text-white">Temporizador</Text>
               <TouchableOpacity
                 onPress={() => setTimerModalVisible(false)}

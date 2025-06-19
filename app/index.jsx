@@ -40,11 +40,12 @@ export default function App() {
         router.replace("./(Auth)/sign-in"); // Redirige a login
       }, 0);
     }
+    //router.replace("./(Auth)/sign-in");
   }, [accessToken, userId, onboardingCompleted, isAuthLoading, isFlagsLoading]);
 
   return (
     <SafeAreaView className="flex-1 bg-primary">
-      <View className="relative flex-1 overflow-hidden">
+      <View className="overflow-hidden relative flex-1">
         {/* Gradient Background */}
         <View className="absolute inset-0 bg-gradient-to-br from-[#1e2a47] via-[#2a3f5f] to-[#1e2a47]" />
 
@@ -54,7 +55,7 @@ export default function App() {
         <View className="absolute bottom-32 right-20 w-24 h-24 rounded-full bg-[#6366ff] opacity-8" />
 
         {/* Main Content */}
-        <View className="items-center justify-center flex-1 px-8">
+        <View className="flex-1 justify-center items-center px-8">
           {/* Logo/Brand Section */}
           <View className="items-center mb-12">
             <View className="w-24 h-24 rounded-full bg-[#6366ff] items-center justify-center mb-6 shadow-lg">
@@ -77,8 +78,8 @@ export default function App() {
           </View>
 
           {/* Feature Highlights */}
-          <View className="flex w-full max-w-sm gap-6 mb-12">
-            <View className="flex-row items-center p-4 bg-white/5 rounded-2xl backdrop-blur-sm">
+          <View className="flex gap-6 mb-12 w-full max-w-sm">
+            <View className="flex-row items-center p-4 rounded-2xl backdrop-blur-sm bg-white/5">
               <View className="w-12 h-12 rounded-full bg-[#6366ff]/20 items-center justify-center mr-4">
                 <Text className="text-xl">📊</Text>
               </View>
@@ -92,7 +93,7 @@ export default function App() {
               </View>
             </View>
 
-            <View className="flex-row items-center p-4 bg-white/5 rounded-2xl backdrop-blur-sm">
+            <View className="flex-row items-center p-4 rounded-2xl backdrop-blur-sm bg-white/5">
               <View className="w-12 h-12 rounded-full bg-[#6366ff]/20 items-center justify-center mr-4">
                 <Text className="text-xl">📝</Text>
               </View>
@@ -106,7 +107,7 @@ export default function App() {
               </View>
             </View>
 
-            <View className="flex-row items-center p-4 bg-white/5 rounded-2xl backdrop-blur-sm">
+            <View className="flex-row items-center p-4 rounded-2xl backdrop-blur-sm bg-white/5">
               <View className="w-12 h-12 rounded-full bg-[#6366ff]/20 items-center justify-center mr-4">
                 <Text className="text-xl">💡</Text>
               </View>

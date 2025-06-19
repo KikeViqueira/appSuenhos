@@ -249,7 +249,7 @@ const Tips = () => {
       </View>
 
       {/* Foreground content */}
-      <View className="z-10 flex flex-col items-center justify-center gap-6 px-8">
+      <View className="flex z-10 flex-col gap-6 justify-center items-center px-8">
         <Entypo name="light-bulb" color="#6366ff" size={80} />
         <View className="items-center">
           <Text className="text-2xl font-bold text-[#6366ff] mb-2 text-center">
@@ -270,7 +270,7 @@ const Tips = () => {
           onPress={() => router.push("./Stats")}
           className="mt-6 bg-[#6366ff] px-12 py-4 rounded-full flex flex-row items-center justify-center"
         >
-          <View className="flex flex-row items-center justify-center gap-4">
+          <View className="flex flex-row gap-4 justify-center items-center">
             <Feather name="pie-chart" color="white" size={20} />
             <Text className="text-lg text-white font-psemibold">
               Ir a Estadísticas
@@ -283,7 +283,7 @@ const Tips = () => {
 
   return (
     <SafeAreaView className="w-full h-full bg-primary">
-      <View className="flex flex-col items-center self-center justify-start w-full h-full gap-4 mt-3">
+      <View className="flex flex-col gap-4 justify-start items-center self-center mt-3 w-full h-full">
         {/*Header*/}
         <View className="flex-row items-center justify-between w-[90%]">
           <Text

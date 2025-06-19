@@ -10,7 +10,6 @@ import useOnboarding from "../../hooks/useOnboarding";
 import { markOnboardingAsCompleted } from "../../services/onboardingService";
 import { useAuthContext } from "../../context/AuthContext";
 import { View, Text, StatusBar } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { MaterialIcons } from "@expo/vector-icons";
 
 export default function Onboarding() {
@@ -45,7 +44,17 @@ export default function Onboarding() {
 
   const goToPreviousQuestion = () => {
     //Mientras esteamos en una pregunta mayor a 1, podemos retroceder a la anterior
-    if (question > 1) setQuestion(question - 1);
+    if (question > 1) {
+      // Borrar la respuesta de la pregunta actual antes de retroceder
+      const currentQuestionKey = `question${question}`;
+      setResponses((prevState) => ({
+        ...prevState,
+        [currentQuestionKey]: "", // Limpiamos la respuesta actual
+      }));
+
+      // Navegar a la pregunta anterior
+      setQuestion(question - 1);
+    }
   };
 
   //Definimos el useEffect para saber en tiempo real en que pregunta se encuentra el usuario, ya que los set por naturaleza son asíncronos
@@ -87,13 +96,18 @@ export default function Onboarding() {
   const question4 = OnboardingMultipleOptionsQuestions.questions[2];
   const question5 = OnboardingMultipleOptionsQuestions.questions[3];
 
-  // Calcular progreso
+  // Calcular progreso basado en respuestas completadas
   const getProgress = () => {
     const totalQuestions = 5;
-    const currentProgress = (question / totalQuestions) * 100;
+    // Contar cuántas preguntas han sido respondidas
+    const answeredQuestions = Object.values(responses).filter(
+      (response) => response !== ""
+    ).length;
+    const currentProgress = (answeredQuestions / totalQuestions) * 100;
     return {
       current: question,
       total: totalQuestions,
+      answered: answeredQuestions,
       percentage: currentProgress,
     };
   };
@@ -124,8 +138,8 @@ export default function Onboarding() {
       <View className="bg-[#0e172a] border-b border-[#1e2a47] pb-6 pt-4">
         {/* Título y paso actual */}
         <View className="px-6 mb-4">
-          <View className="flex-row items-center justify-between mb-2">
-            <View className="flex-row items-center gap-3">
+          <View className="flex-row justify-between items-center mb-2">
+            <View className="flex-row gap-3 items-center">
               <MaterialIcons name="settings" size={24} color="#6366ff" />
               <Text className="text-lg font-bold text-white">
                 {getCurrentTitle()}
@@ -143,7 +157,7 @@ export default function Onboarding() {
 
         {/* Barra de progreso principal */}
         <View className="px-6">
-          <View className="flex-row items-center justify-between mb-3">
+          <View className="flex-row justify-between items-center mb-3">
             <Text className="text-base font-medium text-gray-300">
               Progreso de configuración
             </Text>
@@ -152,32 +166,16 @@ export default function Onboarding() {
             </Text>
           </View>
 
-          {/* Contenedor de la barra con sombra */}
-          <View
-            className="w-full h-6 bg-[#1a2332] rounded-full border border-[#252e40] overflow-hidden"
-            style={{
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 3 },
-              shadowOpacity: 0.3,
-              shadowRadius: 4,
-              elevation: 6,
-            }}
-          >
-            {/* Barra de progreso con gradiente */}
+          {/* Contenedor de la barra */}
+          <View className="w-full h-6 bg-[#1a2332] rounded-full border border-[#252e40] overflow-hidden">
+            {/* Barra de progreso simple */}
             {progress.percentage > 0 && (
-              <LinearGradient
-                colors={["#6366ff", "#8b5cf6", "#d946ef"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
+              <View
                 style={{
                   width: `${progress.percentage}%`,
                   height: "100%",
                   borderRadius: 12,
-                  shadowColor: "#6366ff",
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.7,
-                  shadowRadius: 5,
-                  elevation: 4,
+                  backgroundColor: "#6366ff",
                 }}
               />
             )}
@@ -194,6 +192,7 @@ export default function Onboarding() {
             questionKey={question1.id}
             updateResponse={updateResponse}
             nextQuestion={goToNextQuestion}
+            currentResponse={responses.question1}
             first={true}
           />
         )}
@@ -206,6 +205,7 @@ export default function Onboarding() {
             updateResponse={updateResponse}
             nextQuestion={goToNextQuestion}
             previousQuestion={goToPreviousQuestion}
+            currentResponse={responses.question2}
           />
         )}
 
@@ -214,6 +214,7 @@ export default function Onboarding() {
             updateResponse={updateResponse}
             nextQuestion={goToNextQuestion}
             previousQuestion={goToPreviousQuestion}
+            currentResponse={responses.question3}
           />
         )}
 
@@ -225,6 +226,7 @@ export default function Onboarding() {
             updateResponse={updateResponse}
             nextQuestion={goToNextQuestion}
             previousQuestion={goToPreviousQuestion}
+            currentResponse={responses.question4}
           />
         )}
 
@@ -236,6 +238,7 @@ export default function Onboarding() {
             updateResponse={updateResponse}
             onFinish={onFinish}
             previousQuestion={goToPreviousQuestion}
+            currentResponse={responses.question5}
             final={true}
           />
         )}

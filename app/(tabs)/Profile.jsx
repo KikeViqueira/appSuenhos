@@ -21,6 +21,7 @@ import ChatContributionGraph from "../../components/ChatContributionGraph";
 import { useAuthContext } from "../../context/AuthContext";
 import useUser from "../../hooks/useUser";
 import useNotifications from "../../hooks/useNotifications";
+import LoadingModal from "../../components/LoadingModal";
 
 const Profile = () => {
   //Recuperamos la info del user que se ha logueado en la app mediante el contexto de Auth y la función para cerrar sesión
@@ -37,6 +38,11 @@ const Profile = () => {
     useState(false);
   //Estado para saber si el user tiene una foto de perfil propia o tiene el placeholder
   const [hasCustomImage, setHasCustomImage] = useState(false);
+
+  // Estados para el modal de carga
+  const [loadingModalVisible, setLoadingModalVisible] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("");
+  const [loadingType, setLoadingType] = useState(""); // "upload" o "delete"
 
   //Importamos la llamada al endpoint de updateUser
   const { deleteProfilePicture, updateProfilePicture } = useUser();
@@ -178,12 +184,22 @@ const Profile = () => {
     try {
       //Si el user tiene una foto de perfil personalizada, la borramos y le asignamos el placeholder
       if (hasCustomImage) {
+        // Mostrar indicador de carga
+        setLoadingType("delete");
+        setLoadingMessage("Eliminando la foto de perfil...");
+        setLoadingModalVisible(true);
+
         await deleteProfilePicture();
         setImage({ uri: placeholderImage });
         setHasCustomImage(false);
+
+        // Ocultar indicador de carga
+        setLoadingModalVisible(false);
+        //Ocultamos el modal de opciones de cámara del user
         setshowModal(false);
       }
     } catch (error) {
+      setLoadingModalVisible(false);
       Alert.alert(
         "Error",
         "Ha sucedido un error a la hora de borrar la foto, inténtalo de nuevo"
@@ -201,6 +217,11 @@ const Profile = () => {
   //Función para guardar la foto en el estado que hemos definido y a mayores guardarla en la base de datos
   const savePicture = async ({ imagen }) => {
     try {
+      // Mostrar indicador de carga
+      setLoadingType("upload");
+      setLoadingMessage("Subiendo la foto de perfil...");
+      setLoadingModalVisible(true);
+
       const { extension, mimeType } = getFileType(imagen);
       const sanitizedUserName = userInfo.name
         ?.replace(/\s+/g, "_")
@@ -217,8 +238,13 @@ const Profile = () => {
       //Y de esta manera puede cargarla como imagen en la aplicación
       setImage({ uri: imagen });
       setHasCustomImage(true);
+
+      // Ocultar indicador de carga
+      setLoadingModalVisible(false);
+      //Ocultamos el modal de opciones de cámara del user
       setshowModal(false);
     } catch (error) {
+      setLoadingModalVisible(false);
       Alert.alert(
         "Error",
         "Ha sucedido un error a la hora de guardar la foto, inténtalo de nuevo"
@@ -474,6 +500,15 @@ const Profile = () => {
             deleteAccount={deleteAccount}
           />
         </ScrollView>
+
+        {/* Modal de carga para foto de perfil */}
+        <LoadingModal
+          visible={loadingModalVisible}
+          operationType={loadingType}
+          contentType="photo"
+          message={loadingMessage}
+          onRequestClose={() => {}} // Evitamos que se cierre accidentalmente
+        />
       </View>
     </SafeAreaView>
   );

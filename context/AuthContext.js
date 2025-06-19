@@ -199,6 +199,8 @@ export const AuthProvider = ({ children }) => {
         //await AsyncStorage.removeItem("hasCompletedOnboarding");
         //await AsyncStorage.setItem("hasCompletedOnboarding", "true");
         //await AsyncStorage.removeItem("hasChatToday");
+        //await AsyncStorage.removeItem("current_chat_id");
+        //await AsyncStorage.removeItem("chatId");
         //await AsyncStorage.removeItem("sleepStart");
         // await AsyncStorage.removeItem("sleepLog");
 
@@ -238,10 +240,16 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     /*
      *CUANDO EL USER HAYA INICIADO SESIÓN Y SE TENGA TANTO EL ID COMO EL TOKEN DE ACCESO
-     * SE LLAMA A LA FUNCIÓN DE GETUSERFLAGS PARA RECUPERAR LAS BANDERAS DEL USER Y SINCRONIZAR LA CACHE DEL DISPOSITIVO
+     * SE LLAMA PRIMERO A LA FUNCIÓN DE CLEARALLFLAGS PARA LIMPIAR LAS BANDERAS DEL DISPOSITIVO
+     * DESPUÉS SE LLAMA A LA FUNCIÓN DE GETUSERFLAGS PARA RECUPERAR LAS BANDERAS DEL USER Y SINCRONIZAR LA CACHE DEL DISPOSITIVO
      */
+    const syncFlags = async () => {
+      await clearAllFlags();
+      await getUserFlags();
+    };
+
     if (userId && accessToken) {
-      getUserFlags();
+      syncFlags();
     }
     /**
      * El primer getUser que se llamará será cuando el user se haya logueado y haya completado el onboarding

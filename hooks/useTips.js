@@ -165,8 +165,18 @@ const useTips = () => {
         setTotalElements(0);
       }
     } catch (error) {
-      setError(error);
-      console.error("Error al recuperar los tips: ", error);
+      if (error.response) {
+        if (error.response.status !== 404) {
+          setError(error);
+          console.error("Error al recuperar los tips: ", error);
+        } else {
+          //Si el error es 404 significa que el user no tiene tips asociados a su cuenta asi que ponemos los estados en el valor correspondiente
+          setTips([]);
+          setCurrentPage(0);
+          setTotalPages(0);
+          setTotalElements(0);
+        }
+      }
     } finally {
       setLoading(false);
     }

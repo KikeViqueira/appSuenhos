@@ -5,7 +5,7 @@ import {
   View,
   Platform,
 } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Feather } from "@expo/vector-icons";
 
@@ -14,6 +14,7 @@ export default function Question3({
   updateResponse,
   nextQuestion,
   previousQuestion,
+  currentResponse = "", // Recibimos la respuesta actual
 }) {
   //Definimos las fechas que se le van a pasar al DateTimePicker
   const today = new Date();
@@ -40,7 +41,23 @@ export default function Question3({
   const [error, setError] = useState(null);
 
   //Definimos ahora el estado para saber si se ha seleccionado una respuesta, en este caso la edad
-  const [selected, setSelected] = useState(null);
+  const [selected, setSelected] = useState(currentResponse ? true : null);
+
+  // Efecto ÚNICO para inicializar la fecha cuando se monta el componente
+  useEffect(() => {
+    if (currentResponse) {
+      try {
+        const responseDate = new Date(currentResponse);
+        setDate(responseDate);
+        setSelected(true);
+      } catch (error) {
+        console.error("Error al parsear la fecha:", error);
+        setDate(maxDate);
+        setSelected(null);
+      }
+    }
+    // No incluimos dependencias para que solo se ejecute una vez
+  }, []);
 
   //Calculamos la edad en base a la fecha de nacimiento seleccionada
   const calculateAge = (birthday) => {
@@ -62,17 +79,9 @@ export default function Question3({
     return age;
   };
 
-  //Función para ver si existe una respuesta seleccionada y podemos continuar
-  const handleSelection = () => {
-    /*
-     * En la BD lo que nos interesa es guardar la fecha de nacimiento del user, ya que si guardamos solo la edad, cada año tendríamos que actualizarla
-     * Con la fecha sea el momento que sea que la recuperemos, siempre tendremos la edad actual del user mediante la resta de la fecha actual menos la de nacimiento
-     */
-
-    // Obtiene el string en formato ISO, por ejemplo: "2000-01-15T00:00:00.000Z"
-    const isoDate = date.toISOString().split("T")[0]; // Extrae "YYYY-MM-DD"
-    updateResponse("question3", isoDate);
-    //Una vez guardamos la respuesta seleccionada, navegamos a la siguiente pregunta
+  //Función para continuar a la siguiente pregunta (ya no actualiza la respuesta, solo navega)
+  const handleContinue = () => {
+    // Solo navegamos a la siguiente pregunta, la respuesta ya fue actualizada en handleDateChange
     nextQuestion();
   };
 
@@ -81,9 +90,16 @@ export default function Question3({
     if (Platform.OS === "android") setShowDatePicker(false); //Ponemos en false para no renderizar seguido el picker de android
 
     const currentDate = selectedDate || date;
+    const isoDate = currentDate.toISOString().split("T")[0];
+
     setDate(currentDate);
     setError(null); // Borra el mensaje de error si selecciona una fecha válida
     setSelected(true);
+
+    // Solo actualizar la respuesta si la fecha es diferente
+    if (isoDate !== currentResponse) {
+      updateResponse("question3", isoDate);
+    }
   };
 
   const openDatePicker = () => {
@@ -91,9 +107,9 @@ export default function Question3({
   };
 
   return (
-    <View className="items-center justify-center flex-1 h-full px-6 py-8">
+    <View className="flex-1 justify-center items-center px-6 py-8 h-full">
       {/* Contenedor principal */}
-      <View className="items-center justify-center flex-1 w-full">
+      <View className="flex-1 justify-center items-center w-full">
         {/* Título de la pregunta */}
         <View className="mb-8">
           <Text
@@ -112,15 +128,8 @@ export default function Question3({
             <TouchableOpacity
               onPress={openDatePicker}
               className="w-full mb-6 p-5 bg-[#1a2332] border-2 border-[#252e40] rounded-2xl"
-              style={{
-                shadowColor: "#000",
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.1,
-                shadowRadius: 4,
-                elevation: 3,
-              }}
             >
-              <View className="flex-row items-center justify-between">
+              <View className="flex-row justify-between items-center">
                 <Text className="text-base text-white">
                   {date.toLocaleDateString("es-ES", {
                     weekday: "long",
@@ -152,7 +161,7 @@ export default function Question3({
 
           {/* Información adicional */}
           <View className="bg-[#6366ff]/10 p-4 rounded-xl border border-[#6366ff]/30 mt-4">
-            <View className="flex-row items-center gap-3 mb-2">
+            <View className="flex-row gap-3 items-center mb-2">
               <Feather name="info" size={16} color="#6366ff" />
               <Text className="text-[#6366ff] text-base font-semibold">
                 Fecha seleccionada
@@ -173,7 +182,7 @@ export default function Question3({
 
           {/*Si la edad no cumple no está entre los valores permitidos mostramos el error por pantalla*/}
           {error && (
-            <View className="p-4 mt-4 border bg-red-500/10 rounded-xl border-red-500/30">
+            <View className="p-4 mt-4 rounded-xl border bg-red-500/10 border-red-500/30">
               <Text className="text-center text-red-400">{error}</Text>
             </View>
           )}
@@ -182,20 +191,13 @@ export default function Question3({
 
       {/* Botones de navegación */}
       <View className="w-full">
-        <View className="flex-row justify-between gap-4">
+        <View className="flex-row gap-4 justify-between">
           {/* Botón de Volver */}
           <TouchableOpacity
             onPress={previousQuestion}
             className="flex-1 py-4 rounded-2xl bg-[#252e40]"
-            style={{
-              shadowColor: "#000",
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.2,
-              shadowRadius: 4,
-              elevation: 3,
-            }}
           >
-            <View className="flex-row items-center justify-center gap-3">
+            <View className="flex-row gap-3 justify-center items-center">
               <Feather name="arrow-left" size={20} color="white" />
               <Text className="text-lg font-semibold text-white">Volver</Text>
             </View>
@@ -203,20 +205,15 @@ export default function Question3({
 
           {/* Botón de Continuar */}
           <TouchableOpacity
-            onPress={handleSelection}
+            onPress={handleContinue}
             disabled={!selected}
             className="flex-1 py-4 rounded-2xl"
             style={{
               backgroundColor: "#6366ff",
               opacity: selected ? 1 : 0.4,
-              shadowColor: "#6366ff",
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: selected ? 0.4 : 0,
-              shadowRadius: 8,
-              elevation: selected ? 8 : 0,
             }}
           >
-            <View className="flex-row items-center justify-center gap-3">
+            <View className="flex-row gap-3 justify-center items-center">
               <Text className="text-lg font-bold text-white">Continuar</Text>
               <Feather name="arrow-right" size={20} color="white" />
             </View>

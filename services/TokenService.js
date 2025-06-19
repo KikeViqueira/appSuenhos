@@ -1,13 +1,12 @@
-import * as SecureStore from 'expo-secure-store';
+import * as SecureStore from "expo-secure-store";
 
 /*
  * Archivo que contiene las funciones para gestionar los tokens de autenticación
  * de una manera más centralizada y reutilizable
- * 
+ *
  * Y encargado de actualizar el estado del estado de accessToken en el context para tener siempre
  * el valor actualizado.
  */
-
 
 let setGlobalAccessToken = null;
 
@@ -23,8 +22,8 @@ export const updateAccessToken = async (newToken) => {
 
 //Función para actualizar el token de acceso y el refresh token en el secureStore
 export const updateTokens = async (accessToken, refreshToken) => {
-  await SecureStore.setItemAsync('userAccessToken', accessToken);
-  await SecureStore.setItemAsync('userRefreshToken', refreshToken);
+  await SecureStore.setItemAsync("userAccessToken", accessToken);
+  await SecureStore.setItemAsync("userRefreshToken", refreshToken);
 };
 
 //Registramos la función de logOut para que el interceptor pueda llamarla
