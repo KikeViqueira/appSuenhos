@@ -1,5 +1,5 @@
 import { View, Text } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Slider from "@react-native-community/slider";
 
 /*
@@ -17,6 +17,12 @@ import Slider from "@react-native-community/slider";
 
 const SliderQuestion = ({ question, onAnswer }) => {
   const [value, setValue] = useState(question.scale.min); //Por default el valor es el minimo
+
+  // useEffect para enviar automáticamente el valor por defecto al montar el componente
+  useEffect(() => {
+    // Enviar el valor por defecto (question.scale.min) al componente padre
+    onAnswer(question.id, question.scale.min);
+  }, [question.id, question.scale.min]);
 
   // Función para obtener emoji según el valor y rango
   const getValueEmoji = (val) => {
@@ -44,7 +50,7 @@ const SliderQuestion = ({ question, onAnswer }) => {
   };
 
   return (
-    <View className="flex flex-col w-full gap-4">
+    <View className="flex flex-col gap-4 w-full">
       <Text className=" text-xl font-semibold text-[#6366ff]">
         {question.title}
       </Text>
@@ -55,7 +61,7 @@ const SliderQuestion = ({ question, onAnswer }) => {
         </Text>
       )}
 
-      <View className="flex-col w-full gap-3">
+      <View className="flex-col gap-3 w-full">
         {/* Slider */}
         <View className="px-1">
           <Slider

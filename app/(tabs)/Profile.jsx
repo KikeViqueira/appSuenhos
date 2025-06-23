@@ -22,13 +22,16 @@ import { useAuthContext } from "../../context/AuthContext";
 import useUser from "../../hooks/useUser";
 import useNotifications from "../../hooks/useNotifications";
 import LoadingModal from "../../components/LoadingModal";
+import { CLOUDINARY_CONFIG } from "../../constants/config";
 
 const Profile = () => {
   //Recuperamos la info del user que se ha logueado en la app mediante el contexto de Auth y la función para cerrar sesión
   const { userInfo, logout, deleteAccount } = useAuthContext();
 
   //Hacemos states tanto para guardar la foto como para controlar que el modal de opciones de cámara este desplegado o no
-  const [image, setImage] = useState({ uri: userInfo?.profilePicture }); //Valor por default
+  const [image, setImage] = useState({
+    uri: CLOUDINARY_CONFIG.PLACEHOLDER_URL,
+  }); //Valor por default
   const [showModal, setshowModal] = useState(false);
   const [showModalLogOut, setshowModalLogOut] = useState(false);
   const [showModalChangePassword, setshowModalChangePassword] = useState(false);
@@ -63,12 +66,12 @@ const Profile = () => {
    * En el caso de que no haya imagen, le pasamos la imagen de placeholder que tenemos en assets
    */
   useEffect(() => {
-    //Como el user siempre tiene foto de perfil ya que cuando crea la cuenta se le asigna directamente el placeholder (image), tenemos que mirar si la imagen es distinta a la de placeholder
-    if (userInfo?.profilePicture !== image.uri)
+    //Comprobamos si el user tiene una foto de perfil personalizada y setteamos los distintos estados en base a ello
+    if (userInfo?.profilePicture && userInfo?.profilePicture !== image.uri) {
       setImage({ uri: userInfo?.profilePicture });
-    setHasCustomImage(true);
-    console.log("userInfo.profilePicture", userInfo?.profilePicture);
-  }, []);
+      setHasCustomImage(true);
+    }
+  }, [userInfo]);
 
   //Función para manejar el toggle de notificaciones
   const handleNotificationToggle = async () => {
@@ -168,6 +171,8 @@ const Profile = () => {
 
     //Comprobamos que el resultado no haya sido cancelado y guardamos la foto
     if (!result.canceled) {
+      //Ocultamos el modal de opciones de cámara del user, solo si el user ha seleccionado una foto y no ha cancelado la operación de subida
+      setshowModal(false);
       if (result.assets[0].fileSize > 20 * 1024 * 1024) {
         Alert.alert(
           "Imagen demasiado grande",
@@ -184,19 +189,21 @@ const Profile = () => {
     try {
       //Si el user tiene una foto de perfil personalizada, la borramos y le asignamos el placeholder
       if (hasCustomImage) {
+        //Ocultamos el modal de opciones de cámara del user, solo si el user ha seleccionado una foto y no ha cancelado la operación de subida
+        setshowModal(false);
         // Mostrar indicador de carga
         setLoadingType("delete");
         setLoadingMessage("Eliminando la foto de perfil...");
         setLoadingModalVisible(true);
 
-        await deleteProfilePicture();
-        setImage({ uri: placeholderImage });
+        //Setteamos en el estado la url del placeholder
+        const profilePicture = await deleteProfilePicture();
+        setImage({ uri: profilePicture });
+
         setHasCustomImage(false);
 
         // Ocultar indicador de carga
         setLoadingModalVisible(false);
-        //Ocultamos el modal de opciones de cámara del user
-        setshowModal(false);
       }
     } catch (error) {
       setLoadingModalVisible(false);
@@ -241,8 +248,6 @@ const Profile = () => {
 
       // Ocultar indicador de carga
       setLoadingModalVisible(false);
-      //Ocultamos el modal de opciones de cámara del user
-      setshowModal(false);
     } catch (error) {
       setLoadingModalVisible(false);
       Alert.alert(
@@ -294,6 +299,7 @@ const Profile = () => {
             setModalVisible={setshowModal}
             uploadPicture={uploadPicture}
             deletePicture={deletePicture}
+            hasCustomImage={hasCustomImage}
           />
           {/*GRÁFICA QUE MUESTRA CUANTOS DÍAS DEL MES EL USER HA INTERACCIONADO CON EL CHAT Y HA HABLADO SOBRE SUS SUEÑOS*/}
           <View className="flex flex-col items-center bg-[#1e2a47] rounded-xl p-4 mb-4">

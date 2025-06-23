@@ -204,7 +204,7 @@ const SleepGraphs = ({ userInfo, hasMadeSleepLog, sleepLogsDuration }) => {
   return (
     <ScrollView>
       <View className="flex justify-center w-full gap-6 px-4 py-5 rounded-lg bg-[#1e2a47] mb-6">
-        <View className="flex flex-row justify-start gap-4">
+        <View className="flex flex-row gap-4 justify-start">
           <MaterialIcons name="bed" size={24} color="#fff" />
           <Text
             className="text-center font-bold color-[#6366ff]"
@@ -213,6 +213,21 @@ const SleepGraphs = ({ userInfo, hasMadeSleepLog, sleepLogsDuration }) => {
             Horas de Sueño Semanal
           </Text>
         </View>
+
+        {/* Nota informativa sobre interactividad de las gráficas */}
+        <View className="bg-[#0e172a] p-4 rounded-xl border border-[#6366ff]/30 mb-2">
+          <View className="flex flex-row items-center mb-2">
+            <View className="bg-[#6366ff]/20 p-2 rounded-full mr-3">
+              <Feather name="info" size={16} color="#6366ff" />
+            </View>
+            <Text className="font-bold color-white">Gráficas interactivas</Text>
+          </View>
+          <Text className="color-[#a0b0c7] text-sm leading-5 text-center">
+            Toca cualquier punto de las gráficas para visualizar información
+            detallada de ese día específico.
+          </Text>
+        </View>
+
         <View className="flex items-center">
           {/* Gráfica de horas de sueño semanales */}
           <WeeklySleepChart sleepLogsDuration={sleepLogsDuration} />
@@ -220,7 +235,7 @@ const SleepGraphs = ({ userInfo, hasMadeSleepLog, sleepLogsDuration }) => {
 
         {/* Estadísticas de sueño */}
         <View className="mt-4">
-          <View className="flex flex-row justify-start gap-4 mb-4">
+          <View className="flex flex-row gap-4 justify-start mb-4">
             <Feather name="trending-up" size={24} color="#fff" />
             <Text
               className="text-center font-bold color-[#6366ff]"
@@ -299,19 +314,16 @@ const SleepGraphs = ({ userInfo, hasMadeSleepLog, sleepLogsDuration }) => {
           </View>
 
           {/* Consejos personalizados */}
-          <View className="bg-[#0e172a] p-4 rounded-xl mt-2 border border-[#6366ff]">
+          <View className="bg-[#0e172a] p-4 rounded-xl mt-2 border border-[#6366ff]/30">
             <View className="flex flex-row items-center mb-2">
-              <Feather
-                name="info"
-                size={18}
-                color="#6366ff"
-                style={{ marginRight: 8 }}
-              />
+              <View className="bg-[#6366ff]/20 p-2 rounded-full mr-3">
+                <Feather name="info" size={16} color="#6366ff" />
+              </View>
               <Text className="font-bold color-white">
                 Consejo personalizado
               </Text>
             </View>
-            <Text className="color-[#a0b0c7] text-sm">
+            <Text className="color-[#a0b0c7] text-sm leading-5 text-center">
               {sleepStats.sleepDeficit > 1
                 ? `Estás durmiendo considerablemente menos de lo recomendado para tu edad. Intenta acostarte ${Math.round(
                     sleepStats.sleepDeficit
@@ -328,7 +340,7 @@ const SleepGraphs = ({ userInfo, hasMadeSleepLog, sleepLogsDuration }) => {
         </View>
 
         {/* Gráfica que compara lo que ha dormido el user vs lo que debería de dormir vs un user ideal de su rango de edad */}
-        <View className="flex flex-row justify-start gap-4 mt-4">
+        <View className="flex flex-row gap-4 justify-start mt-4">
           <Feather name="heart" size={24} color="#fff" />
           <Text
             className="text-center font-bold color-[#6366ff]"

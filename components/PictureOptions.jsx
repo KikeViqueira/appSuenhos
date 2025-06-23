@@ -7,6 +7,7 @@ const PictureOptions = ({
   setModalVisible,
   uploadPicture,
   deletePicture,
+  hasCustomImage,
 }) => {
   return (
     <Modal
@@ -16,7 +17,7 @@ const PictureOptions = ({
       onRequestClose={() => setModalVisible(false)}
     >
       <TouchableOpacity
-        className="items-center justify-end flex-1 bg-black/60"
+        className="flex-1 justify-end items-center bg-black/60"
         activeOpacity={1}
         onPress={() => setModalVisible(false)}
       >
@@ -47,7 +48,7 @@ const PictureOptions = ({
                 uploadPicture({ mode: "photo" });
               }}
             >
-              <View className="p-3 mr-4 bg-white/10 rounded-xl">
+              <View className="p-3 mr-4 rounded-xl bg-white/10">
                 <Feather name="camera" size={24} color="white" />
               </View>
               <View className="flex-1">
@@ -91,30 +92,59 @@ const PictureOptions = ({
 
             {/* Eliminar Foto */}
             <TouchableOpacity
-              className="flex-row items-center bg-[#ff4757]/10 p-4 rounded-2xl border border-[#ff4757]/20 shadow-lg"
+              className={`flex-row items-center p-4 rounded-2xl border shadow-lg ${
+                hasCustomImage
+                  ? "bg-[#ff4757]/10 border-[#ff4757]/20"
+                  : "bg-[#2a3952]/30 border-[#323d4f]/30 opacity-50"
+              }`}
               style={{
-                shadowColor: "#ff4757",
+                shadowColor: hasCustomImage ? "#ff4757" : "#000",
                 shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.2,
+                shadowOpacity: hasCustomImage ? 0.2 : 0.1,
                 shadowRadius: 8,
-                elevation: 3,
+                elevation: hasCustomImage ? 3 : 1,
               }}
               onPress={() => {
-                deletePicture();
+                if (hasCustomImage) {
+                  deletePicture();
+                }
               }}
+              disabled={!hasCustomImage}
             >
-              <View className="bg-[#ff4757]/10 p-3 rounded-xl mr-4">
-                <Feather name="trash-2" size={24} color="#ff4757" />
+              <View
+                className={`p-3 rounded-xl mr-4 ${
+                  hasCustomImage ? "bg-[#ff4757]/10" : "bg-[#323d4f]/30"
+                }`}
+              >
+                <Feather
+                  name="trash-2"
+                  size={24}
+                  color={hasCustomImage ? "#ff4757" : "#6b7280"}
+                />
               </View>
               <View className="flex-1">
-                <Text className="mb-1 text-lg font-bold text-white">
+                <Text
+                  className={`mb-1 text-lg font-bold ${
+                    hasCustomImage ? "text-white" : "text-gray-500"
+                  }`}
+                >
                   Eliminar Foto
                 </Text>
-                <Text className="text-sm text-white/70">
-                  Restaurar imagen por defecto
+                <Text
+                  className={`text-sm ${
+                    hasCustomImage ? "text-white/70" : "text-gray-600"
+                  }`}
+                >
+                  {hasCustomImage
+                    ? "Restaurar imagen por defecto"
+                    : "Solo se puede eliminar una imagen personalizada"}
                 </Text>
               </View>
-              <Feather name="chevron-right" size={20} color="#ff4757" />
+              <Feather
+                name="chevron-right"
+                size={20}
+                color={hasCustomImage ? "#ff4757" : "#6b7280"}
+              />
             </TouchableOpacity>
 
             {/* Botón Cancelar */}

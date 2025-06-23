@@ -468,21 +468,16 @@ const Estadisticas = () => {
             // Manejar específicamente el caso de entrada duplicada
             if (result?.errorType === "DUPLICATE_ENTRY") {
               let alertMessage =
-                "Ya existe un registro de sueño para este día.\n\n Asegúrate de que la fecha de despertar no coincide con la fecha de hoy.\n\n ¿Quieres modificar tus respuestas y volver a intentarlo?";
+                "El día correspondiente a la hora de despertar que has introducido ya tiene un registro de cuestionario matutino guardado.\n\nSolo se puede guardar un cuestionario matutino por día.\n\nPor ejemplo: si ayer iniciaste un registro de sueño y hoy te despiertas e intentas guardar el cuestionario, pero ayer ya guardaste otro cuestionario para ese mismo día, aparecerá este error.";
 
               Alert.alert("Registro duplicado", alertMessage, [
-                { text: "Cancelar", style: "cancel" },
                 {
-                  text: "Sí, modificar",
-                  onPress: () => {
-                    // Mantener el modal abierto para que pueda modificar las respuestas
-                    console.log("Usuario eligió modificar las respuestas");
-                    // El modal permanece abierto automáticamente
-                  },
+                  text: "Aceptar",
+                  style: "default",
                 },
               ]);
 
-              // No ejecutar operaciones de limpieza para permitir modificación
+              // No ejecutar operaciones de limpieza ya que hay conflicto de fechas
               return;
             } else {
               // Otros tipos de error de la API
@@ -615,13 +610,13 @@ const Estadisticas = () => {
         return <FitbitUserGraphs />;
       case "drmSection":
         return (
-          <View className="flex flex-col w-full gap-6 mt-4">
+          <View className="flex flex-col gap-6 mt-4 w-full">
             <Text className="mb-2 ml-2 text-lg font-semibold text-white">
               Day Reconstruction Method
             </Text>
 
             {/* Card layout for DRM buttons */}
-            <View className="flex-row justify-between w-full gap-4">
+            <View className="flex-row gap-4 justify-between w-full">
               {/* Questionnaire Card */}
               <TouchableOpacity
                 className={`flex-1 p-5 rounded-xl border border-[#6366ff]/20 ${
@@ -630,7 +625,7 @@ const Estadisticas = () => {
                 onPress={() => router.push("/DRM")}
                 disabled={!hasMadeSleepLog}
               >
-                <View className="items-center justify-center">
+                <View className="justify-center items-center">
                   <View className="bg-[#6366ff]/20 p-3 rounded-full mb-4">
                     <FontAwesome5
                       name="clipboard-list"
@@ -659,7 +654,7 @@ const Estadisticas = () => {
                 className="flex-1  p-5 rounded-xl border border-[#6366ff]/20"
                 onPress={() => router.push("/DrmReport")}
               >
-                <View className="items-center justify-center">
+                <View className="justify-center items-center">
                   <View className="bg-[#6366ff]/20 p-3 rounded-full mb-4">
                     <Feather name="file" color="#6366ff" size={30} />
                   </View>
@@ -711,7 +706,7 @@ const Estadisticas = () => {
 
         <View className="flex w-[95%] gap-6 px-4 py-5 rounded-lg bg-[#1e2a47]">
           {/* Título de la sección */}
-          <View className="flex flex-row justify-start gap-4">
+          <View className="flex flex-row gap-4 justify-start">
             <MaterialCommunityIcons name="bed" size={24} color="white" />
             <Text
               className="text-center font-bold color-[#6366ff]"
@@ -734,7 +729,7 @@ const Estadisticas = () => {
           {/* Mostrar hora de inicio del sueño cuando el usuario está durmiendo */}
           {isSleeping && sleepStartDisplay && (
             <View className="flex-row items-center justify-between bg-[#2a3952] p-4 rounded-lg border-l-4 border-[#6366ff]">
-              <View className="flex-row items-center flex-1">
+              <View className="flex-row flex-1 items-center">
                 <View className="bg-[#6366ff]/20 p-2 rounded-full mr-3">
                   <Feather name="moon" size={16} color="#6366ff" />
                 </View>
@@ -768,7 +763,7 @@ const Estadisticas = () => {
           )}
 
           {/* Botones para registrar las horas de sueño y abrir el modal de preguntas */}
-          <View className="flex flex-col justify-between w-full gap-4">
+          <View className="flex flex-col gap-4 justify-between w-full">
             <TouchableOpacity
               onPress={calculateSleepStart}
               className={`flex flex-row items-center justify-start p-4 gap-4 

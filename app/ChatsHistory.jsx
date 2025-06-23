@@ -419,7 +419,7 @@ const ChatsHistory = () => {
         onPress={() => openDatePicker(pickerType)}
         className="flex-row items-center bg-[#1e273a] p-3 py-5 rounded-xl w-full"
       >
-        <View className="flex-row items-center gap-2">
+        <View className="flex-row gap-2 items-center">
           <Feather name="calendar" size={16} color="#6366ff" />
           <Text className="text-white">{date.toLocaleDateString()}</Text>
         </View>
@@ -429,7 +429,7 @@ const ChatsHistory = () => {
 
   return (
     <SafeAreaView className="flex-1 w-full bg-primary">
-      <View className="flex flex-row items-center justify-start gap-4 p-4">
+      <View className="flex flex-row gap-4 justify-start items-center p-4">
         <TouchableOpacity onPress={handleBackToChat}>
           <AntDesign name="close" size={32} color={"#6366ff"} />
         </TouchableOpacity>
@@ -470,7 +470,7 @@ const ChatsHistory = () => {
               Buscar chats por rango de fechas
             </Text>
 
-            <View className="flex-row items-center justify-between w-full">
+            <View className="flex-row justify-between items-center w-full">
               <DatePickerWithLabel
                 label="Desde"
                 date={startDate}
@@ -600,7 +600,7 @@ const ChatsHistory = () => {
         {/*Renderizamos los chats filtrados por rango de fechas*/}
         {hasSearched && filteredChats.length > 0 && (
           <View className="w-[90%] self-center mb-4">
-            <View className="flex-row items-center justify-between mb-4">
+            <View className="flex-row justify-between items-center mb-4">
               <Text className="text-lg font-semibold text-white">
                 Resultados de búsqueda (
                 {totalElementsFiltered || filteredChats.length})
@@ -669,7 +669,7 @@ const ChatsHistory = () => {
         {/*Renderizamos los últimos chats recientes*/}
         {history.length > 0 ? (
           <View className="w-[90%] self-center">
-            <View className="flex-row items-center justify-between mb-4">
+            <View className="flex-row justify-between items-center mb-4">
               <Text className="text-xl font-bold text-white">
                 Chats Recientes
               </Text>
@@ -738,7 +738,7 @@ const ChatsHistory = () => {
                 facilitarte el acceso a ellos.
               </Text>
 
-              <View className="flex-row items-center gap-2 mt-2">
+              <View className="flex-row gap-2 items-center mt-2">
                 <Feather name="message-square" size={16} color="#6366ff" />
                 <Text className="text-sm text-[#6366ff]">
                   Podrás buscar chats por rango de fechas

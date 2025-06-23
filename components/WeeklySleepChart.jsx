@@ -98,6 +98,9 @@ const WeeklySleepChart = ({ sleepLogsDuration }) => {
             strokeWidth: "1",
             stroke: "#ffffff",
           },
+          // Configuración de escala fija para contexto médico
+          yAxisMinValue: 0,
+          yAxisMaxValue: 12, // Máximo razonable para horas de sueño
         }}
       />
 

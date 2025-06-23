@@ -8,6 +8,7 @@ import {
   Platform,
   Keyboard,
   Pressable,
+  Alert,
 } from "react-native";
 import React, { useEffect, useState } from "react";
 import { Feather } from "@expo/vector-icons";
@@ -33,15 +34,19 @@ const Chat = () => {
     setIsToday,
     conversationLoaded,
     hasAttemptedLoad,
+    getDailyChatId,
   } = useChat();
   //Input que guarda el mensaje que se quiere enviar
   const [newMessage, setNewMessage] = useState("");
   // Estado para controlar si los mensajes se están cargando
   const [initializing, setInitializing] = useState(true);
-  //Estado para saber si el chat puede hacer un chat nuevo o no
+  //Estado para saber si el user puede hacer un chat nuevo o no
   const [canCreateNewChat, setCanCreateNewChat] = useState(false);
   //Estado para saber si no se ha podido recuperar la conversación de un chat
   const [conversationNotFound, setConversationNotFound] = useState(false);
+  //Estado para saber si el user ha hecho un chat hpy y lo ha eliminado
+  const [hasChatTodayButEliminated, setHasChatTodayButEliminated] =
+    useState(false);
 
   //Tenemos que recuperar el nombre del user para enseñarlo en el mensaje inicial que se pone en el chat antes de iniciar la conversación
   const { userInfo } = useAuthContext();
@@ -63,8 +68,14 @@ const Chat = () => {
 
     const load = async () => {
       try {
-        //Si es la primera vez que entramos en la pestaña tenemos que recuperar la bandera de si el user ha hecho un chat hoy
+        //Si es la primera vez que entramos en la pestaña tenemos que recuperar la bandera de si el user ha hecho un chat hoy y el posible id del chat de hoy
         const hasChatToday = await getHasChatToday();
+        const dailyChatId = await getDailyChatId();
+
+        //Si no tenemos el id del chat de hoy pero si tenemos la bandera de hasChatToday, significa que el user ha hecho un chat hoy pero lo ha eliminado
+        if (hasChatToday && !dailyChatId) {
+          setHasChatTodayButEliminated(true);
+        }
 
         console.log("Valor de hasChatToday: ", hasChatToday);
         console.log("Valor de chatId: ", chatId);
@@ -187,7 +198,7 @@ const Chat = () => {
       >
         {/*En caso de que no se puedacargar ka conversación, ocultamos el header de la sección para dejar la pantalla más profesional */}
         {!conversationNotFound && (
-          <View className="flex flex-row items-center justify-start gap-4 p-4 android:pt-6">
+          <View className="flex flex-row gap-4 justify-start items-center p-4 android:pt-6">
             <TouchableOpacity
               //Cuando pinchemos en el menú hamburguesa se abre el modal
               onPress={toggleModal}
@@ -210,11 +221,11 @@ const Chat = () => {
          */}
         {initializing ? (
           // Pantalla de carga profesional mientras inicializamos
-          <View className="items-center justify-center flex-1 px-6">
+          <View className="flex-1 justify-center items-center px-6">
             <View className="w-full bg-[#1e2a47] rounded-xl p-8">
               <View className="flex-row w-full">
                 <View className="w-2 h-full bg-[#6366ff]" />
-                <View className="items-center flex-1">
+                <View className="flex-1 items-center">
                   <LoadingBanner />
                   <Text className="mb-2 text-xl font-bold text-white">
                     Cargando entorno de ZzzTime AI
@@ -224,7 +235,7 @@ const Chat = () => {
                     tus sueños y mejorar tu descanso.
                   </Text>
 
-                  <View className="flex flex-row justify-center w-full gap-2 mt-2">
+                  <View className="flex flex-row gap-2 justify-center mt-2 w-full">
                     <View className="h-2 w-2 rounded-full bg-[#6366ff] opacity-30" />
                     <View className="h-2 w-2 rounded-full bg-[#6366ff] opacity-50" />
                     <View className="h-2 w-2 rounded-full bg-[#6366ff] opacity-70" />
@@ -246,7 +257,7 @@ const Chat = () => {
               que haya sido eliminada o que haya ocurrido un error.
             </Text>
 
-            <View className="flex flex-col w-full gap-3">
+            <View className="flex flex-col gap-3 w-full">
               <TouchableOpacity
                 onPress={() => {
                   //Si volvemos al inicio, eliminamos el estado de la conversación no encontrada
@@ -258,7 +269,7 @@ const Chat = () => {
                 }}
                 className="bg-[#6366ff] px-12 py-4 rounded-full flex flex-row items-center justify-center"
               >
-                <View className="flex-row items-center justify-center gap-2">
+                <View className="flex-row gap-2 justify-center items-center">
                   <Feather name="home" size={16} color="#ffffff" />
                   <Text className="font-medium text-white">
                     Ir al chat principal
@@ -270,7 +281,7 @@ const Chat = () => {
                 onPress={() => router.push("../ChatsHistory")}
                 className="bg-[#323d4f] px-12 py-4 rounded-full flex flex-row items-center justify-center"
               >
-                <View className="flex-row items-center justify-center gap-2">
+                <View className="flex-row gap-2 justify-center items-center">
                   <Feather name="message-square" size={16} color="#ffffff" />
                   <Text className="font-medium text-white">
                     Ver historial de chats
@@ -283,7 +294,7 @@ const Chat = () => {
           canCreateNewChat ? (
             // Pantalla de bienvenida si no hay mensajes en el caso de que se abra el teclado y el user quiera cerrarlo tenemos que englobar esta vista en un Pressable para que se cierre el teclado
             <Pressable style={{ flex: 1 }} onPress={Keyboard.dismiss}>
-              <View className="items-center justify-center flex-1 android:px-6">
+              <View className="flex-1 justify-center items-center android:px-6">
                 {/* Esquina superior izquierda */}
                 <View
                   className="absolute w-16 h-16 bg-[#6366ff]/15 rounded-full"
@@ -320,7 +331,7 @@ const Chat = () => {
                   style={{ bottom: 80, right: 28 }}
                 />
 
-                <View className="items-center justify-center flex-1 gap-3">
+                <View className="flex-1 gap-3 justify-center items-center">
                   <Text className="text-center text-[#6366ff] text-3xl font-bold mb-2">
                     ¡Hola, {userInfo?.name || "User"}!
                   </Text>
@@ -333,11 +344,11 @@ const Chat = () => {
             </Pressable>
           ) : (
             // Pantalla mejorada para cuando el usuario no puede crear un nuevo chat hoy
-            <View className="items-center justify-center flex-1 px-6 android:px-4">
+            <View className="flex-1 justify-center items-center px-6 android:px-4">
               <View className="w-full bg-[#1e2a47] rounded-xl p-8 border border-[#323d4f]">
                 <View className="flex-row w-full">
                   <View className="w-2 h-full bg-[#6366ff]" />
-                  <View className="items-center flex-1">
+                  <View className="flex-1 items-center">
                     <View className="bg-[#6366ff]/10 p-4 rounded-full mb-4">
                       <Feather name="calendar" size={32} color="#6366ff" />
                     </View>
@@ -367,7 +378,7 @@ const Chat = () => {
                       onPress={() => router.push("../ChatsHistory")}
                       className="mt-2 bg-[#6366ff] px-6 py-3 rounded-xl flex-row items-center"
                     >
-                      <View className="flex-row items-center justify-center gap-2">
+                      <View className="flex-row gap-2 justify-center items-center">
                         <Feather
                           name="message-square"
                           size={16}
@@ -397,9 +408,9 @@ const Chat = () => {
         )}
 
         {isToday ? (
-          //Si no se ha inicializado o no puede crear un nuevo chat hoy ocultamos el input y el botón de enviar
+          //Si no se están cargando mensajes, el user ha hablado hoy y no tiene el id del chat que ha hecho hoy, ocultamos el input y el botón de enviar
           !initializing &&
-          canCreateNewChat && (
+          !hasChatTodayButEliminated && (
             <View className="flex-row items-center p-4 pb-0 border-t border-gray-700">
               <TextInput
                 className="flex-1 bg-[#323d4f] text-white p-3 rounded-xl mr-2"

@@ -113,7 +113,8 @@ const Tips = () => {
         isMounted.current &&
         now - lastFocusTime.current > 1000 &&
         !isRefreshing.current &&
-        initializedDone.current
+        initializedDone.current &&
+        !isSelectionMode // No recargar tips cuando estamos en modo de selección para eliminar, pq esto es molesto para el user visualmente y funcionalmente
       ) {
         console.log("TIPS SCREEN FOCUSED - RELOADING TIPS");
         getTips();
@@ -122,7 +123,7 @@ const Tips = () => {
       return () => {
         //Función de limpiado
       };
-    }, [getTips])
+    }, [getTips, isSelectionMode]) // Agregamos isSelectionMode a las dependencias
   );
 
   // Función para refrescar los tips manualmente

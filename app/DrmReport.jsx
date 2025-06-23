@@ -19,6 +19,7 @@ import { getDailyTipFlag } from "../hooks/useTips";
 import { LinearGradient } from "expo-linear-gradient";
 import useNotifications from "../hooks/useNotifications";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import APIErrorModal from "../components/APIErrorModal";
 
 const DrmReport = () => {
   const { getDrmToday, drmToday } = useDRM();
@@ -28,6 +29,10 @@ const DrmReport = () => {
   const scrollY = useRef(new Animated.Value(0)).current;
   const scrollViewRef = useRef(null);
   const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  // Estados para el modal de error
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorModalType, setErrorModalType] = useState("generateTip");
 
   //Recuperamos la info del user ya que necesitamos su nombre para poner en el informe que el user va a descargar
   const { userInfo } = useAuthContext();
@@ -101,18 +106,16 @@ const DrmReport = () => {
         );
       } else {
         setTipButtonState("default");
-        Alert.alert(
-          "Error",
-          "No se pudo generar el tip. Inténtalo de nuevo más tarde."
-        );
+        // Mostrar modal de error en lugar de Alert
+        setErrorModalType("generateTip");
+        setShowErrorModal(true);
       }
     } catch (error) {
       console.error("Error generando tip:", error);
       setTipButtonState("default");
-      Alert.alert(
-        "Error",
-        "No se pudo generar el tip. Inténtalo de nuevo más tarde."
-      );
+      // Mostrar modal de error en lugar de Alert
+      setErrorModalType("generateTip");
+      setShowErrorModal(true);
     }
   };
 
@@ -301,11 +304,11 @@ const DrmReport = () => {
   return (
     <SafeAreaView className="flex-1 w-full h-full bg-primary">
       <View className="flex flex-row items-center justify-between py-4 w-[90%] self-center">
-        <View className="flex flex-row items-center justify-start gap-4">
+        <View className="flex flex-row gap-4 justify-start items-center">
           <TouchableOpacity
             //Tenemos que usar replace ya que podemos acceder a esta pestaña desde dos sitios distintos
             onPress={() => router.replace("./(tabs)/Stats?section=drm")}
-            className="flex flex-row items-center gap-2 py-2"
+            className="flex flex-row gap-2 items-center py-2"
           >
             <Feather name="chevron-left" size={24} color="white" />
           </TouchableOpacity>
@@ -317,7 +320,7 @@ const DrmReport = () => {
           </Text>
         </View>
         {hasReportData && (
-          <View className="flex-row items-center gap-4">
+          <View className="flex-row gap-4 items-center">
             <TouchableOpacity
               //Cuando pinchemos en el botón de descargar el informe llamamos a la función para pasarlo a PDF
               onPress={createPDF}
@@ -399,7 +402,7 @@ const DrmReport = () => {
             </TouchableOpacity>
           </>
         ) : (
-          <View className="items-center justify-center flex-1 w-full">
+          <View className="flex-1 justify-center items-center w-full">
             <View className="w-full items-center justify-center p-8 bg-[#1e2a47] rounded-xl flex gap-5">
               <View className="flex-row w-full">
                 <View className="w-2 h-full bg-[#ff4757]" />
@@ -418,7 +421,7 @@ const DrmReport = () => {
                 </View>
               </View>
 
-              <View className="w-full p-4 rounded-xl">
+              <View className="p-4 w-full rounded-xl">
                 <View className="flex-row items-center mb-3">
                   <FontAwesome5
                     name="clipboard-list"
@@ -488,6 +491,13 @@ const DrmReport = () => {
             </View>
           </View>
         )}
+
+        {/* Modal de error para API */}
+        <APIErrorModal
+          visible={showErrorModal}
+          onClose={() => setShowErrorModal(false)}
+          errorType={errorModalType}
+        />
       </View>
     </SafeAreaView>
   );

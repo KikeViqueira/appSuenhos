@@ -108,6 +108,8 @@ const useUser = () => {
       );
       console.log("Foto de perfil eliminada: ", response.data);
       getUser();
+      //Devolvemos la url del placeholder para settearla en el estado de la app
+      return response.data;
     } catch (error) {
       setError(error);
       console.error("Error al eliminar la foto de perfil: ", error);

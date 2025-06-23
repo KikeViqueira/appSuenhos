@@ -9,7 +9,7 @@ import {
   Linking,
   Alert,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { questions } from "../assets/DRMQuestions.json";
 import SliderQuestion from "../components/SliderQuestion";
 import OptionQuestion from "../components/OptionQuestion";
@@ -22,6 +22,7 @@ import useDRM from "../hooks/useDRM";
 import { LinearGradient } from "expo-linear-gradient";
 import useNotifications from "../hooks/useNotifications";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import APIErrorModal from "../components/APIErrorModal";
 
 const DRM = () => {
   const { saveDrmAnswers, loading, error } = useDRM();
@@ -31,6 +32,10 @@ const DRM = () => {
   const [reportButtonState, setReportButtonState] = useState("default"); //Controla el estado del botón a la hora de generar el informe
   //Estado para saber si tenemos que enseñar al user el contenido de que vuelva mañana a hacer el siguiente form cuando ha hecho el de hoy
   const [hasCompletedToday, setHasCompletedToday] = useState(false);
+
+  // Estados para el modal de error
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorModalType, setErrorModalType] = useState("generateDrmReport");
 
   // Hook de notificaciones
   const { scheduleNotificationWithId } = useNotifications();
@@ -90,15 +95,15 @@ const DRM = () => {
 
   useEffect(() => {
     console.log("Respuestas del cuestionario actualmente: ", answers);
-  });
+  }, [answers]);
 
   //Función para guardar la respuesta de una pregunta (id y respuesta que es el formato que espera la api para guardar la petición)
-  const handleAnswer = (id, answer) => {
+  const handleAnswer = useCallback((id, answer) => {
     setAnswers((prev) => ({
       ...prev,
       [id]: answer, //si existe el campo con ese id, actualiza el valor, en caso contrario crea la entrada con el id si no hay una previa
     }));
-  };
+  }, []); //useCallback para evitar recrear la función en cada render
 
   //Función para mandar las respuestas a la API
   const submit = async () => {
@@ -143,10 +148,9 @@ const DRM = () => {
     } catch (error) {
       setReportButtonState("default");
       setHasCompletedToday(false);
-      Alert.alert(
-        "Error",
-        "No se pudo generar el informe. Inténtalo de nuevo más tarde."
-      );
+      // Mostrar modal de error en lugar de Alert
+      setErrorModalType("generateDrmReport");
+      setShowErrorModal(true);
     }
   };
 
@@ -169,9 +173,25 @@ const DRM = () => {
     }
   };
 
+  // Función para inicializar las respuestas de los sliders con valor por defecto
+  const initializeSliderAnswers = () => {
+    const sliderQuestions = questions.filter((q) => q.type === "scale");
+    const initialAnswers = {};
+
+    sliderQuestions.forEach((question) => {
+      initialAnswers[question.id] = question.scale.min; // Valor por defecto 1
+    });
+
+    //Inicializamos el objeto de respuestas con los valores por defecto para las preguntas de tipo scale
+    setAnswers(initialAnswers);
+  };
+
   useEffect(() => {
     //Cuando se monta el componente comprobamos si el user ya ha generado un informe hoy o no
     checkDailyReportStatus();
+
+    // Inicializar las respuestas de los sliders con valor por defecto
+    initializeSliderAnswers();
   }, []);
 
   // Determinar el texto y estilo del botón según el estado
@@ -226,15 +246,15 @@ const DRM = () => {
         <>
           {/* Header */}
           <View className="bg-[#0e172a] border-b border-[#1e2a47]">
-            <View className="flex flex-row items-center justify-between gap-4 p-4">
+            <View className="flex flex-row gap-4 justify-between items-center p-4">
               <TouchableOpacity
                 onPress={() => router.back()}
-                className="flex flex-row items-center gap-2 px-1 py-2"
+                className="flex flex-row gap-2 items-center px-1 py-2"
               >
                 <Feather name="chevron-left" size={24} color="white" />
               </TouchableOpacity>
 
-              <View className="items-center flex-1">
+              <View className="flex-1 items-center">
                 <Text
                   className="font-bold text-[#6366ff]"
                   style={{ fontSize: 20 }}
@@ -253,11 +273,11 @@ const DRM = () => {
           </View>
 
           {/* Contenido principal */}
-          <View className="items-center justify-center flex-1 px-4 mt-10">
+          <View className="flex-1 justify-center items-center px-4 mt-10">
             {/* Contenedor principal con distribución flexible */}
-            <View className="justify-center flex-1 w-full max-w-sm">
+            <View className="flex-1 justify-center w-full max-w-sm">
               {/* Sección superior: Indicador y títulos */}
-              <View className="items-center justify-end flex-1 mb-10">
+              <View className="flex-1 justify-end items-center mb-10">
                 {/* Indicador de confirmación más compacto */}
                 <View className="items-center mb-4">
                   <View style={{ transform: [{ scale: 0.8 }] }}>
@@ -277,11 +297,11 @@ const DRM = () => {
               </View>
 
               {/* Sección central: Información */}
-              <View className="justify-center flex-1 py-4 mb-4">
+              <View className="flex-1 justify-center py-4 mb-4">
                 {/* Tarjeta de información más compacta */}
                 <View className="bg-[#0e172a] rounded-xl p-4 border border-[#1e2a47]">
                   {/* Estado del informe */}
-                  <View className="flex-row items-center gap-3 mb-5">
+                  <View className="flex-row gap-3 items-center mb-5">
                     <View className="bg-[#15db44]/10 p-2 rounded-full">
                       <MaterialIcons
                         name="check-circle"
@@ -301,7 +321,7 @@ const DRM = () => {
 
                   {/* Información adicional */}
                   <View className="bg-[#1a2332] p-3 rounded-lg border border-[#252e40] mb-4">
-                    <View className="flex-row items-center gap-2 mb-2">
+                    <View className="flex-row gap-2 items-center mb-2">
                       <MaterialIcons
                         name="info-outline"
                         size={18}
@@ -319,7 +339,7 @@ const DRM = () => {
 
                   {/* Información de próximo informe */}
                   <View className="bg-[#1a2332] p-3 rounded-lg border border-[#252e40]">
-                    <View className="flex-row items-center gap-2 mb-2">
+                    <View className="flex-row gap-2 items-center mb-2">
                       <MaterialIcons
                         name="schedule"
                         size={18}
@@ -338,7 +358,7 @@ const DRM = () => {
               </View>
 
               {/* Sección inferior: Botones */}
-              <View className="justify-start flex-1 pt-6">
+              <View className="flex-1 justify-start pt-6">
                 <View className="gap-4">
                   {/* Botón principal - Ver informe generado*/}
                   <TouchableOpacity
@@ -386,15 +406,15 @@ const DRM = () => {
         <>
           {/* Header mejorado */}
           <View className="bg-[#0e172a] border-b border-[#1e2a47]">
-            <View className="flex flex-row items-center justify-between gap-4 p-4">
+            <View className="flex flex-row gap-4 justify-between items-center p-4">
               <TouchableOpacity
                 onPress={() => router.back()}
-                className="flex flex-row items-center gap-2 px-1 py-2"
+                className="flex flex-row gap-2 items-center px-1 py-2"
               >
                 <Feather name="chevron-left" size={24} color="white" />
               </TouchableOpacity>
 
-              <View className="items-center flex-1">
+              <View className="flex-1 items-center">
                 <Text
                   className="font-bold text-[#6366ff]"
                   style={{ fontSize: 20 }}
@@ -404,7 +424,7 @@ const DRM = () => {
 
                 {/* Barra de progreso */}
                 <View className="mt-3 w-[90%]">
-                  <View className="flex-row items-center justify-between mb-2">
+                  <View className="flex-row justify-between items-center mb-2">
                     <Text className="text-xs font-medium text-gray-300">
                       Progreso
                     </Text>
@@ -545,7 +565,7 @@ const DRM = () => {
                     elevation: 4,
                   }}
                 >
-                  <View className="flex-row items-center gap-2">
+                  <View className="flex-row gap-2 items-center">
                     {reportButtonState === "generating" && (
                       <MaterialIcons
                         name="hourglass-empty"
@@ -577,6 +597,13 @@ const DRM = () => {
           </KeyboardAvoidingView>
         </>
       )}
+
+      {/* Modal de error para API */}
+      <APIErrorModal
+        visible={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        errorType={errorModalType}
+      />
     </SafeAreaView>
   );
 };

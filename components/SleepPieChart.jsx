@@ -159,71 +159,78 @@ const SleepPieChart = ({ sleepData, showAverage = false }) => {
 
       <View>
         {pieData.map((item) => (
-          <TouchableOpacity
-            key={item.phase}
-            className={`flex-row items-center py-2 px-3 rounded-lg mb-1.5 ${
-              selectedPhase === item.phase ? "bg-white/10" : "bg-white/5"
-            }`}
-            onPress={() => handlePhaseSelect(item.phase)}
-          >
-            <View
-              className="w-3 h-3 rounded-full mr-2.5"
-              style={{ backgroundColor: item.color }}
-            />
-            <View className="flex-1">
-              <Text className="text-sm font-medium text-white">
-                {item.name}
-              </Text>
-              <Text className="text-xs text-[#a0b0c7]">
-                {formatTime(item.minutes)} ({calculatePercentage(item.minutes)}
-                %)
-              </Text>
-            </View>
-            <Feather
-              name={
-                selectedPhase === item.phase ? "chevron-up" : "chevron-down"
-              }
-              size={16}
-              color="#FFFFFF"
-            />
-          </TouchableOpacity>
+          <View key={item.phase} className="mb-1.5">
+            <TouchableOpacity
+              className={`flex-row items-center py-2 px-3 rounded-lg ${
+                selectedPhase === item.phase ? "bg-white/10" : "bg-white/5"
+              }`}
+              onPress={() => handlePhaseSelect(item.phase)}
+            >
+              <View
+                className="w-3 h-3 rounded-full mr-2.5"
+                style={{ backgroundColor: item.color }}
+              />
+              <View className="flex-1">
+                <Text className="text-sm font-medium text-white">
+                  {item.name}
+                </Text>
+                <Text className="text-xs text-[#a0b0c7]">
+                  {formatTime(item.minutes)} (
+                  {calculatePercentage(item.minutes)}
+                  %)
+                </Text>
+              </View>
+              <Feather
+                name={
+                  selectedPhase === item.phase ? "chevron-up" : "chevron-down"
+                }
+                size={16}
+                color="#FFFFFF"
+              />
+            </TouchableOpacity>
+
+            {/* Información detallada que aparece justo debajo de cada fase */}
+            {selectedPhase === item.phase && (
+              <View className="mt-2 p-4 rounded-lg bg-white/5 border-t border-[#323d4f]/50">
+                <Text className="mb-1 text-base font-bold text-white">
+                  {sleepPhaseConfig[item.phase].name}
+                </Text>
+                <Text className="text-sm text-[#a0b0c7] mb-2.5 leading-5">
+                  {sleepPhaseConfig[item.phase].description}
+                </Text>
+                <View className="flex-row self-start w-full">
+                  <View className="flex-1 items-center">
+                    <Text className="text-sm text-[#6366ff] mb-0.5">
+                      Episodios
+                    </Text>
+                    <Text className="text-sm font-bold text-white">
+                      {sleepData.levels.summary[item.phase].count}
+                    </Text>
+                  </View>
+                  <View className="flex-1 items-center">
+                    <Text className="text-sm text-[#6366ff] mb-0.5">
+                      Duración
+                    </Text>
+                    <Text className="text-sm font-bold text-white">
+                      {formatTime(sleepData.levels.summary[item.phase].minutes)}
+                    </Text>
+                  </View>
+                  <View className="flex-1 items-center">
+                    <Text className="text-sm text-[#6366ff] mb-0.5">
+                      Promedio 30 días
+                    </Text>
+                    <Text className="text-sm font-bold text-white">
+                      {formatTime(
+                        sleepData.levels.summary[item.phase].thirtyDayAvgMinutes
+                      )}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            )}
+          </View>
         ))}
       </View>
-
-      {selectedPhase && (
-        <View className="p-4 rounded-lg bg-white/5">
-          <Text className="mb-1 text-base font-bold text-white">
-            {sleepPhaseConfig[selectedPhase].name}
-          </Text>
-          <Text className="text-sm text-[#a0b0c7] mb-2.5 leading-5">
-            {sleepPhaseConfig[selectedPhase].description}
-          </Text>
-          <View className="flex-row self-start w-full">
-            <View className="flex-1 items-center">
-              <Text className="text-sm text-[#6366ff] mb-0.5">Episodios</Text>
-              <Text className="text-sm font-bold text-white">
-                {sleepData.levels.summary[selectedPhase].count}
-              </Text>
-            </View>
-            <View className="flex-1 items-center">
-              <Text className="text-sm text-[#6366ff] mb-0.5">Duración</Text>
-              <Text className="text-sm font-bold text-white">
-                {formatTime(sleepData.levels.summary[selectedPhase].minutes)}
-              </Text>
-            </View>
-            <View className="flex-1 items-center">
-              <Text className="text-sm text-[#6366ff] mb-0.5">
-                Promedio 30 días
-              </Text>
-              <Text className="text-sm font-bold text-white">
-                {formatTime(
-                  sleepData.levels.summary[selectedPhase].thirtyDayAvgMinutes
-                )}
-              </Text>
-            </View>
-          </View>
-        </View>
-      )}
 
       {/* Leyenda explicativa */}
       <View className="bg-[#0e172a] p-4 rounded-xl flex-col self-center gap-3 border border-[#6366ff]">

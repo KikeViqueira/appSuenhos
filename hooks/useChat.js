@@ -1,4 +1,5 @@
-import { useEffect, useState, Alert } from "react";
+import { useEffect, useState } from "react";
+import { Alert } from "react-native";
 import { apiClient } from "../services/apiClient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_BASE_URL } from "../config/config";
@@ -233,15 +234,63 @@ const useChat = () => {
         }
       }
     } catch (error) {
-      //Si ocurre un error se elimina el mensaje temporal de la IA y se muestra un mensaje de error
+      //Si ocurre un error se elimina el mensaje temporal de la IA y también el mensaje del usuario para evitar que quede "flotando"
       setMessages((prev) =>
-        prev.filter((message) => message.content !== "...")
+        prev.filter(
+          (message) => message.content !== "..." && message.content !== message
+        )
       );
+
       setError(error);
       console.error("Error al enviar mensaje:", error);
+
+      // Mostrar alerta nativa y recargar chat al confirmar
+      Alert.alert(
+        "Error de conexión",
+        "Ha ocurrido un error al comunicarse con ZzzTime AI. Se recargará el chat para intentar nuevamente.",
+        [
+          {
+            text: "OK",
+            onPress: async () => {
+              // Recargar el chat
+              await reloadChatAfterError();
+            },
+          },
+        ],
+        { cancelable: false }
+      );
     } finally {
       setLoading(false); //Indicamos que la petición ha terminado
       setIsAiWriting(false); // Indicamos que la IA ha terminado de escribir
+    }
+  };
+
+  // Función para recargar el chat después de un error
+  const reloadChatAfterError = async () => {
+    try {
+      // Limpiar estados
+      setError(null);
+      setIsAiWriting(false);
+
+      // Recargar el chat actual
+      const chatId = await getDailyChatId();
+      if (chatId) {
+        // Si hay un chat de hoy, lo recargamos
+        await getTodayChat();
+      } else {
+        // Si no hay chat de hoy, limpiamos y permitimos crear uno nuevo
+        setMessages([]);
+        setIsToday(true);
+        setConversationLoaded(true);
+        setHasAttemptedLoad(true);
+      }
+    } catch (error) {
+      console.error("Error al recargar chat:", error);
+      // En caso de error, configuramos para chat nuevo
+      setMessages([]);
+      setIsToday(true);
+      setConversationLoaded(true);
+      setHasAttemptedLoad(true);
     }
   };
 
@@ -657,8 +706,10 @@ const useChat = () => {
         setConversationLoaded(true);
         console.log("Chat editable:", chatEditable);
 
-        // También guardamos el id del chat en la bandera aux para saber en que chat está el user
-        await setCurrentChatId(targetChatId.toString());
+        // También guardamos el id del chat en la bandera aux para saber en que chat está el user, esto solo si los mensajes no están vacíos
+        if (chatMessages.length > 0) {
+          await setCurrentChatId(targetChatId.toString());
+        }
 
         return true;
       } else {
@@ -759,6 +810,7 @@ const useChat = () => {
     isAiWriting,
     clearCurrentChat,
     getCurrentChatId,
+    getDailyChatId,
     getHasChatToday,
     filteredChats,
     getChatsByRange,
