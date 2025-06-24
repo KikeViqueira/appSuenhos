@@ -161,8 +161,7 @@ const ChatsHistory = () => {
         {/* Información de paginación */}
         <View className="bg-[#1e273a]/50 px-4 py-2 rounded-full border border-[#323d4f]/30">
           <Text className="text-xs text-center text-white/70">
-            {history.length} de {totalElements} chats • Página {currentPage + 1}{" "}
-            de {totalPages}
+            {history.length} de {totalElements} chats en total
           </Text>
         </View>
 
@@ -201,8 +200,7 @@ const ChatsHistory = () => {
         {/* Información de paginación */}
         <View className="bg-[#1e273a]/50 px-4 py-2 rounded-full border border-[#323d4f]/30">
           <Text className="text-xs text-center text-white/70">
-            {filteredChats.length} de {totalElementsFiltered} chats • Página{" "}
-            {currentPageFiltered + 1} de {totalPagesFiltered}
+            {filteredChats.length} de {totalElementsFiltered} chats filtrados
           </Text>
         </View>
 

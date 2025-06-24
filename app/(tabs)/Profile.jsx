@@ -171,8 +171,6 @@ const Profile = () => {
 
     //Comprobamos que el resultado no haya sido cancelado y guardamos la foto
     if (!result.canceled) {
-      //Ocultamos el modal de opciones de cámara del user, solo si el user ha seleccionado una foto y no ha cancelado la operación de subida
-      setshowModal(false);
       if (result.assets[0].fileSize > 20 * 1024 * 1024) {
         Alert.alert(
           "Imagen demasiado grande",
@@ -180,7 +178,19 @@ const Profile = () => {
         );
         return;
       }
-      savePicture({ imagen: result.assets[0].uri });
+
+      //Ocultamos el modal de opciones de cámara del user, solo si el user ha seleccionado una foto y no ha cancelado la operación de subida
+      setshowModal(false);
+
+      // Aumentamos el retraso para asegurar que el modal PictureOptions se cierre completamente antes de abrir el LoadingModal
+      setTimeout(() => {
+        // Mostrar indicador de carga inmediatamente después de seleccionar la imagen
+        setLoadingType("upload");
+        setLoadingMessage("Subiendo la foto de perfil...");
+        setLoadingModalVisible(true);
+
+        savePicture({ imagen: result.assets[0].uri });
+      }, 500);
     }
   };
 
@@ -224,11 +234,6 @@ const Profile = () => {
   //Función para guardar la foto en el estado que hemos definido y a mayores guardarla en la base de datos
   const savePicture = async ({ imagen }) => {
     try {
-      // Mostrar indicador de carga
-      setLoadingType("upload");
-      setLoadingMessage("Subiendo la foto de perfil...");
-      setLoadingModalVisible(true);
-
       const { extension, mimeType } = getFileType(imagen);
       const sanitizedUserName = userInfo.name
         ?.replace(/\s+/g, "_")
@@ -240,6 +245,7 @@ const Profile = () => {
         type: mimeType,
         name: `profilePicture-${sanitizedUserName}.${extension}`,
       });
+
       await updateProfilePicture(form);
       //Como estamos guardando una   foto dinámica, tenemos que pasarla a un URI y asi pasar el objeto y que react sepa que es una foto que no está en el proyecto
       //Y de esta manera puede cargarla como imagen en la aplicación
@@ -506,16 +512,16 @@ const Profile = () => {
             deleteAccount={deleteAccount}
           />
         </ScrollView>
-
-        {/* Modal de carga para foto de perfil */}
-        <LoadingModal
-          visible={loadingModalVisible}
-          operationType={loadingType}
-          contentType="photo"
-          message={loadingMessage}
-          onRequestClose={() => {}} // Evitamos que se cierre accidentalmente
-        />
       </View>
+
+      {/* Modal de carga para foto de perfil - Movido fuera para máxima prioridad */}
+      <LoadingModal
+        visible={loadingModalVisible}
+        operationType={loadingType}
+        contentType="photo"
+        message={loadingMessage}
+        onRequestClose={() => {}} // Evitamos que se cierre accidentalmente
+      />
     </SafeAreaView>
   );
 };

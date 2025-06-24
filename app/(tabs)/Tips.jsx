@@ -184,8 +184,7 @@ const Tips = () => {
         {/* Información de paginación */}
         <View className="bg-[#1e273a]/50 px-4 py-2 rounded-full border border-[#323d4f]/30">
           <Text className="text-xs text-center text-white/70">
-            {tips.length} de {totalElements} tips • Página {currentPage + 1} de{" "}
-            {totalPages}
+            {tips.length} de {totalElements} tips en total
           </Text>
         </View>
 
