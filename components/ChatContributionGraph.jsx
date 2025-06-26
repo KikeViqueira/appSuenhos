@@ -2,13 +2,14 @@ import { View, Dimensions } from "react-native";
 import React, { useEffect } from "react";
 import { ContributionGraph } from "react-native-chart-kit";
 import useChat from "../hooks/useChat";
+import { getLocalDateString } from "../services/timeHelper";
 
 // Función para obtener el último día del mes actual
 const getEndDate = () => {
   const now = new Date();
   // new Date(año, mes+1, 0) devuelve el último día del mes actual
   const end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  return end.toISOString().split("T")[0];
+  return getLocalDateString(end);
 };
 
 // Función para calcular el número de días entre el primer día del mes hace dos meses y el último día del mes actual

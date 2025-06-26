@@ -25,31 +25,15 @@ import { useAuthContext } from "../../context/AuthContext";
 import useFlags from "../../hooks/useFlags";
 import useNotifications from "../../hooks/useNotifications";
 import { useLocalSearchParams } from "expo-router";
-
-/**
- *  Función que lo que hace es quitarle el offset de la fecha para poder trabajar con fechas locales del user y que se guarden correctamente en la BD de manera coherente
- * @param {Date} date - Fecha que se quiere formatear
- * @return {string} - Fecha formateada en el formato que espera la API
- */
-const formatDateToLocalDate = (date) => {
-  const tzOffset = date.getTimezoneOffset() * 60000; // Offset en milisegundos
-  const localDate = new Date(date.getTime() - tzOffset);
-  return localDate;
-};
-
-/**
- *  Función que nos devuelve la fecha en el formato que espera la api
- * @param {Date} date - Fecha que se quiere formatear
- * @return {string} - Fecha formateada en el formato que espera la API
- */
-const formatDateToApiFormat = (date) => {
-  // Formatear la fecha a YYYY-MM-DDTHH:mm:ss
-  return date.toISOString().slice(0, 19);
-};
+import {
+  addHours,
+  getMidnightToday,
+  getLocalDateTimeString,
+} from "../../services/timeHelper";
 
 /**
  * Función para formatear la hora de inicio del sueño de manera legible
- * @param {string} sleepStartTime - Hora de inicio en formato ISO
+ * @param {string} sleepStartTime - Hora de inicio en formato local
  * @return {string} - Hora formateada de manera legible
  */
 const formatSleepStartTime = (sleepStartTime) => {
@@ -67,8 +51,8 @@ const formatSleepStartTime = (sleepStartTime) => {
 
     console.log("Fecha de inicio del sueño: ", date);
 
-    // Para evitar problemas de zona horaria como en españa siempre el offset es negativo pues lo sumamos para no tener problemas con la hora
-    const hours = date.getHours() + date.getTimezoneOffset() / 60;
+    // Obtener horas y minutos directamente
+    const hours = date.getHours();
     const minutes = date.getMinutes();
 
     const hoursToString = hours.toString().padStart(2, "0");
@@ -109,10 +93,10 @@ const createNotification = async (scheduleNotificationWithId, type) => {
   let trigger;
   // Calculamos 8 horas después de la hora actual
   if (type === "WakeUpReminder") {
-    trigger = new Date(new Date().getTime() + 8 * 60 * 60 * 1000);
+    trigger = addHours(new Date(), 8);
   } else if (type === "SleepLogNearEnd") {
     //Se programa una notificación que se va a disparar pasadas 20 horas desde que el user se ha ido a dormir
-    trigger = new Date(new Date().getTime() + 20 * 60 * 60 * 1000);
+    trigger = addHours(new Date(), 20);
   }
 
   try {
@@ -301,6 +285,9 @@ const Estadisticas = () => {
     if (section === "drm") {
       setActiveSection("drmSection");
     }
+
+    console.log("Fecha de medianoche en formato local: ", getMidnightToday());
+    console.log("Fecha actual en formato local: ", getLocalDateTimeString());
   }, []);
 
   useEffect(() => {
@@ -313,17 +300,16 @@ const Estadisticas = () => {
     if (!isSleeping) {
       console.log("Valor de isSleeping en el if: ", isSleeping);
       try {
-        const now = new Date();
+        //Obtenemos la hora actual en formato local
+        const nowLocal = getLocalDateTimeString(new Date());
 
-        console.log("Hora actual: ", now.toISOString());
-        //Eliminamos offset para trabajar con fechas locales
-        const formattedDate = formatDateToLocalDate(now);
+        console.log("Hora actual: ", nowLocal);
 
         // Guardamos como string en AsyncStorage
-        await AsyncStorage.setItem("sleepStart", formattedDate.toISOString());
+        await AsyncStorage.setItem("sleepStart", nowLocal);
 
         //Guardamos la bandera y el valor en la BD
-        await insertDailyFlag("sleepStart", formattedDate.toISOString());
+        await insertDailyFlag("sleepStart", nowLocal);
 
         // Mandamos la notificación usando la fecha formateada si el user tiene como preferencia que quiere recibir notificaciones
         const notificationsEnabled = await AsyncStorage.getItem(
@@ -346,12 +332,12 @@ const Estadisticas = () => {
         setTimeout(() => setIsSleeping(true), 0);
 
         // Formatear y guardar la hora de inicio para mostrarla
-        const formattedTime = formatSleepStartTime(formattedDate.toISOString());
+        const formattedTime = formatSleepStartTime(nowLocal);
         setSleepStartDisplay(formattedTime);
 
         console.log(
           "Hora en la que el user se ha ido a dormir que se va a guardar en el storage: ",
-          formattedDate.toISOString()
+          nowLocal
         );
       } catch (error) {
         console.error("Error al guardar la hora de inicio de sueño: ", error);
@@ -398,7 +384,7 @@ const Estadisticas = () => {
   const saveResponse = async (wakeUpFormResponse) => {
     try {
       // Validar que la hora de despertar sea válida, tenemos que pasarla en el mismo formato que tenemos la de cuando nos vamos a dormir
-      const formattedWakeUpTime = formatDateToLocalDate(
+      const formattedWakeUpTime = getLocalDateTimeString(
         wakeUpFormResponse.wakeUpTime
       );
       const response = await calculateSleepDuration(formattedWakeUpTime);
@@ -433,9 +419,9 @@ const Estadisticas = () => {
          * 5. question2: respuesta a la pregunta 2
          */
         const newResponse = {
-          sleepTime: formatDateToApiFormat(response.sleepTime),
+          sleepTime: getLocalDateTimeString(response.sleepTime),
           duration: response.duration,
-          wakeUpTime: formatDateToApiFormat(formattedWakeUpTime),
+          wakeUpTime: formattedWakeUpTime,
           question1: wakeUpFormResponse.question1,
           question2: wakeUpFormResponse.question2,
         };

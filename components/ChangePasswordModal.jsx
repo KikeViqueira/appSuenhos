@@ -3,9 +3,8 @@ import {
   Text,
   Modal,
   TouchableOpacity,
-  TextInput,
   KeyboardAvoidingView,
-  Alert,
+  Platform,
 } from "react-native";
 import React, { useState } from "react";
 import { AntDesign } from "@expo/vector-icons";
@@ -22,11 +21,15 @@ const ChangePasswordModal = ({
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   //Recuperamos la función actualizar la info del user del contexto de user
   const { updateUser } = useUser();
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    // Limpiar errores previos
+    setError("");
+
     // Validamos que la nueva contraseña y su confirmación coincidan
     if (newPassword !== confirmPassword) {
       setError("La nueva contraseña y su confirmación no coinciden.");
@@ -37,17 +40,40 @@ const ChangePasswordModal = ({
       setError("La nueva contraseña debe ser diferente a la antigua.");
       return;
     }
-    // Si todo es válido, actualizamos la contraseña, enviándole al endpoint tanto como la vieja como la nueva contraseña dentro de un objeto
-    const value = {
-      oldPassword: oldPassword,
-      newPassword: newPassword,
-    };
-    updateUser("/password", value);
 
-    // Informamos al usuario que se cerrará la sesión por seguridad (JWT)
-    logOut();
-    // Cerramos el modal
+    setIsSubmitting(true);
+
+    try {
+      // Si todo es válido, actualizamos la contraseña, enviándole al endpoint tanto como la vieja como la nueva contraseña dentro de un objeto
+      const value = {
+        oldPassword: oldPassword,
+        newPassword: newPassword,
+      };
+
+      const wrongPasswordError = await updateUser("/password", value);
+
+      // Si no hay error de contraseña incorrecta, el cambio fue exitoso
+      if (!wrongPasswordError) {
+        setModalVisible(false);
+        logOut();
+      } else {
+        //Si hay errores tenemos que poner el mensaje de error en el estado error
+        setError("La contraseña antigua no es correcta.");
+      }
+    } catch (error) {
+      console.log("Error capturado en handleSubmit:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  //Función que se ejecutará cuando el user cierre el modal
+  const handleCloseModal = () => {
     setModalVisible(false);
+    setOldPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+    setError("");
   };
 
   return (
@@ -55,15 +81,19 @@ const ChangePasswordModal = ({
       animationType="fade"
       transparent={true}
       visible={visible}
-      onRequestClose={() => setModalVisible(false)}
+      onRequestClose={handleCloseModal}
     >
-      <View className="items-center justify-center flex-1 bg-black/50">
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? -80 : 20}
+        className="flex-1 justify-center items-center bg-black/50"
+      >
         <View className="bg-[#1e2a47] p-6 rounded-xl w-[85%] max-w-[500px] flex-col gap-4">
-          <View className="flex-row items-center justify-between">
+          <View className="flex-row justify-between items-center">
             <Text className="text-lg font-bold text-center color-white">
               Cambiar Contraseña
             </Text>
-            <TouchableOpacity onPress={() => setModalVisible(false)}>
+            <TouchableOpacity onPress={handleCloseModal}>
               <AntDesign name="close" color="white" size={28} />
             </TouchableOpacity>
           </View>
@@ -78,17 +108,19 @@ const ChangePasswordModal = ({
           ) : null}
 
           {/*Tenemos que meter todos los campos del modal en el que se puedan escribir dentro de un KeyboardAvoidingView */}
-          <KeyboardAvoidingView className="flex-col gap-4">
+          <View className="flex-col gap-4">
             <PasswordInputModal
               value={oldPassword}
               onChangeText={setOldPassword}
               placeholder="Contraseña Antigua"
+              editable={!isSubmitting}
             />
 
             <PasswordInputModal
               value={newPassword}
               onChangeText={setNewPassword}
               placeholder="Nueva Contraseña"
+              editable={!isSubmitting}
             />
 
             <PasswordInputModal
@@ -96,13 +128,16 @@ const ChangePasswordModal = ({
               onChangeText={setConfirmPassword}
               placeholder="Confirmar Nueva Contraseña"
               isConfirm={true} //Indicamos que es el input de confirmar contraseña para que no se pueda pegar texto en él
+              editable={!isSubmitting}
             />
-          </KeyboardAvoidingView>
+          </View>
 
-          <View className="flex-row items-center justify-between gap-4 mt-4">
+          <View className="flex-row gap-4 justify-between items-center mt-4">
             <TouchableOpacity
-              onPress={() => setModalVisible(false)}
+              onPress={handleCloseModal}
               className="bg-[#6366ff] p-3 rounded-xl w-[45%]"
+              disabled={isSubmitting}
+              style={{ opacity: isSubmitting ? 0.5 : 1 }}
             >
               <Text className="font-semibold text-center text-white">
                 Cancelar
@@ -111,14 +146,16 @@ const ChangePasswordModal = ({
             <TouchableOpacity
               onPress={handleSubmit}
               className="bg-[#ff4757] p-3 rounded-xl w-[45%]"
+              disabled={isSubmitting}
+              style={{ opacity: isSubmitting ? 0.5 : 1 }}
             >
               <Text className="font-semibold text-center text-white">
-                Confirmar
+                {isSubmitting ? "Cambiando..." : "Confirmar"}
               </Text>
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };

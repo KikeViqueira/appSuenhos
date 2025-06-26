@@ -3,6 +3,10 @@ import { apiClient } from "../services/apiClient";
 import { API_BASE_URL } from "../config/config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuthContext } from "../context/AuthContext";
+import {
+  getMidnightToday,
+  getLocalDateTimeString,
+} from "../services/timeHelper";
 
 /*
  * Función para guardar en el AsyncStorage una bandera de si hoy  el user ha generado un tip o no.
@@ -11,21 +15,10 @@ import { useAuthContext } from "../context/AuthContext";
 
 const setDailyTipFlag = async () => {
   try {
-    const now = new Date();
-    //Establecemos la expiración de la bandera
-    const endOfDay = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      23,
-      59,
-      59,
-      999
-    );
     //Creamos el objeto que vamos a guardar en el AsyncStorage
     const data = {
       tipFlag: true,
-      expiry_tip_of_the_day: endOfDay.getTime(),
+      expiry_tip_of_the_day: getMidnightToday(),
     };
     await AsyncStorage.setItem("tipFlag", JSON.stringify(data));
   } catch (error) {
@@ -41,7 +34,7 @@ export const getDailyTipFlag = async () => {
     const data = await AsyncStorage.getItem("tipFlag");
     if (data) {
       const { tipFlag, expiry_tip_of_the_day } = JSON.parse(data);
-      if (Date.now() > expiry_tip_of_the_day) {
+      if (getLocalDateTimeString() > expiry_tip_of_the_day) {
         await AsyncStorage.removeItem("tipFlag");
         return null;
       }

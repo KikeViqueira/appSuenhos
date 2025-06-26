@@ -280,7 +280,8 @@ const Profile = () => {
             gap: 10,
             width: "100%",
           }}
-          showsVerticalScrollIndicator={false}
+          showsVerticalScrollIndicator={true}
+          indicatorStyle="white"
         >
           {/* User Profile Photo */}
           <View className="items-center mb-8">
@@ -421,10 +422,6 @@ const Profile = () => {
           <ChangePasswordModal
             visible={showModalChangePassword}
             setModalVisible={setshowModalChangePassword}
-            //TODO: TENEMOS QUE LLAMAR A LA FUNCIÓN DE CAMBIAR ATRIBUTOS DEL USER PATCH QUE TENEMOS QUE METER EN EL USEAPI, LO QUE NO SE ES COMO HACER LO DE LA CONTRASEÑA ACTUAL
-            //TODO: SI HACER UNA FUNCION EN LA API O TENER UN CONTEXT DE DONDE LA SAQUEMOS O EL KEYSTORAGE O ALGO ASI
-            //currentPassword={}
-            //changePassword={}
             logOut={logout}
           />
 

@@ -404,6 +404,8 @@ const Chat = () => {
             contentContainerStyle={{
               paddingVertical: 16,
             }}
+            showsVerticalScrollIndicator={true}
+            indicatorStyle="white"
           />
         )}
 

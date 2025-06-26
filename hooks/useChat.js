@@ -4,6 +4,10 @@ import { apiClient } from "../services/apiClient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_BASE_URL } from "../config/config";
 import { useAuthContext } from "../context/AuthContext";
+import {
+  getMidnightToday,
+  getLocalDateTimeString,
+} from "../services/timeHelper";
 
 const CURRENT_CHAT_ID_KEY = "current_chat_id";
 
@@ -14,28 +18,17 @@ const CURRENT_CHAT_ID_KEY = "current_chat_id";
 
 const setDailyChatId = async (id) => {
   try {
-    const now = new Date();
-    //Establecemos la expiración del id que es al final del día
-    const endOfDay = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      23,
-      59,
-      59,
-      999
-    );
     //Creamos el objeto que vamos a guardar en el AsyncStorage
     const data = {
       chatId: id.toString(),
-      expiry_chatId: endOfDay.getTime(),
+      expiry_chatId: getMidnightToday(),
     };
     await AsyncStorage.setItem("chatId", JSON.stringify(data));
     //Tenemos que crear bandera de si el user ha hecho un chat en el día de hoy o no
     //Cremaos el objeto de la misma manera
     const hasChatToday = {
       hasChatToday: true,
-      expiry_hasChatToday: endOfDay.getTime(),
+      expiry_hasChatToday: getMidnightToday(),
     };
 
     await AsyncStorage.setItem("hasChatToday", JSON.stringify(hasChatToday));
@@ -52,7 +45,7 @@ const getDailyChatId = async () => {
       const { chatId, expiry_chatId } = JSON.parse(data);
 
       //Comprobamos si el tiempo actual es mayor que el tiempo de expiración del chatId
-      if (Date.now() > expiry_chatId) {
+      if (getLocalDateTimeString() > expiry_chatId) {
         //Si ha expirado eliminamos el chatId del AsyncStorage
         await AsyncStorage.removeItem("chatId");
         return null;
@@ -74,7 +67,7 @@ const getHasChatToday = async () => {
     if (data) {
       const { hasChatToday, expiry_hasChatToday } = JSON.parse(data);
 
-      if (Date.now() > expiry_hasChatToday) {
+      if (getLocalDateTimeString() > expiry_hasChatToday) {
         await AsyncStorage.removeItem("hasChatToday");
         return false;
       }

@@ -23,6 +23,11 @@ import { LinearGradient } from "expo-linear-gradient";
 import useNotifications from "../hooks/useNotifications";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import APIErrorModal from "../components/APIErrorModal";
+import {
+  addHours,
+  getMidnightToday,
+  toLocalDateTimeString,
+} from "../services/timeHelper";
 
 const DRM = () => {
   const { saveDrmAnswers, loading, error } = useDRM();
@@ -38,28 +43,22 @@ const DRM = () => {
   const [errorModalType, setErrorModalType] = useState("generateDrmReport");
 
   // Hook de notificaciones
-  const { scheduleNotificationWithId } = useNotifications();
+  const { scheduleNotificationWithId, cancelNotificationById } =
+    useNotifications();
 
   // Función utilitaria para programar notificación de recordatorio de tip diario
   const createDailyTipNotification = async () => {
     try {
-      // Calcular el trigger: 2 horas después de la hora actual
+      // Calcular el trigger: 2 horas después de la hora actual (Esto es lo que se le pasa a notificaciones para que se envíe correctamente)
       const now = new Date();
-      const triggerTime = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+      const triggerTime = addHours(now, 2);
 
-      // Obtener la medianoche del mismo día
-      const midnightToday = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        23,
-        59,
-        59,
-        999
-      );
+      //Calculamos el trigger en hora local del dispositivo para no tener problemas
+      const triggerTimeLocal = toLocalDateTimeString(triggerTime);
+      const midnightToday = getMidnightToday();
 
       // Verificar que el trigger no sea superior a las 12 de la noche del mismo día
-      if (triggerTime > midnightToday) {
+      if (triggerTimeLocal > midnightToday) {
         console.log(
           "⏰ No se programa notificación de tip: el horario excede las 12 de la noche"
         );

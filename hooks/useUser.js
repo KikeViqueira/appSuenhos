@@ -6,7 +6,6 @@ import { useAuthContext } from "../context/AuthContext";
 const useUser = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  //Estado para saber si el usuario ha eliminado la foto de perfil
   //Recuperamos lo que nos interesa del contexto de Auth
   const { userId, accessToken, getUser } = useAuthContext();
 
@@ -54,9 +53,18 @@ const useUser = () => {
        */
       console.log("User actualizado: ", response.data);
       if (path !== "/password") getUser();
+      setLoading(false);
+      return false;
     } catch (error) {
-      setError(error);
-      console.error("Error al actualizar el usuario: ", error);
+      // Si es un error 400 y estamos cambiando la contraseña, es porque la contraseña anterior es incorrecta
+      if (error.response?.status === 400 && path === "/password") {
+        return true;
+      } else {
+        setError(error);
+        console.error("Error al actualizar el usuario: ", error);
+        setLoading(false);
+        return false;
+      }
     } finally {
       setLoading(false);
     }

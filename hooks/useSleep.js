@@ -3,6 +3,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { apiClient } from "../services/apiClient";
 import { API_BASE_URL } from "../config/config";
 import { useAuthContext } from "../context/AuthContext";
+import {
+  getMidnightToday,
+  getLocalDateTimeString,
+} from "../services/timeHelper";
 
 export default function useSleep() {
   const [loading, setLoading] = useState(false);
@@ -24,19 +28,9 @@ export default function useSleep() {
    */
   const saveSleepLog = async () => {
     try {
-      const now = new Date();
-      const endOfDay = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        23,
-        59,
-        59,
-        999
-      );
       const data = {
         sleepLog: true,
-        expiry_sleep_log: endOfDay.getTime(),
+        expiry_sleep_log: getMidnightToday(),
       };
       await AsyncStorage.setItem("sleepLog", JSON.stringify(data));
     } catch (error) {
@@ -49,7 +43,8 @@ export default function useSleep() {
       const storedSleepLog = await AsyncStorage.getItem("sleepLog");
       if (storedSleepLog) {
         const parsedData = JSON.parse(storedSleepLog);
-        if (Date.now() > parsedData.expiry_sleep_log) {
+        //Si la fecha actual es superior a la fecha de expiración de la bandera, eliminamos la bandera y devolvemos null
+        if (getLocalDateTimeString() > parsedData.expiry_sleep_log) {
           await AsyncStorage.removeItem("sleepLog");
           return null;
         }

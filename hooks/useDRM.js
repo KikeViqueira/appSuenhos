@@ -3,6 +3,10 @@ import { apiClient } from "../services/apiClient";
 import { API_BASE_URL } from "../config/config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuthContext } from "../context/AuthContext";
+import {
+  getMidnightToday,
+  getLocalDateTimeString,
+} from "../services/timeHelper";
 
 /*
  * Función para guardar en el AsyncStorage una bandera de si hoy el user ha generado un informe o no.
@@ -11,21 +15,10 @@ import { useAuthContext } from "../context/AuthContext";
 
 const setDailyReportFlag = async () => {
   try {
-    const now = new Date();
-    //Establecemos la expiración de la bandera
-    const endOfDay = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate(),
-      23,
-      59,
-      59,
-      999
-    );
     //Creamos el objeto que vamos a guardar en el AsyncStorage
     const data = {
       reportFlag: true,
-      expiry_drm_report: endOfDay.getTime(),
+      expiry_drm_report: getMidnightToday(),
     };
     await AsyncStorage.setItem("reportFlag", JSON.stringify(data));
   } catch (error) {
@@ -41,7 +34,7 @@ export const getDailyReportFlag = async () => {
     const data = await AsyncStorage.getItem("reportFlag");
     if (data) {
       const { reportFlag, expiry_drm_report } = JSON.parse(data);
-      if (Date.now() > expiry_drm_report) {
+      if (getLocalDateTimeString() > expiry_drm_report) {
         //Si ha expirado eliminamos la bandera del AsyncStorage
         await AsyncStorage.removeItem("reportFlag");
         return null;

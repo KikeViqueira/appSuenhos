@@ -23,6 +23,7 @@
     "@react-native-community/slider": "^4.5.5",
     "@react-navigation/native": "^7.1.7",
     "axios": "^1.7.9",
+    "date-fns": "^4.1.0",
     "expo": "53.0.11",
     "expo-av": "~15.1.6",
     "expo-constants": "~17.1.6",
