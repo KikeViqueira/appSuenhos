@@ -1,55 +1,83 @@
-<<<<<<< HEAD
-# appSuenhos
-Proyecto TFG
-=======
-# Welcome to your Expo app 👋
+# ZzzTime - AI-Powered Sleep Monitoring Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## License
 
-## Get started
+This code is published under a proprietary license with all rights reserved. See LICENSE for details.
 
-1. Install dependencies
+## Overview
 
-   ```bash
-   npm install
-   ```
+ZzzTime is an intelligent mobile application built with React Native and Expo that helps users monitor and improve their sleep habits through personalized AI-powered insights. The app integrates with wearable devices and provides comprehensive sleep analysis with interactive visualizations and personalized recommendations.
 
-2. Start the app
+## Key Features
 
-   ```bash
-    npx expo start
-   ```
+- **AI Chat Assistant**: Intelligent conversational interface for personalized sleep advice and recommendations
+- **Sleep Pattern Visualization**: Interactive charts and graphs displaying sleep quality, HRV, and breathing patterns
+- **Wearable Device Integration**: Seamless synchronization with Fitbit and other health monitoring devices
+- **Personalized Dashboard**: Customized home screen with relevant sleep insights and daily progress
+- **Sleep Log Management**: Comprehensive tracking and logging of sleep habits and quality metrics
+- **Smart Notifications**: Personalized reminders and alerts to improve sleep hygiene
+- **Relaxation Audio**: Built-in collection of sleep-enhancing sounds and ambient audio
+- **DRM Sleep Reports**: Detailed analysis reports with actionable insights and trends
+- **Onboarding Experience**: Personalized setup process to understand user preferences and goals
 
-In the output, you'll find options to open the app in a
+## Technology Stack
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- **Framework**: React Native with Expo SDK
+- **Styling**: TailwindCSS with NativeWind
+- **Navigation**: Expo Router with typed routes
+- **Charts & Visualization**: React Native Chart Kit
+- **State Management**: React Context API
+- **Storage**: Expo SecureStore & AsyncStorage
+- **Notifications**: Expo Notifications
+- **Audio**: Expo AV for sound playback
+- **Image Handling**: Expo Image Picker
+- **HTTP Client**: Axios
+- **UI Components**: Custom components with Lottie animations
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Project Structure
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+├── app/                 # Expo Router pages and navigation
+├── components/          # Reusable UI components
+├── hooks/              # Custom React hooks
+├── services/           # API services and utilities
+├── context/            # React Context providers
+├── constants/          # App constants and configuration
+├── assets/             # Images, sounds, and animations
+├── utils/              # Helper functions and utilities
+└── config/             # App configuration files
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Main Screens & Features
 
-## Learn more
+- **Authentication**: Sign in/up with secure JWT-based authentication
+- **Onboarding**: Personalized questionnaire for sleep preferences setup
+- **Dashboard**: Main screen with sleep insights and daily progress
+- **Chat Interface**: AI-powered conversation for sleep recommendations
+- **Sleep Statistics**: Comprehensive charts and analytics
+- **Sleep Logs**: Daily sleep tracking and quality assessment
+- **Profile Management**: User settings and device integration
+- **Tips & Recommendations**: Personalized sleep improvement suggestions
+- **Audio Library**: Relaxation sounds and sleep-enhancing content
 
-To learn more about developing your project with Expo, look at the following resources:
+## Key Components
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- **Interactive Charts**: Real-time visualization of sleep data and health metrics
+- **Chat System**: Conversational AI interface with typing indicators and message history
+- **Notification System**: Smart reminders and sleep-related alerts
+- **Form Management**: Dynamic questionnaires and data collection
+- **Audio Player**: Background audio playback with timer functionality
+- **Calendar Integration**: Sleep schedule visualization and planning
 
-## Join the community
+## Development Features
 
-Join our community of developers creating universal apps.
+- **Cross-platform**: iOS and Android compatibility
+- **TypeScript Support**: Type-safe development with TypeScript integration
+- **Hot Reload**: Fast development iteration with Expo development tools
+- **Custom Animations**: Lottie animations for enhanced user experience
+- **Responsive Design**: Adaptive UI for different screen sizes
+- **Offline Support**: Local data storage and offline functionality
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
->>>>>>> master
+---
+
+_This mobile application was developed as part of a final degree project focusing on digital health solutions and personalized wellness applications._

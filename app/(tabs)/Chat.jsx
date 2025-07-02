@@ -10,7 +10,7 @@ import {
   Pressable,
   Alert,
 } from "react-native";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Feather } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import useChat from "../../hooks/useChat";
@@ -40,6 +40,8 @@ const Chat = () => {
   const [newMessage, setNewMessage] = useState("");
   // Estado para controlar si los mensajes se están cargando
   const [initializing, setInitializing] = useState(true);
+  // Referencia a la FlatList para el scroll automático
+  const flatListRef = useRef(null);
   //Estado para saber si el user puede hacer un chat nuevo o no
   const [canCreateNewChat, setCanCreateNewChat] = useState(false);
   //Estado para saber si no se ha podido recuperar la conversación de un chat
@@ -134,6 +136,13 @@ const Chat = () => {
 
     renderChat();
   }, [conversationLoaded, hasAttemptedLoad]);
+  // Auto-scroll cuando llega respuesta de IA
+  useEffect(() => {
+    if (messages.length > 0 && !initializing) {
+      scrollToBottom();
+    }
+  }, [messages, initializing]);
+
   // Mostramos logs de depuración
   useEffect(() => {
     console.log("Mensajes desde el useEffect: ", messages);
@@ -146,6 +155,15 @@ const Chat = () => {
     router.push("../ChatsHistory");
   };
 
+  // Función para hacer scroll al final de manera elegante
+  const scrollToBottom = () => {
+    if (flatListRef.current && messages.length > 0) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+    }
+  };
+
   const handleSendMessage = () => {
     //Si el mensaje no es vacío y la IA no está escribiendo, lo enviamos
     if (newMessage.trim() && !isAiWriting) {
@@ -153,6 +171,10 @@ const Chat = () => {
       //Reinicializamos el estado del mensaje y cerramos el teclado
       setNewMessage("");
       Keyboard.dismiss();
+      // Hacer scroll al final después de enviar el mensaje
+      setTimeout(() => {
+        scrollToBottom();
+      }, 100);
     }
   };
 
@@ -397,6 +419,7 @@ const Chat = () => {
         ) : (
           // Lista de mensajes si hay conversación
           <FlatList
+            ref={flatListRef}
             className="flex-1 px-4 android:px-3"
             data={messages}
             keyExtractor={(item) => item.id.toString()}

@@ -43,8 +43,7 @@ const DRM = () => {
   const [errorModalType, setErrorModalType] = useState("generateDrmReport");
 
   // Hook de notificaciones
-  const { scheduleNotificationWithId, cancelNotificationById } =
-    useNotifications();
+  const { scheduleNotificationWithId } = useNotifications();
 
   // Función utilitaria para programar notificación de recordatorio de tip diario
   const createDailyTipNotification = async () => {
