@@ -1,6 +1,5 @@
-import { useEffect, useState, Alert } from "react";
+import { useEffect, useState } from "react";
 import { apiClient } from "../services/apiClient";
-import { API_BASE_URL } from "../config/config";
 import { useAuthContext } from "../context/AuthContext";
 
 const useSound = () => {
@@ -28,7 +27,7 @@ const useSound = () => {
 
     try {
       //Hacemos la llamada a la API para recuperar los sonidos estáticos
-      const response = await apiClient.get(`${API_BASE_URL}/sounds`, {
+      const response = await apiClient.get(`/sounds`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
@@ -53,7 +52,7 @@ const useSound = () => {
 
     try {
       //Hacemos la llamada a la API para recuperar los sonidos estáticos
-      const response = await apiClient.get(`${API_BASE_URL}/sounds/${userId}`, {
+      const response = await apiClient.get(`/sounds/${userId}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
           "Content-Type": "application/json",
@@ -89,16 +88,12 @@ const useSound = () => {
 
     try {
       //Hacemos la llamada a la API para recuperar los sonidos estáticos
-      const response = await apiClient.post(
-        `${API_BASE_URL}/sounds/${userId}`,
-        sound,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-          transformRequest: (data) => data,
-        }
-      );
+      const response = await apiClient.post(`/sounds/${userId}`, sound, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        transformRequest: (data) => data,
+      });
 
       console.log("Sonido subido a la app:", response.data);
       //Añadimos el sonido subido a los sonidos del user
@@ -120,15 +115,12 @@ const useSound = () => {
 
     try {
       //hacemos la llamada al endpoint
-      const response = await apiClient.delete(
-        `${API_BASE_URL}/sounds/${userId}/${soundId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await apiClient.delete(`/sounds/${userId}/${soundId}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       console.log("Sonido eliminado de la app: ", response.data);
 

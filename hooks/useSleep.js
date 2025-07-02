@@ -1,7 +1,6 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { apiClient } from "../services/apiClient";
-import { API_BASE_URL } from "../config/config";
 import { useAuthContext } from "../context/AuthContext";
 import {
   getMidnightToday,
@@ -90,7 +89,7 @@ export default function useSleep() {
       );
 
       const response = await apiClient.post(
-        `${API_BASE_URL}/users/${userId}/sleep-logs`,
+        `/users/${userId}/sleep-logs`,
         {
           data: formattedSleepLog,
         },
@@ -155,18 +154,15 @@ export default function useSleep() {
       //En caso de que el param sea null o undefined se le da un valor por defecto que recibe la api, en este caso es 1
       const duration = param || "1";
 
-      const response = await apiClient.get(
-        `${API_BASE_URL}/users/${userId}/sleep-logs`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          params: {
-            duration: duration,
-          },
-        }
-      );
+      const response = await apiClient.get(`/users/${userId}/sleep-logs`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        params: {
+          duration: duration,
+        },
+      });
 
       if (response.status === 200) {
         //Dependiendo de que param haya mandado el user guardamos la info recibida de una manera u otra

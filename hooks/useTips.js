@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { apiClient } from "../services/apiClient";
-import { API_BASE_URL } from "../config/config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuthContext } from "../context/AuthContext";
 import {
@@ -73,7 +72,7 @@ const useTips = () => {
 
     try {
       const response = await apiClient.post(
-        `${API_BASE_URL}/users/${userId}/tips`,
+        `/users/${userId}/tips`,
         {},
         {
           headers: {
@@ -117,21 +116,18 @@ const useTips = () => {
     setLoading(true);
 
     try {
-      const response = await apiClient.get(
-        `${API_BASE_URL}/users/${userId}/tips`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          params: {
-            page: page.toString(),
-            size: size.toString(),
-            sort: sortBy,
-            direction: direction,
-          },
-        }
-      );
+      const response = await apiClient.get(`/users/${userId}/tips`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        params: {
+          page: page.toString(),
+          size: size.toString(),
+          sort: sortBy,
+          direction: direction,
+        },
+      });
 
       if (response.status === 200) {
         const pageData = response.data;
@@ -192,15 +188,12 @@ const useTips = () => {
     console.log("Tip del cual queremos recuperar la información: ", tipId);
 
     try {
-      const response = await apiClient.get(
-        `${API_BASE_URL}/users/${userId}/tips/${tipId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await apiClient.get(`/users/${userId}/tips/${tipId}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      });
       //Almacenamos los detalles del tip seleccionado en el estado correspondiente
       if (response.status === 200) setTipSelectedDetail(response.data);
     } catch (error) {
@@ -232,16 +225,13 @@ const useTips = () => {
     console.log("Ids de los tips que se van a eliminar: ", tipIds);
 
     try {
-      const response = await apiClient.delete(
-        `${API_BASE_URL}/users/${userId}/tips`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json", //Indicamos el tipo de contenido que se está enviando
-          },
-          data: tipIds,
-        }
-      );
+      const response = await apiClient.delete(`/users/${userId}/tips`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json", //Indicamos el tipo de contenido que se está enviando
+        },
+        data: tipIds,
+      });
       if (response.status === 200) {
         //Eliminamos los tips del estado local
         setTips((prevTips) =>
@@ -278,15 +268,12 @@ const useTips = () => {
     setLoading(true);
 
     try {
-      const response = await apiClient.get(
-        `${API_BASE_URL}/users/${userId}/favorites-tips`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await apiClient.get(`/users/${userId}/favorites-tips`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      });
       if (response.status === 200) setFavoriteTips(response.data);
       if (response.status === 204) setFavoriteTips([]);
     } catch (error) {
@@ -303,7 +290,7 @@ const useTips = () => {
 
     try {
       const response = await apiClient.post(
-        `${API_BASE_URL}/users/${userId}/favorites-tips/${idTip}`,
+        `/users/${userId}/favorites-tips/${idTip}`,
         {},
         {
           headers: {
@@ -333,7 +320,7 @@ const useTips = () => {
 
     try {
       const response = await apiClient.delete(
-        `${API_BASE_URL}/users/${userId}/favorites-tips/${idTip}`,
+        `/users/${userId}/favorites-tips/${idTip}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,

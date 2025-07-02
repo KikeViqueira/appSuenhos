@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { apiClient } from "../services/apiClient";
-import { API_BASE_URL } from "../config/config";
 import { useAuthContext } from "../context/AuthContext";
 
 const useFlags = () => {
@@ -20,7 +19,7 @@ const useFlags = () => {
     setLoading(true);
     try {
       const response = await apiClient.put(
-        `${API_BASE_URL}/users/${userId}/flags/ConfigurationFlags/${flagKey}`,
+        `/users/${userId}/flags/ConfigurationFlags/${flagKey}`,
         {
           flagValue: flagValue,
         },
@@ -55,7 +54,7 @@ const useFlags = () => {
     setLoading(true);
     try {
       const response = await apiClient.post(
-        `${API_BASE_URL}/users/${userId}/flags/DailyFlags/${flagKey}`,
+        `/users/${userId}/flags/DailyFlags/${flagKey}`,
         {
           flagValue: flagValue,
         },
@@ -84,7 +83,7 @@ const useFlags = () => {
     setLoading(true);
     try {
       const response = await apiClient.delete(
-        `${API_BASE_URL}/users/${userId}/flags/DailyFlags/${flagKey}`,
+        `/users/${userId}/flags/DailyFlags/${flagKey}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,

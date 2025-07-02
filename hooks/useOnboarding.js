@@ -1,7 +1,5 @@
-import { useEffect, useState, Alert } from "react";
+import { useState } from "react";
 import { apiClient } from "../services/apiClient";
-import * as SecureStore from "expo-secure-store";
-import { API_BASE_URL } from "../config/config";
 import { useAuthContext } from "../context/AuthContext";
 
 const useOnboarding = () => {
@@ -23,7 +21,7 @@ const useOnboarding = () => {
     try {
       //hacemos la petición POST al endpoint de registro
       const response = await apiClient.post(
-        `${API_BASE_URL}/onboarding/${userId}`,
+        `/onboarding/${userId}`,
         {
           data: data,
         },

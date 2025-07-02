@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { apiClient } from "../services/apiClient";
-import { API_BASE_URL } from "../config/config";
 import { useAuthContext } from "../context/AuthContext";
 
 const useFitbit = () => {
@@ -23,7 +22,7 @@ const useFitbit = () => {
 
     try {
       const response = await apiClient.get(
-        `${API_BASE_URL}/fitbitAuth/login`,
+        `/fitbitAuth/login`,
         {
           userId,
         },
@@ -51,7 +50,7 @@ const useFitbit = () => {
     setLoading(true);
 
     try {
-      const response = await apiClient.get(`${API_BASE_URL}/fitbit/sleep`, {
+      const response = await apiClient.get(`/fitbit/sleep`, {
         headers: {
           Authorization: "ACCESS_TOKEN_VALUE",
           "Content-Type": "application/json",
@@ -71,7 +70,7 @@ const useFitbit = () => {
     setLoading(true);
 
     try {
-      const response = await apiClient.get(`${API_BASE_URL}/fitbit/food`, {
+      const response = await apiClient.get(`/fitbit/food`, {
         headers: {
           Authorization: "ACCESS_TOKEN_VALUE",
           "Content-Type": "application/json",
@@ -90,15 +89,12 @@ const useFitbit = () => {
     setLoading(true);
 
     try {
-      const response = await apiClient.get(
-        `${API_BASE_URL}/fitbit/sleepWeekly`,
-        {
-          headers: {
-            Authorization: "ACCESS_TOKEN_VALUE",
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await apiClient.get(`/fitbit/sleepWeekly`, {
+        headers: {
+          Authorization: "ACCESS_TOKEN_VALUE",
+          "Content-Type": "application/json",
+        },
+      });
       if (response && response.status === 200)
         setSleepWeeklyFitbitData(response.data);
     } catch (error) {

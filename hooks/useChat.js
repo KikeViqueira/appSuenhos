@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Alert } from "react-native";
 import { apiClient } from "../services/apiClient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { API_BASE_URL } from "../config/config";
 import { useAuthContext } from "../context/AuthContext";
 import {
   getMidnightToday,
@@ -180,7 +179,7 @@ const useChat = () => {
 
       //Hacemos la petición POST al endpoint
       const response = await apiClient.post(
-        `${API_BASE_URL}/chats/${userId}/${storedChatId}/messages`,
+        `/chats/${userId}/${storedChatId}/messages`,
         {
           /*
            *El payload se tiene que corresponder con lo que tenemos en el modelo de datos de Message, en este caso el atributo se llama "content"
@@ -305,22 +304,19 @@ const useChat = () => {
     setError(null);
     setLoading(true);
     try {
-      const response = await apiClient.get(
-        `${API_BASE_URL}/users/${userId}/chats`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          params: {
-            filter: "history",
-            page: page.toString(),
-            size: size.toString(),
-            sort: sortBy,
-            direction: direction,
-          },
-        }
-      );
+      const response = await apiClient.get(`/users/${userId}/chats`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        params: {
+          filter: "history",
+          page: page.toString(),
+          size: size.toString(),
+          sort: sortBy,
+          direction: direction,
+        },
+      });
       //Guardamos el historial de chats en el estado
       if (response.status === 200) {
         const pageData = response.data;
@@ -395,18 +391,15 @@ const useChat = () => {
     setLoading(true);
 
     try {
-      const response = await apiClient.get(
-        `${API_BASE_URL}/users/${userId}/chats`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          params: {
-            filter: "last3Months",
-          },
-        }
-      );
+      const response = await apiClient.get(`/users/${userId}/chats`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        params: {
+          filter: "last3Months",
+        },
+      });
       //Guardamos estos chats en el estado correspondiente
       if (response.status === 200) setLast3MonthsChats(response.data);
       if (response.status === 204) setLast3MonthsChats([]);
@@ -469,24 +462,21 @@ const useChat = () => {
         endDateValue = currentSearchDates.endDate;
       }
 
-      const response = await apiClient.get(
-        `${API_BASE_URL}/users/${userId}/chats`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          params: {
-            filter: "range",
-            startDate: startDateValue,
-            endDate: endDateValue,
-            page: page.toString(),
-            size: size.toString(),
-            sort: sortBy,
-            direction: direction,
-          },
-        }
-      );
+      const response = await apiClient.get(`/users/${userId}/chats`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        params: {
+          filter: "range",
+          startDate: startDateValue,
+          endDate: endDateValue,
+          page: page.toString(),
+          size: size.toString(),
+          sort: sortBy,
+          direction: direction,
+        },
+      });
 
       //Guardamos estos chats en el estado correspondiente
       if (response.status === 200) {
@@ -570,20 +560,17 @@ const useChat = () => {
       console.log("¿Usuario ha hecho chat hoy?", hasChatToday);
 
       // Realizar la solicitud de eliminación a la API
-      const response = await apiClient.delete(
-        `${API_BASE_URL}/users/${userId}/chats`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          /*
-           * En este caso usamos data y se envía el contenido de la petición desde aquí
-           * ya que es el formato que espera axios para enviar un body en una petición DELETE
-           */
-          data: ids,
-        }
-      );
+      const response = await apiClient.delete(`/users/${userId}/chats`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        /*
+         * En este caso usamos data y se envía el contenido de la petición desde aquí
+         * ya que es el formato que espera axios para enviar un body en una petición DELETE
+         */
+        data: ids,
+      });
 
       // Si la eliminación fue exitosa
       if (response.status === 200) {
@@ -663,7 +650,7 @@ const useChat = () => {
       }
 
       const response = await apiClient.get(
-        `${API_BASE_URL}/users/${userId}/chats/${targetChatId}`,
+        `/users/${userId}/chats/${targetChatId}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,

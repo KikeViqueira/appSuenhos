@@ -1,6 +1,5 @@
-import { useEffect, useState, Alert } from "react";
+import { useState } from "react";
 import { apiClient } from "../services/apiClient";
-import { API_BASE_URL } from "../config/config";
 import { useAuthContext } from "../context/AuthContext";
 
 const useUser = () => {
@@ -20,7 +19,7 @@ const useUser = () => {
     setLoading(true);
     try {
       const response = await apiClient.patch(
-        `${API_BASE_URL}/users/${userId}`,
+        `/users/${userId}`,
         /*
          * Formato del payload:
          * [
@@ -78,7 +77,7 @@ const useUser = () => {
     setLoading(true);
     try {
       const response = await apiClient.put(
-        `${API_BASE_URL}/users/${userId}/profile-picture`,
+        `/users/${userId}/profile-picture`,
         file,
         {
           headers: {
@@ -107,7 +106,7 @@ const useUser = () => {
     setLoading(true);
     try {
       const response = await apiClient.delete(
-        `${API_BASE_URL}/users/${userId}/profile-picture`,
+        `/users/${userId}/profile-picture`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,

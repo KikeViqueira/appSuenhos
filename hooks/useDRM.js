@@ -1,6 +1,5 @@
 import { useEffect, useState, Alert } from "react";
 import { apiClient } from "../services/apiClient";
-import { API_BASE_URL } from "../config/config";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuthContext } from "../context/AuthContext";
 import {
@@ -74,7 +73,7 @@ const useDRM = () => {
     try {
       //Hacemos la petición POST a la API
       const response = await apiClient.post(
-        `${API_BASE_URL}/users/${userId}/drm`,
+        `/users/${userId}/drm`,
         {
           data: data,
         },
@@ -104,7 +103,7 @@ const useDRM = () => {
     try {
       //Hacemos la petición GET a la API
       const response = await apiClient.get(
-        `${API_BASE_URL}/users/${userId}/drm?period=daily`,
+        `/users/${userId}/drm?period=daily`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
