@@ -1,16 +1,16 @@
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
-import { API_BASE_URL } from "../config/config";
+import { API_BASE_URL, API_TIMEOUT } from "../config/config";
 import {
   updateAccessToken,
   callForceLogout,
   updateTokens,
 } from "./TokenService";
 
-// Crear la instancia de axios con la URL base
+// Crear la instancia de axios con configuración simple
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 45000, // timeout de 45 segundos para conexiones lentas
+  timeout: API_TIMEOUT,
 });
 
 // Interceptor para manejar errores de autenticación y refresh token
