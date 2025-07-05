@@ -67,31 +67,10 @@ export default function useSleep() {
     setLoading(true);
 
     try {
-      // Formatear el objeto sleepLog para enviar a la API
-      // Nos aseguramos de que sleepTime sea un string con formato ISO
-      let formattedSleepLog = { ...sleepLog };
-
-      // Si sleepTime es un objeto Date, lo convertimos a string ISO
-      if (formattedSleepLog.sleepTime instanceof Date) {
-        formattedSleepLog.sleepTime = formattedSleepLog.sleepTime
-          .toISOString()
-          .slice(0, 19);
-      }
-
-      // Aseguramos que duration sea un valor numérico
-      if (typeof formattedSleepLog.duration === "string") {
-        formattedSleepLog.duration = parseInt(formattedSleepLog.duration);
-      }
-
-      console.log(
-        "Formatted sleep log that is going to be sent to the API: ",
-        formattedSleepLog
-      );
-
       const response = await apiClient.post(
         `/users/${userId}/sleep-logs`,
         {
-          data: formattedSleepLog,
+          data: sleepLog,
         },
         {
           headers: {
@@ -104,7 +83,7 @@ export default function useSleep() {
       if (response.status === 200 || response.status === 201) {
         await saveSleepLog();
         // Actualizamos el estado local con el valor más reciente
-        setSleepLog(formattedSleepLog);
+        setSleepLog(sleepLog);
 
         // Devolver resultado exitoso
         return {

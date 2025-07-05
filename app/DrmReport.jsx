@@ -304,21 +304,20 @@ const DrmReport = () => {
   return (
     <SafeAreaView className="flex-1 w-full h-full bg-primary">
       <View className="flex flex-row items-center justify-between py-4 w-[90%] self-center">
-        <View className="flex flex-row gap-4 justify-start items-center">
-          <TouchableOpacity
-            //Tenemos que usar replace ya que podemos acceder a esta pestaña desde dos sitios distintos
-            onPress={() => router.replace("./(tabs)/Stats?section=drm")}
-            className="flex flex-row gap-2 items-center py-2"
-          >
-            <Feather name="chevron-left" size={24} color="white" />
-          </TouchableOpacity>
+        <TouchableOpacity
+          //Tenemos que usar replace ya que podemos acceder a esta pestaña desde dos sitios distintos
+          onPress={() => router.replace("./(tabs)/Stats?section=drm")}
+          className="flex flex-row gap-4 justify-start items-center py-2"
+        >
+          <Feather name="chevron-left" size={24} color="white" />
           <Text
             className="text-center font-bold text-[#6366ff] py-2"
             style={{ fontSize: 24 }}
           >
             Cuestionario diario DRM
           </Text>
-        </View>
+        </TouchableOpacity>
+
         {hasReportData && (
           <View className="flex-row gap-4 items-center">
             <TouchableOpacity

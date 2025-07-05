@@ -29,6 +29,7 @@ import {
   addHours,
   getMidnightToday,
   getLocalDateTimeString,
+  toLocalDateTimeString,
 } from "../../services/timeHelper";
 
 /**
@@ -153,9 +154,9 @@ const calculateSleepDuration = async (wakeUpTime) => {
 
     console.log(
       "Horas que se van a restar para calcular la duracion de lo que ha dormido el user: ",
-      sleepStartTime,
+      wakeUpTimeDate,
       " - ",
-      wakeUpTimeDate
+      sleepStartTime
     );
 
     const duration = wakeUpTimeDate.getTime() - sleepStartTime.getTime(); //Hacemos la diferencia en milisegundos
@@ -180,7 +181,7 @@ const calculateSleepDuration = async (wakeUpTime) => {
 
     //De la función de calcular la duración de lo que ha dormido el user devolvemos tanto la duración como la hora en la que se ha ido a dormir
     const response = {
-      sleepTime: sleepStartTime,
+      sleepTime: toLocalDateTimeString(sleepStartTime),
       duration: duration,
     };
 
@@ -301,7 +302,7 @@ const Estadisticas = () => {
       console.log("Valor de isSleeping en el if: ", isSleeping);
       try {
         //Obtenemos la hora actual en formato local
-        const nowLocal = getLocalDateTimeString(new Date());
+        const nowLocal = getLocalDateTimeString();
 
         console.log("Hora actual: ", nowLocal);
 
@@ -384,7 +385,7 @@ const Estadisticas = () => {
   const saveResponse = async (wakeUpFormResponse) => {
     try {
       // Validar que la hora de despertar sea válida, tenemos que pasarla en el mismo formato que tenemos la de cuando nos vamos a dormir
-      const formattedWakeUpTime = getLocalDateTimeString(
+      const formattedWakeUpTime = toLocalDateTimeString(
         wakeUpFormResponse.wakeUpTime
       );
       const response = await calculateSleepDuration(formattedWakeUpTime);
@@ -392,13 +393,13 @@ const Estadisticas = () => {
       //Comprobamos si el objeto devuelto es null o no
       if (response) {
         console.log(
-          "Hora en la que el user se ha ido a dormiral guardar la respuesta: ",
+          "Hora en la que el user se ha ido a dormir al guardar la respuesta: ",
           response.sleepTime
         );
 
         console.log(
           "Hora en la que el user se ha despertado:",
-          wakeUpFormResponse.wakeUpTime
+          formattedWakeUpTime
         );
         console.log("Duración del sueño: ", response.duration);
         console.log(
@@ -419,14 +420,14 @@ const Estadisticas = () => {
          * 5. question2: respuesta a la pregunta 2
          */
         const newResponse = {
-          sleepTime: getLocalDateTimeString(response.sleepTime),
+          sleepTime: response.sleepTime,
           duration: response.duration,
           wakeUpTime: formattedWakeUpTime,
           question1: wakeUpFormResponse.question1,
           question2: wakeUpFormResponse.question2,
         };
 
-        console.log("Enviando a la API:", newResponse);
+        console.log("ENVIANDO A LA API:", newResponse);
 
         try {
           //Guardamos la respuesta del user en la BD
@@ -472,7 +473,7 @@ const Estadisticas = () => {
 
               Alert.alert(
                 "Error al guardar",
-                `No se pudo guardar tu registro: ${errorMessage}`,
+                `No se pudo guardar tu registro`,
                 [
                   {
                     text: "Reintentar",

@@ -300,7 +300,7 @@ const Music = () => {
       console.log("Reproduciendo sonido: ", sound.id);
     } catch (error) {
       console.error("Error reproduciendo sonido: ", error);
-      Alert.alert("Error", `No se pudo reproducir el sonido: ${error.message}`);
+      Alert.alert("Error", `No se pudo reproducir el sonido`);
     }
   };
 
@@ -623,16 +623,13 @@ const Music = () => {
 
         // Ocultar indicador de carga
         setLoadingModalVisible(false);
-
-        // Mostrar mensaje de éxito
-        Alert.alert("¡Éxito!", "Tu sonido se ha subido correctamente");
       }
     } catch (error) {
       console.error("Error completo al subir el sonido:", error);
       setLoadingModalVisible(false);
       Alert.alert(
         "Error",
-        `No se pudo subir el sonido: ${error.message || "Error desconocido"}`
+        `No se pudo subir el sonido, por favor inténtalo de nuevo`
       );
     }
   };
@@ -649,19 +646,13 @@ const Music = () => {
 
       setLoadingModalVisible(false);
       setDeletingSoundId(null);
-
-      // Mostrar mensaje de éxito
-      Alert.alert(
-        "¡Sonido eliminado!",
-        "El sonido se ha eliminado correctamente"
-      );
     } catch (error) {
       console.error("Error al eliminar el sonido:", error);
       setLoadingModalVisible(false);
       setDeletingSoundId(null);
       Alert.alert(
         "Error",
-        `No se pudo eliminar el sonido: ${error.message || "Error desconocido"}`
+        `No se pudo eliminar el sonido, por favor inténtalo de nuevo`
       );
     }
   };
