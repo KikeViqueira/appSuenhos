@@ -29,7 +29,7 @@
         { "id": 1, "option": "Omnívora" },
         { "id": 2, "option": "Vegetariana" },
         { "id": 3, "option": "Vegana" },
-        { "id": 4, "option": "Flexitariana" },
+        { "id": 4, "option": "Carnívora" },
         { "id": 5, "option": "Otro" }
       ]
     },

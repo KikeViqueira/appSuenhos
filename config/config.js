@@ -26,9 +26,17 @@ const getApiTimeout = () => {
   return 45000;
 };
 
+//Obtener el placeholder de la imagen de perfil desde el .env
+const getCloudinaryPlaceholderUrl = () => {
+  const envCloudinaryPlaceholderUrl =
+    process.env.EXPO_PUBLIC_CLOUDINARY_PLACEHOLDER_URL;
+  return envCloudinaryPlaceholderUrl;
+};
+
 // Exportaciones simples
 export const API_BASE_URL = getApiBaseUrl();
 export const API_TIMEOUT = getApiTimeout();
+export const CLOUDINARY_PLACEHOLDER_URL = getCloudinaryPlaceholderUrl();
 
 // Para compatibilidad con el código existente
 export const CONFIG = {
@@ -39,3 +47,7 @@ export const CONFIG = {
 // Log simple para verificar configuración
 console.log("🔧 ZzzTime - API URL:", API_BASE_URL);
 console.log("🔧 ZzzTime - Timeout:", API_TIMEOUT + "ms");
+console.log(
+  "🔧 ZzzTime - Cloudinary Placeholder URL:",
+  CLOUDINARY_PLACEHOLDER_URL
+);

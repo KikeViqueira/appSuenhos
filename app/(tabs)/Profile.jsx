@@ -22,7 +22,7 @@ import { useAuthContext } from "../../context/AuthContext";
 import useUser from "../../hooks/useUser";
 import useNotifications from "../../hooks/useNotifications";
 import LoadingModal from "../../components/LoadingModal";
-import { CLOUDINARY_CONFIG } from "../../constants/config";
+import { CLOUDINARY_PLACEHOLDER_URL } from "../../config/config";
 
 const Profile = () => {
   //Recuperamos la info del user que se ha logueado en la app mediante el contexto de Auth y la función para cerrar sesión
@@ -30,7 +30,7 @@ const Profile = () => {
 
   //Hacemos states tanto para guardar la foto como para controlar que el modal de opciones de cámara este desplegado o no
   const [image, setImage] = useState({
-    uri: CLOUDINARY_CONFIG.PLACEHOLDER_URL,
+    uri: CLOUDINARY_PLACEHOLDER_URL,
   }); //Valor por default
   const [showModal, setshowModal] = useState(false);
   const [showModalLogOut, setshowModalLogOut] = useState(false);
