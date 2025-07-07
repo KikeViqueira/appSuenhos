@@ -18,7 +18,7 @@ export default function App() {
     //Si se está cargando el auth o las flags, no se hace nada, cuando cargue y el valor de los estados esten bien actualizados se redirige a donde corresponda.
     if (isAuthLoading || isFlagsLoading) return;
 
-    /*if (accessToken && userId) {
+    if (accessToken && userId) {
       // Si tenemos tokens pero onboardingCompleted es null, significa que getUserFlags aún no se ha ejecutado
       // En este caso, esperamos a que se complete la sincronización
       if (onboardingCompleted === null) {
@@ -35,7 +35,7 @@ export default function App() {
       setTimeout(() => {
         router.replace("./(Auth)/sign-in"); // Redirige a login
       }, 0);
-    }*/
+    }
     //router.replace("./(Auth)/sign-in");
   }, [accessToken, userId, onboardingCompleted, isAuthLoading, isFlagsLoading]);
 
