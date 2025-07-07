@@ -58,9 +58,6 @@ const DRM = () => {
 
       // Verificar que el trigger no sea superior a las 12 de la noche del mismo día
       if (triggerTimeLocal > midnightToday) {
-        console.log(
-          "⏰ No se programa notificación de tip: el horario excede las 12 de la noche"
-        );
         return null;
       }
 
@@ -79,21 +76,10 @@ const DRM = () => {
         "DailyTip",
         notificationData
       );
-
-      if (notificationId) {
-        console.log(
-          "🔔 Notificación de tip diario programada para:",
-          triggerTime
-        );
-      }
     } catch (error) {
       console.error("Error programando notificación de tip diario:", error);
     }
   };
-
-  useEffect(() => {
-    console.log("Respuestas del cuestionario actualmente: ", answers);
-  }, [answers]);
 
   //Función para guardar la respuesta de una pregunta (id y respuesta que es el formato que espera la api para guardar la petición)
   const handleAnswer = useCallback((id, answer) => {
@@ -156,7 +142,7 @@ const DRM = () => {
   const checkDailyReportStatus = async () => {
     try {
       const reportFlag = await getDailyReportFlag();
-      console.log("REPORT FLAG GETTED: ", reportFlag);
+
       if (reportFlag) {
         setReportButtonState("generated");
         setHasCompletedToday(true);

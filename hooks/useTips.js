@@ -185,8 +185,6 @@ const useTips = () => {
     setError(null);
     setLoading(true);
 
-    console.log("Tip del cual queremos recuperar la información: ", tipId);
-
     try {
       const response = await apiClient.get(`/users/${userId}/tips/${tipId}`, {
         headers: {
@@ -208,21 +206,12 @@ const useTips = () => {
     }
   };
 
-  useEffect(() => {
-    console.log(
-      "valor de la bandera de si es favorito o no",
-      tipSelectedDetail.isFavorite
-    );
-  }, [tipSelectedDetail]);
-
   /*
    * Endpoint para eliminar un tip o varios a partir de sus ids
    */
   const deleteTips = async (tipIds) => {
     setError(null);
     setLoading(true);
-
-    console.log("Ids de los tips que se van a eliminar: ", tipIds);
 
     try {
       const response = await apiClient.delete(`/users/${userId}/tips`, {
@@ -241,7 +230,7 @@ const useTips = () => {
         // Actualizar el total de elementos
         setTotalElements((prevTotal) => prevTotal - tipIds.length);
 
-        //TODO: DIRIA QUE ESTO SOBRA COMPLETAMENTE TAL Y COMO ESTA IMPLEMENTADO
+        //TODO: ESTO DEBERÍA DE SOBRAR CON LA IMPLEMENTACION ACTUAL
         // Si la página actual queda vacía y no es la primera página, ir a la anterior
         const remainingTipsInCurrentPage = tips.filter(
           (tip) => !tipIds.includes(tip.id)
@@ -333,7 +322,6 @@ const useTips = () => {
         setFavoriteTips((prevFavoriteTips) =>
           prevFavoriteTips.filter((tip) => tip.id !== idTip)
         );
-        console.log("TIP ELIMINADO DE FAVORITOS: ", idTip);
       }
     } catch (error) {
       setError(error);
@@ -342,14 +330,6 @@ const useTips = () => {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    console.log("Lista de tips favoritos actualizada: ", favoriteTips);
-    console.log(
-      "Cantidad de tips favoritos actualizada: ",
-      favoriteTips.length
-    );
-  }, [favoriteTips]);
 
   return {
     tips,

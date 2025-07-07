@@ -97,9 +97,6 @@ const useDRM = () => {
     setError(null);
     setLoading(true);
 
-    console.log("ID del user: ", userId);
-    console.log("Token de acceso: ", accessToken);
-
     try {
       //Hacemos la petición GET a la API
       const response = await apiClient.get(
@@ -109,11 +106,6 @@ const useDRM = () => {
             Authorization: `Bearer ${accessToken}`,
           },
         }
-      );
-
-      console.log(
-        "Respuesta de la API al obtener el cuestionario DRM de hoy: ",
-        response.data
       );
 
       //Guardamos el objeto DTO del drmToday en el estado drmToday

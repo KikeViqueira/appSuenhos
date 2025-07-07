@@ -45,9 +45,3 @@ export const CONFIG = {
 };
 
 // Log simple para verificar configuración
-console.log("🔧 ZzzTime - API URL:", API_BASE_URL);
-console.log("🔧 ZzzTime - Timeout:", API_TIMEOUT + "ms");
-console.log(
-  "🔧 ZzzTime - Cloudinary Placeholder URL:",
-  CLOUDINARY_PLACEHOLDER_URL
-);

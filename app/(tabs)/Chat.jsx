@@ -8,7 +8,6 @@ import {
   Platform,
   Keyboard,
   Pressable,
-  Alert,
 } from "react-native";
 import React, { useEffect, useState, useRef } from "react";
 import { Feather } from "@expo/vector-icons";
@@ -79,9 +78,6 @@ const Chat = () => {
           setHasChatTodayButEliminated(true);
         }
 
-        console.log("Valor de hasChatToday: ", hasChatToday);
-        console.log("Valor de chatId: ", chatId);
-
         // Si venimos de eliminar el chat en el que estábamos y se debe mostrar el mensaje de "vuelve mañana" en caso de que el user haya borrado el chat de hoy también
         if (showTomorrowMessage === "true") {
           setCanCreateNewChat(false);
@@ -93,11 +89,9 @@ const Chat = () => {
           // Caso especial si venimos de eliminar el chat en el que estábamos y en caso de que exista el chatId, lo cargamos también está reservado para el caso de que cargemos una conversación de un chat seleccionado del historial
           await getConversationChat(chatId);
         } else if (hasChatToday) {
-          console.log("VALOR DE HASCHAT TODAY: ", hasChatToday);
           //En caso de que el user haya hecho hoy un chat pero no tenemos la id primero lo que hacemos es llamar a la función que intenta recuperarel chat de hoy
           await getTodayChat();
         } else {
-          console.log("VALOR de canCreateNewChat: ", canCreateNewChat);
           setCanCreateNewChat(true);
           setIsToday(true);
         }
@@ -142,14 +136,6 @@ const Chat = () => {
       scrollToBottom();
     }
   }, [messages, initializing]);
-
-  // Mostramos logs de depuración
-  useEffect(() => {
-    console.log("Mensajes desde el useEffect: ", messages);
-    console.log("¿El chat es de hoy?", isToday);
-    console.log("¿IA escribiendo?", isAiWriting);
-    console.log("¿Inicializando?", initializing);
-  }, [messages, isToday, isAiWriting, initializing]);
 
   const toggleModal = () => {
     router.push("../ChatsHistory");

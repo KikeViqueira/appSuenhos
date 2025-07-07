@@ -1,5 +1,5 @@
 import { StatusBar } from "react-native-web";
-import { Text, View } from "react-native";
+import { Text, View, Image } from "react-native";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuthContext } from "../context/AuthContext";
@@ -18,28 +18,24 @@ export default function App() {
     //Si se está cargando el auth o las flags, no se hace nada, cuando cargue y el valor de los estados esten bien actualizados se redirige a donde corresponda.
     if (isAuthLoading || isFlagsLoading) return;
 
-    if (accessToken && userId) {
+    /*if (accessToken && userId) {
       // Si tenemos tokens pero onboardingCompleted es null, significa que getUserFlags aún no se ha ejecutado
       // En este caso, esperamos a que se complete la sincronización
       if (onboardingCompleted === null) {
-        console.log("⏳ Esperando sincronización de flags...");
         return;
       }
 
       if (onboardingCompleted) {
-        console.log("✅ Navegando a Stats - Onboarding completado");
         router.replace("./(tabs)/Stats"); // Redirige a la app principal
       } else {
-        console.log("📝 Navegando a Onboarding - Onboarding pendiente");
         router.replace("./(Onboarding)/Onboarding"); // Redirige al onboarding
       }
     } else {
       //Para evitar el error de "Attempted to navigate before mounting the Root Layout component",se retrasa la navegación hasta después del primer render.
       setTimeout(() => {
-        console.log("🔐 Navegando a Sign-In - Sin tokens");
         router.replace("./(Auth)/sign-in"); // Redirige a login
       }, 0);
-    }
+    }*/
     //router.replace("./(Auth)/sign-in");
   }, [accessToken, userId, onboardingCompleted, isAuthLoading, isFlagsLoading]);
 
@@ -52,14 +48,26 @@ export default function App() {
         {/* Decorative Elements */}
         <View className="absolute top-20 right-10 w-32 h-32 rounded-full bg-[#6366ff] opacity-10" />
         <View className="absolute top-40 left-5 w-20 h-20 rounded-full bg-[#6366ff] opacity-5" />
-        <View className="absolute bottom-32 right-20 w-24 h-24 rounded-full bg-[#6366ff] opacity-8" />
+        <View className="absolute bottom-32 right-20 w-24 h-24 rounded-full bg-[#6366ff] opacity-10" />
 
         {/* Main Content */}
         <View className="flex-1 justify-center items-center px-8">
           {/* Logo/Brand Section */}
           <View className="items-center mb-12">
-            <View className="w-24 h-24 rounded-full bg-[#6366ff] items-center justify-center mb-6 shadow-lg">
-              <Text className="text-4xl">🌙</Text>
+            <View className="justify-center items-center mb-6">
+              <Image
+                source={require("../assets/images/Logo.png")}
+                className="w-28 h-28"
+                resizeMode="contain"
+                style={{
+                  opacity: 0.95,
+                  shadowColor: "#6366ff",
+                  shadowOffset: { width: 0, height: 8 },
+                  shadowOpacity: 0.3,
+                  shadowRadius: 12,
+                  elevation: 8,
+                }}
+              />
             </View>
             <Text className="mb-2 text-5xl font-black text-center text-white">
               Zzz<Text className="text-[#6366ff]">Time</Text>

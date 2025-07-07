@@ -50,7 +50,6 @@ const useUser = () => {
        * getUser() del contexto de Auth para actualizar el estado del user en la app
        * y así reflejar los cambios en la UI.A no ser que lo que se haya actualizado sea la contraseña
        */
-      console.log("User actualizado: ", response.data);
       if (path !== "/password") getUser();
       setLoading(false);
       return false;
@@ -86,13 +85,10 @@ const useUser = () => {
           transformRequest: (data) => data, //Le decimos a axios que no transforme el request
         }
       );
-      console.log("Foto de perfil actualizada: ", response.data);
       getUser();
     } catch (error) {
       setError(error);
       console.error("Error al actualizar la foto de perfil: ", error);
-      console.log(error.message);
-      console.log(error.response?.status, error.response?.data);
     } finally {
       setLoading(false);
     }
@@ -113,7 +109,6 @@ const useUser = () => {
           },
         }
       );
-      console.log("Foto de perfil eliminada: ", response.data);
       getUser();
       //Devolvemos la url del placeholder para settearla en el estado de la app
       return response.data;

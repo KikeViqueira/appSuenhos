@@ -21,7 +21,6 @@ apiClient.interceptors.response.use(
 
     // Manejar errores de timeout silenciosamente
     if (error.code === "ECONNABORTED" || error.message.includes("timeout")) {
-      console.log("Request timeout - network connection may be slow");
       // No mostrar error al usuario, simplemente fallar silenciosamente
       return Promise.reject({
         ...error,
@@ -48,7 +47,7 @@ apiClient.interceptors.response.use(
         const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
           refreshToken: refreshToken,
         });
-        console.log("Token refreshed successfully: ", response.data);
+
         const { accessToken: newAccessToken, refreshToken: newRefreshToken } =
           response.data;
         // Actualizar tokens

@@ -40,8 +40,6 @@ import {
 const formatSleepStartTime = (sleepStartTime) => {
   if (!sleepStartTime) return null;
 
-  console.log("Hora de inicio del sueño: ", sleepStartTime);
-
   try {
     // Si recibimos un Date object, lo usamos directamente. Si es string, lo parseamos
     const date =
@@ -50,8 +48,6 @@ const formatSleepStartTime = (sleepStartTime) => {
         : new Date(sleepStartTime);
     const now = new Date();
 
-    console.log("Fecha de inicio del sueño: ", date);
-
     // Obtener horas y minutos directamente
     const hours = date.getHours();
     const minutes = date.getMinutes();
@@ -59,12 +55,7 @@ const formatSleepStartTime = (sleepStartTime) => {
     const hoursToString = hours.toString().padStart(2, "0");
     const minutesToString = minutes.toString().padStart(2, "0");
 
-    console.log("horas: ", hoursToString);
-    console.log("minutos: ", minutesToString);
-
     const timeString = `${hoursToString}:${minutesToString}`;
-
-    console.log("Hora formateada: ", timeString);
 
     // Comparar fechas locales para determinar el día
     const dateLocal = new Date(
@@ -122,10 +113,6 @@ const createNotification = async (scheduleNotificationWithId, type) => {
       type,
       notificationData
     );
-
-    if (notificationId) {
-      console.log("Notification scheduled for wake up: ", trigger);
-    }
   } catch (error) {
     console.error("Error programando notificación de despertar:", error);
   }
@@ -152,15 +139,7 @@ const calculateSleepDuration = async (wakeUpTime) => {
     const wakeUpTimeDate =
       wakeUpTime instanceof Date ? wakeUpTime : new Date(wakeUpTime);
 
-    console.log(
-      "Horas que se van a restar para calcular la duracion de lo que ha dormido el user: ",
-      wakeUpTimeDate,
-      " - ",
-      sleepStartTime
-    );
-
     const duration = wakeUpTimeDate.getTime() - sleepStartTime.getTime(); //Hacemos la diferencia en milisegundos
-    console.log("Duración del sueño: ", duration);
 
     if (duration < 0) {
       Alert.alert(
@@ -250,10 +229,6 @@ const Estadisticas = () => {
       const recoveredSleepStart = await AsyncStorage.getItem("sleepStart");
       if (recoveredSleepStart) {
         const sleepStartTime = new Date(recoveredSleepStart);
-        console.log(
-          "Hora en la que el user se ha ido a dormir al cargar la app: ",
-          sleepStartTime
-        );
         const now = new Date();
 
         //Comprobamos si la hora en la que se ha ido a dormir lleva más de 24 horas almacenada en el storage
@@ -286,25 +261,15 @@ const Estadisticas = () => {
     if (section === "drm") {
       setActiveSection("drmSection");
     }
-
-    console.log("Fecha de medianoche en formato local: ", getMidnightToday());
-    console.log("Fecha actual en formato local: ", getLocalDateTimeString());
   }, []);
-
-  useEffect(() => {
-    console.log("Valor de sleepStartDisplay: ", sleepStartDisplay);
-  }, [sleepStartDisplay]);
 
   //Función para guardar la hora en la que el user se va a dormir
   const calculateSleepStart = async () => {
     //Si el usuario no estaba durmiendo, le damos la hora actual
     if (!isSleeping) {
-      console.log("Valor de isSleeping en el if: ", isSleeping);
       try {
         //Obtenemos la hora actual en formato local
         const nowLocal = getLocalDateTimeString();
-
-        console.log("Hora actual: ", nowLocal);
 
         // Guardamos como string en AsyncStorage
         await AsyncStorage.setItem("sleepStart", nowLocal);
@@ -335,16 +300,10 @@ const Estadisticas = () => {
         // Formatear y guardar la hora de inicio para mostrarla
         const formattedTime = formatSleepStartTime(nowLocal);
         setSleepStartDisplay(formattedTime);
-
-        console.log(
-          "Hora en la que el user se ha ido a dormir que se va a guardar en el storage: ",
-          nowLocal
-        );
       } catch (error) {
         console.error("Error al guardar la hora de inicio de sueño: ", error);
       }
     } else {
-      console.log("Valor de isSleeping en el else: ", isSleeping);
       Alert.alert(
         "Reiniciar el registro",
         "¿Estás seguro de querer reiniciar el registro de horas de sueño?",
@@ -392,25 +351,6 @@ const Estadisticas = () => {
 
       //Comprobamos si el objeto devuelto es null o no
       if (response) {
-        console.log(
-          "Hora en la que el user se ha ido a dormir al guardar la respuesta: ",
-          response.sleepTime
-        );
-
-        console.log(
-          "Hora en la que el user se ha despertado:",
-          formattedWakeUpTime
-        );
-        console.log("Duración del sueño: ", response.duration);
-        console.log(
-          "Respuesta a la pregunta 1: ",
-          wakeUpFormResponse.question1
-        );
-        console.log(
-          "Respuesta a la pregunta 2: ",
-          wakeUpFormResponse.question2
-        );
-
         /*
          * Tenemos que crear el objeto con los campos que se van a enviar a la BD:
          * 1. sleepTime: fecha en la que el user se ha ido a dormir
@@ -426,8 +366,6 @@ const Estadisticas = () => {
           question1: wakeUpFormResponse.question1,
           question2: wakeUpFormResponse.question2,
         };
-
-        console.log("ENVIANDO A LA API:", newResponse);
 
         try {
           //Guardamos la respuesta del user en la BD

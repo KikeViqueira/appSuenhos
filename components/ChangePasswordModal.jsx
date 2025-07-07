@@ -61,7 +61,7 @@ const ChangePasswordModal = ({
         setError("La contraseña antigua no es correcta.");
       }
     } catch (error) {
-      console.log("Error capturado en handleSubmit:", error);
+      console.error("Error capturado en handleSubmit:", error);
     } finally {
       setIsSubmitting(false);
     }

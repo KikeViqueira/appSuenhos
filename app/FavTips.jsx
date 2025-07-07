@@ -33,13 +33,8 @@ const FavTips = () => {
         initializedDone.current &&
         now - lastFocusTime.current > 1000
       ) {
-        console.log("FAVTIPS SCREEN FOCUSED - RELOADING FAVS TIPS");
         getFavoriteTips();
         lastFocusTime.current = Date.now();
-        console.log(
-          "Cantidad de tips que tenemos en favoritos: ",
-          favoriteTips.length
-        );
       }
       return () => {
         //Función de limpiado

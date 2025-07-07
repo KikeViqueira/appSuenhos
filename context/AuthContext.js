@@ -84,8 +84,6 @@ export const AuthProvider = ({ children }) => {
       // Combinar todas las banderas a eliminar
       const flagsToRemove = [...groupedFlagKeys, ...additionalFlags];
 
-      console.log("Limpiando banderas:", flagsToRemove);
-
       // Eliminamos todas las banderas conocidas
       const removePromises = flagsToRemove.map((key) =>
         AsyncStorage.removeItem(key).catch((error) =>
@@ -94,15 +92,8 @@ export const AuthProvider = ({ children }) => {
       );
 
       await Promise.all(removePromises);
-
-      console.log(
-        "✅ Todas las banderas han sido eliminadas del almacenamiento local"
-      );
     } catch (error) {
-      console.error(
-        "❌ Error al limpiar las banderas del almacenamiento:",
-        error
-      );
+      console.error("Error al limpiar las banderas del almacenamiento:", error);
     }
   };
 
@@ -121,14 +112,10 @@ export const AuthProvider = ({ children }) => {
    *
    */
   const saveFlagsToCache = async (flags) => {
-    console.log("Flags recibidas de la API:", flags);
-
     // Aplanamos la estructura anidada combinando todos los objetos de las secciones (acc es el acumulador y section es el grupo de banderas que estamos procesando actualmente)
     const flatFlags = Object.values(flags).reduce((acc, section) => {
       return { ...acc, ...section };
     }, {}); // {} es el valor inicial del acumulador
-
-    console.log("Flags aplanadas:", flatFlags);
 
     const groupedFlags = {};
     //hacemos un set para evitar banderas que esten duplicadas
@@ -178,15 +165,6 @@ export const AuthProvider = ({ children }) => {
         typeof value === "object" ? JSON.stringify(value) : String(value);
       await AsyncStorage.setItem(key, serializedValue);
     }
-
-    console.log(
-      "BANDERAS AGRUPADAS:",
-      Object.keys(groupedFlags).filter((key) => groupedFlagsMap[key])
-    );
-    console.log(
-      "BANDERAS SIMPLES:",
-      Object.keys(groupedFlags).filter((key) => !groupedFlagsMap[key])
-    );
   };
 
   //Al cargar la app, intentamos cargar el token de la memoria segura
@@ -209,12 +187,6 @@ export const AuthProvider = ({ children }) => {
           "userAccessToken"
         );
         const idUser = await SecureStore.getItemAsync("userId");
-
-        console.log(
-          "Valores para el token y el id del user: ",
-          userAccessToken,
-          idUser
-        );
 
         if (userAccessToken && idUser) {
           setAccessToken(userAccessToken);
@@ -280,7 +252,6 @@ export const AuthProvider = ({ children }) => {
       if (response.status === 200) {
         await logout();
       }
-      console.log("Cuenta eliminada correctamente: ", response.data);
     } catch (error) {
       setError(error);
       console.error("Error al eliminar la cuenta del user: ", error);
@@ -315,8 +286,6 @@ export const AuthProvider = ({ children }) => {
       );
 
       if (response.status === 200) {
-        console.log("Flags recibidas del servidor:", response.data);
-
         // PRIMERO: Verificamos si tenemos la bandera de onboarding en la respuesta del servidor
         const flatFlags = Object.values(response.data).reduce(
           (acc, section) => {
@@ -329,17 +298,12 @@ export const AuthProvider = ({ children }) => {
         if (flatFlags.hasOwnProperty("hasCompletedOnboarding")) {
           const onboardingFromServer =
             flatFlags.hasCompletedOnboarding === "true";
-          console.log(
-            "🔄 Actualizando onboarding desde servidor:",
-            onboardingFromServer
-          );
           setOnboardingCompleted(onboardingFromServer);
         }
 
         // DESPUÉS: Guardamos todas las flags en cache
         await saveFlagsToCache(response.data);
       }
-      console.log("Banderas recuperadas del user: ", response.data);
     } catch (error) {
       //Si hay un error, lo guardamos en el estado de error
       setError(error);
@@ -375,7 +339,6 @@ export const AuthProvider = ({ children }) => {
       await updateTokens(response.data.accessToken, response.data.refreshToken);
       //tenemos que guardar también el id del user que se ha creado en la BD en el secureStorage y en el estado para las futuras peticiones
       await SecureStore.setItemAsync("userId", response.data.userId.toString());
-      console.log("Usuario logueado correctamente: ", response.data);
       setUserId(response.data.userId.toString());
       //El useEffect se encargará de llamar a getUserFlags() cuando userId y accessToken estén establecidos
     } catch (error) {
@@ -417,7 +380,6 @@ export const AuthProvider = ({ children }) => {
         name: user.name,
         password: user.password,
       });
-      console.log("Usuario registrado correctamente: ", response.data);
       // Mostrar modal de éxito
       showModal("registrationSuccess");
       return { success: true };
@@ -460,7 +422,6 @@ export const AuthProvider = ({ children }) => {
       });
 
       setUserInfo(response.data);
-      console.log("Información recuperada del user: ", response.data);
     } catch (error) {
       //Si hay un error, lo guardamos en el estado de error
       setError(error);
@@ -489,8 +450,6 @@ export const AuthProvider = ({ children }) => {
       setUserInfo(null);
       setUserId(null);
       setOnboardingCompleted(null);
-
-      console.log("Logout completado - todos los datos eliminados");
     } catch (error) {
       console.error("Error durante el logout:", error);
     } finally {

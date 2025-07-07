@@ -134,7 +134,6 @@ const Profile = () => {
           quality: 1,
         });
       } catch (error) {
-        console.log("Error al acceder a la galería:", error);
         Alert.alert(
           "Error",
           "Ha sucedido un error a la hora de seleccionar la foto de la galería, inténtalo de nuevo"
@@ -161,7 +160,6 @@ const Profile = () => {
           quality: 1,
         });
       } catch (error) {
-        console.log("Error al acceder a la cámara:", error);
         Alert.alert(
           "Error",
           "Ha sucedido un error a la hora de sacar la foto, inténtalo de nuevo"

@@ -42,18 +42,6 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
     }
   }, [isVisible]);
 
-  useEffect(() => {
-    console.log("Respuestas al cuestionario matutino: ", answers);
-    console.log(
-      "Hora de despertar sin usar UTC: ",
-      answers.wakeUpTime.toLocaleTimeString()
-    );
-    console.log(
-      "Hora de despertar usando UTC: ",
-      answers.wakeUpTime.toISOString()
-    );
-  }, [answers]);
-
   //Función que se encarga de validar si se han respondido todas las preguntas
   const hasQuestionsAnswered = () => {
     return answers.question1 !== "" && answers.question2 !== "";
@@ -114,8 +102,8 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
     //Por lo tanto si queremos que lo que este dentro del modal se vea correctamente tenemos que poner dentro de este componente un SafeAreaView
     <View>
       <Modal visible={isVisible} animationType="slide">
-        <SafeAreaView className="flex flex-col w-full h-full gap-8 bg-primary">
-          <View className="flex flex-row items-center justify-between px-3">
+        <SafeAreaView className="flex flex-col gap-8 w-full h-full bg-primary">
+          <View className="flex flex-row justify-between items-center px-3">
             <Button title="Back" onPress={onClose}></Button>
             <Text
               className="font-bold text-center color-white"
@@ -137,7 +125,7 @@ const WakeUpForm = ({ isVisible, onClose, onSave }) => {
           >
             {/* Contenedor que encierra la hora de la alarma*/}
             <View
-              className="flex flex-col items-center justify-center w-full gap-5"
+              className="flex flex-col gap-5 justify-center items-center w-full"
               style={{
                 height: "auto",
               }}

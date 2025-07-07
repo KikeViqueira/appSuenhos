@@ -223,13 +223,6 @@ const Music = () => {
 
   const playSound = async (sound) => {
     try {
-      console.log("Antes de reproducir: ", {
-        sound,
-        currentSound,
-        isPlaying,
-        progress,
-      });
-
       // Obtenemos el asset adecuado, ya sea estático (mediante require) o dinámico (por URI)
       const soundSource = getSoundSource(sound);
       if (!soundSource) {
@@ -249,7 +242,6 @@ const Music = () => {
             setTimerActive(true);
           }
 
-          console.log("Reanudando sonido: ", sound.id);
           return;
         }
       }
@@ -296,8 +288,6 @@ const Music = () => {
         setTimerRemaining(timerDuration);
         setTimerActive(true);
       }
-
-      console.log("Reproduciendo sonido: ", sound.id);
     } catch (error) {
       console.error("Error reproduciendo sonido: ", error);
       Alert.alert("Error", `No se pudo reproducir el sonido`);
@@ -307,8 +297,6 @@ const Music = () => {
   const stopSound = async () => {
     if (soundRef.current) {
       try {
-        console.log("Antes de pausar: ", { currentSound, isPlaying, progress });
-
         await soundRef.current.pauseAsync(); //Pausar sonido
 
         const status = await soundRef.current.getStatusAsync(); //Obtener estado actualizado
@@ -321,12 +309,6 @@ const Music = () => {
           setTimerActive(false);
           // No reseteamos timerRemaining para mantener el tiempo cuando se reanude
         }
-
-        console.log("Después de pausar: ", {
-          currentSound,
-          isPlaying,
-          progress,
-        });
       } catch (error) {
         console.error("Error pausando sonido: ", error);
       }
@@ -611,15 +593,10 @@ const Music = () => {
           type: mimeType,
         });
 
-        console.log(
-          "SONIDO QUE EL USER QUIERES SUBIR A LA BASE DE DATOS: ",
-          newSound
-        );
         //llamamos al endpoint encargado de subir el sonido en la app
         await postSound(newSound);
         //Una vez subido el sonido por parte del user tenemos que llamar a la función que recupera los sonidos del user
         await getUserSounds();
-        console.log(userSounds);
 
         // Ocultar indicador de carga
         setLoadingModalVisible(false);

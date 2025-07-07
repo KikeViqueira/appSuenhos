@@ -262,7 +262,6 @@ const DrmReport = () => {
         html: htmlContent,
         base64: false,
       });
-      console.log("PDF generado en: ", uri);
 
       // Usamos expo-sharing para que el usuario pueda decidir dónde guardar el PDF
       if (await Sharing.isAvailableAsync()) {

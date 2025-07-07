@@ -58,7 +58,6 @@ const useNotifications = () => {
       // Actualizar en el backend
       await updateConfigFlagValue("notifications", true);
 
-      console.log("✅ Notificaciones activadas");
       return true;
     } catch (error) {
       console.error("Error activando notificaciones:", error);
@@ -87,7 +86,6 @@ const useNotifications = () => {
       // 4. Actualizar en el backend
       await updateConfigFlagValue("notifications", false);
 
-      console.log("🔕 Notificaciones desactivadas y canceladas");
       return true;
     } catch (error) {
       console.error("Error desactivando notificaciones:", error);
@@ -106,10 +104,6 @@ const useNotifications = () => {
       const scheduledNotifications =
         await Notifications.getAllScheduledNotificationsAsync();
 
-      console.log(
-        `📱 Cancelando ${scheduledNotifications.length} notificaciones programadas`
-      );
-
       // Cancelar todas las notificaciones
       await Notifications.cancelAllScheduledNotificationsAsync();
 
@@ -127,9 +121,6 @@ const useNotifications = () => {
   const scheduleNotificationIfEnabled = async (notificationData) => {
     // Solo programar si las notificaciones están habilitadas
     if (!notificationsEnabled) {
-      console.log(
-        "🔕 Notificaciones deshabilitadas, no se programará la notificación"
-      );
       return null;
     }
 
@@ -137,7 +128,6 @@ const useNotifications = () => {
       const notificationId = await Notifications.scheduleNotificationAsync(
         notificationData
       );
-      console.log("🔔 Notificación programada:", notificationId);
       return notificationId;
     } catch (error) {
       console.error("Error programando notificación:", error);
@@ -155,7 +145,6 @@ const useNotifications = () => {
    */
   const scheduleNotificationWithId = async (key, notificationData) => {
     if (!notificationsEnabled) {
-      console.log(`Notificaciones deshabilitadas, no se programará "${key}"`);
       return null;
     }
 
@@ -171,10 +160,6 @@ const useNotifications = () => {
       // Guardar el ID con la clave
       await saveNotificationId(key, notificationId);
 
-      console.log(
-        `🔔 Notificación "${key}" programada con ID:`,
-        notificationId
-      );
       return notificationId;
     } catch (error) {
       console.error(`Error programando notificación "${key}":`, error);
@@ -194,10 +179,8 @@ const useNotifications = () => {
       if (notificationId) {
         await Notifications.cancelScheduledNotificationAsync(notificationId);
         await removeNotificationId(key);
-        console.log(`🗑️ Notificación "${key}" cancelada`);
         return true;
       } else {
-        console.log(`⚠️ No se encontró notificación con clave "${key}"`);
         return false;
       }
     } catch (error) {
@@ -255,7 +238,6 @@ const useNotifications = () => {
       );
 
       await Promise.all(removePromises);
-      console.log("IDs de notificaciones limpiados");
     } catch (error) {
       console.error("Error limpiando IDs de notificaciones:", error);
     }

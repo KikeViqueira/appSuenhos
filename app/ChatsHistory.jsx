@@ -225,8 +225,6 @@ const ChatsHistory = () => {
     if (isSelectionMode) {
       setSelectedChats(xorBy(selectedChats, [chat], "id"));
     } else {
-      console.log("Seleccionando chat para ver:", chat.id, chat.name);
-      console.log("Navegando de regreso a la pantalla de chat");
       // Esperamos un poco para asegurar que AsyncStorage se ha actualizado
       setTimeout(() => {
         /*
@@ -260,14 +258,8 @@ const ChatsHistory = () => {
     if (selectedChats.length === 0) return;
 
     try {
-      // Mostrar los chats que se van a eliminar en la consola para depuración
-      console.log(
-        "Eliminando chats: " + selectedChats.map((chat) => chat.name).join(", ")
-      );
-
       // Llamamos a la función de eliminar chats y esperamos su resultado
       const result = await deleteChats(selectedChats.map((chat) => chat.id));
-      console.log("Resultado de eliminación:", result);
 
       // Limpiamos la selección y desactivamos el modo de selección
       setSelectedChats([]);
@@ -277,27 +269,23 @@ const ChatsHistory = () => {
       if (result.deletedOpenChat) {
         if (result.nextChatId) {
           // Si hay un chat disponible (normalmente el de hoy), navegamos a él
-          console.log("Navegando al chat con ID:", result.nextChatId);
           setMode("goToChatToday");
           setNextChatId(result.nextChatId);
         } else if (!result.hasChatToday) {
           // Si no hay un chat de hoy disponible, navegamos a la pantalla principal sin chatId
           // Esto mostrará la pantalla de bienvenida para crear un nuevo chat
-          console.log("Navegando a pantalla principal para crear nuevo chat");
           setMode("goToCreateChat");
           setNextChatId(undefined);
         } else {
           // El usuario ya ha hecho un chat hoy pero lo ha borrado,
           // mostrará la pantalla de "vuelve mañana"
-          console.log("Navegando a pantalla de 'vuelve mañana'");
           setMode("goToTomorrowMessage");
         }
       } else {
         // Si no se eliminó el chat abierto, recargamos la lista de chats para actualizar la UI
-
-        //TODO: TAL Y COMO ESTAN LOS ENDPOINTS CREO QUE ESTO SOBRA PERO BUENO
-
         await refreshHistory();
+
+        //TODO: TAL Y COMO ESTA LA LOGICA DIRÍA QUE ESTO NO ES NECESARIO AHORA MISMO
 
         // Si había búsqueda activa, también refrescamos los filtrados
         if (hasSearched) {

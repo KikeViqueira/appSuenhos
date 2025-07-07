@@ -59,8 +59,6 @@ const useSound = () => {
         },
       });
 
-      console.log("Sonidos del user recuperados:", response.data);
-
       setUserSounds(response.data);
     } catch (error) {
       setError(error); // Guardamos el error en el estado
@@ -74,8 +72,7 @@ const useSound = () => {
   };
 
   useEffect(() => {
-    if (userSounds.length > 0)
-      console.log("Sonidos del user guardados en el estado: ", userSounds);
+    // Solo para detectar cambios en userSounds si es necesario
   }, [userSounds]);
 
   /*
@@ -95,7 +92,6 @@ const useSound = () => {
         transformRequest: (data) => data,
       });
 
-      console.log("Sonido subido a la app:", response.data);
       //Añadimos el sonido subido a los sonidos del user
       setUserSounds((prevSounds) => [...prevSounds, response.data]);
     } catch (error) {
@@ -121,8 +117,6 @@ const useSound = () => {
           "Content-Type": "application/json",
         },
       });
-
-      console.log("Sonido eliminado de la app: ", response.data);
 
       //Tenemos que actualizar el estado que guarda los sonidos que el user ha subido, eliminando a este del array. Esto lo hacemos quedandonos con todos los sonidos que no sean el que acabamos de eliminar
       setUserSounds((prevSounds) => prevSounds.filter((s) => s.id !== soundId));

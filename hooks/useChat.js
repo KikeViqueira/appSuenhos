@@ -159,8 +159,6 @@ const useChat = () => {
       // Actualizamos el estado agregando ambos mensajes a la vez
       setMessages((prev) => [...prev, userMessage, tempAIMessage]);
 
-      console.log("MENSAJES TEMPORALES CUANDO HABLAMOS CON LA IA :", messages);
-
       /*
        * recuperamos el id del chat de hoy almacenado en el AsyncStorage si existe el mensaje se envía a ese chat
        * si no existe se crea un nuevo chat con el mensaje del user y después se guarda el valor del id con la fecha en la que se ha creado
@@ -170,12 +168,9 @@ const useChat = () => {
       //Recuperamos el chatId del AsyncStorage mediante la función getDailyChatId
       const chatId = await getDailyChatId();
 
-      console.log("ID DE CHAT RECUPERADO EN EL ASYNC:", chatId);
-
       //Si el id es null sabemos que es el primer mensaje que se manda a ese chat en el día de hoy y por lo tanto es un nuevo chat
       //Lo guardamos en una vraible para llamar después al getHistory y actualizar el historial de chats
       const storedChatId = chatId ? chatId : null;
-      console.log("id del chat de hoy: ", storedChatId);
 
       //Hacemos la petición POST al endpoint
       const response = await apiClient.post(
@@ -193,8 +188,6 @@ const useChat = () => {
           },
         }
       );
-
-      console.log("id del chat que acabamos de crear: ", response.data.id);
 
       /*
        * IMPORTANTE: La respuesta de la API puede variar dependiendo de si se ha creado un nuevo chat o se ha enviado un mensaje a uno existente.
@@ -403,7 +396,6 @@ const useChat = () => {
       //Guardamos estos chats en el estado correspondiente
       if (response.status === 200) setLast3MonthsChats(response.data);
       if (response.status === 204) setLast3MonthsChats([]);
-      console.log("Chats últimos 3 meses recuperados: ", response.data);
     } catch (error) {
       setError(error);
       console.error("Error al recuperar chats de últimos 3 meses: ", error);
@@ -500,7 +492,6 @@ const useChat = () => {
         setTotalPagesFiltered(0);
         setTotalElementsFiltered(0);
       }
-      console.log("Chats filtrados por rango recuperados: ", response.data);
     } catch (error) {
       setError(error);
       console.error("Error al recuperar chats por rango: ", error);
@@ -552,13 +543,6 @@ const useChat = () => {
       const isDeletingOpenChat =
         currentOpenChatId && ids.includes(parseInt(currentOpenChatId));
 
-      // Información de diagnóstico
-      console.log("Ids de chats a eliminar:", ids);
-      console.log("Id del chat abierto:", currentOpenChatId);
-      console.log("¿Eliminando chat de hoy?", isDeletingTodaysChat);
-      console.log("¿Eliminando chat abierto?", isDeletingOpenChat);
-      console.log("¿Usuario ha hecho chat hoy?", hasChatToday);
-
       // Realizar la solicitud de eliminación a la API
       const response = await apiClient.delete(`/users/${userId}/chats`, {
         headers: {
@@ -590,10 +574,6 @@ const useChat = () => {
 
         // Si estamos eliminando el chat de hoy
         if (isDeletingTodaysChat) {
-          console.log(
-            "El chat de hoy ha sido eliminado. Limpiando referencias..."
-          );
-
           // Eliminar referencia en AsyncStorage
           await AsyncStorage.removeItem("chatId");
           setMessages([]);
@@ -602,14 +582,11 @@ const useChat = () => {
 
         // Si estamos eliminando el chat actualmente abierto
         if (isDeletingOpenChat) {
-          console.log("El chat abierto ha sido eliminado.");
-
           //Limpiamos info del chat actual
           await clearCurrentChat();
 
           // Si hay un chat de hoy disponible, lo cargamos
           if (dailyChatId && !isDeletingTodaysChat) {
-            console.log("Intentando cargar el chat de hoy en su lugar...");
             result.nextChatId = dailyChatId;
           }
         }
@@ -627,7 +604,6 @@ const useChat = () => {
       setLoading(false);
     }
 
-    console.log("Objeto de resultado final:", result);
     return result;
   };
 
@@ -642,8 +618,6 @@ const useChat = () => {
     setConversationLoaded(false);
 
     try {
-      console.log("Recuperando conversación para chat ID:", targetChatId);
-
       if (!targetChatId) {
         console.error("ID de chat no válido:", targetChatId);
         throw new Error("ID de chat no válido");
@@ -660,20 +634,12 @@ const useChat = () => {
       );
 
       if (response.status === 200 && response.data) {
-        console.log(
-          "Respuesta de la API para chat ID",
-          targetChatId,
-          ":",
-          response.data
-        );
-
         // Guardamos datos en variables temporales
         const chatEditable = response.data.isEditable || false;
         let chatMessages = [];
 
         if (response.data.messages && Array.isArray(response.data.messages)) {
           chatMessages = response.data.messages;
-          console.log("Total de mensajes recuperados:", chatMessages.length);
         } else {
           console.error(
             "No se encontraron mensajes en la respuesta o formato incorrecto"
@@ -684,7 +650,6 @@ const useChat = () => {
         setIsToday(chatEditable);
         setMessages(chatMessages);
         setConversationLoaded(true);
-        console.log("Chat editable:", chatEditable);
 
         // También guardamos el id del chat en la bandera aux para saber en que chat está el user, esto solo si los mensajes no están vacíos
         if (chatMessages.length > 0) {
@@ -724,14 +689,11 @@ const useChat = () => {
       //Recuperamos el chatId del AsyncStorage mediante la función getDailyChatId
       const chatId = await getDailyChatId();
 
-      console.log("ID de chat recuperado del almacenamiento local:", chatId);
-
       //Comprobamos si el chatId existe, si no existe permitimos crear uno nuevo
       if (chatId) {
         try {
           //Llamamos a la función getConversationChat pasándole el chatId
           await getConversationChat(chatId);
-          console.log("Chat de hoy cargado correctamente");
         } catch (error) {
           console.error("Error al cargar el chat de hoy:", error);
           // Si hay error al cargar, limpiamos los mensajes y permitimos crear un nuevo chat
@@ -752,7 +714,6 @@ const useChat = () => {
       setIsToday(true);
       setConversationLoaded(true);
     }
-    console.log("Valor de si se puede crear un chat:", isToday);
   };
 
   const clearCurrentChat = async () => {
@@ -765,7 +726,6 @@ const useChat = () => {
       setConversationLoaded(false);
       setHasAttemptedLoad(false);
 
-      console.log("Chat actual limpiado correctamente");
       return true;
     } catch (error) {
       console.error("Error al limpiar chat actual:", error);

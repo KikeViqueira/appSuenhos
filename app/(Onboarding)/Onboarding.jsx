@@ -1,15 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import MultipleOptionOnboarding from "../../components/MultipleOptionOnboarding";
 import AgeQuestion from "./AgeQuestion";
-//Importamos el almacenamiento asincrono de la aplicación donde siempre debemos guardar las cosas antes que en el almacenamiento local
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { router } from "expo-router";
 import OnboardingMultipleOptionsQuestions from "../../assets/OnboardingMultipleOptionsQuestions.json";
 import { SafeAreaView } from "react-native-safe-area-context";
 import useOnboarding from "../../hooks/useOnboarding";
 import { markOnboardingAsCompleted } from "../../services/onboardingService";
 import { useAuthContext } from "../../context/AuthContext";
-import { View, Text, StatusBar } from "react-native";
+import { View, Text } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 
 export default function Onboarding() {
@@ -20,7 +18,6 @@ export default function Onboarding() {
    * Recibimos del callback de la función updateResponse el objeto de respuestas actualizado y lo enviamos a la API
    * */
   const onFinish = (data) => {
-    console.log("Respuestas del usuario que se enviarán a la Api: ", responses);
     //llamamos a al endpoint correspondiente en la API para guardar las respuestas del usuario
     saveOnboardingAnswers(data);
     //Guardamos en el almacenamiento asincrono que el usuario ha completado el cuestionario, ya que la idea de este es que se haga solo una vez desde que se crea la cuenta
@@ -30,7 +27,7 @@ export default function Onboarding() {
     /*
      * Una guardamos el valor para cuando la app se vuelva a abrir que no se muestre el cuestionario de nuevo
      * , si queremos cambiar en caliente sin reiniciar la app, tenemos que hacer un push desde aqui a la primera pestaña en este caso Stats*/
-    console.log("Cuestionario finalizado");
+
     router.replace("/Stats"); //USamosla función replace para prevenir la acción de retroceso
   };
 
@@ -57,11 +54,6 @@ export default function Onboarding() {
     }
   };
 
-  //Definimos el useEffect para saber en tiempo real en que pregunta se encuentra el usuario, ya que los set por naturaleza son asíncronos
-  useEffect(() => {
-    console.log("Pregunta actual: ", question);
-  }, [question]);
-
   //Definimos un estado para almacenar el objeto de respuestas a las distintas preguntas iniciales de tal manera que siempre este actualizado
   const [responses, setResponses] = useState({
     question1: "",
@@ -85,10 +77,6 @@ export default function Onboarding() {
       return newState; //Indicamos a react cual es el nuevo estado
     });
   };
-  //hacemos también un console.log para ver en tiempo real las respuestas que se van guardando mediante el useEffect de responses
-  useEffect(() => {
-    console.log("Valor del objeto respuesta del usuario: ", responses);
-  }, [responses]);
 
   //Definimoslas preguntas en variables extrayendolas del archivo JSON
   const question1 = OnboardingMultipleOptionsQuestions.questions[0];

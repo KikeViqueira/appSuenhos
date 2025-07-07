@@ -97,7 +97,7 @@ const Tips = () => {
   useEffect(() => {
     if (!initializedDone.current) {
       getTips();
-      console.log("useEffect mounted");
+
       initializedDone.current = true;
       lastFocusTime.current = Date.now();
     }
@@ -116,7 +116,6 @@ const Tips = () => {
         initializedDone.current &&
         !isSelectionMode // No recargar tips cuando estamos en modo de selección para eliminar, pq esto es molesto para el user visualmente y funcionalmente
       ) {
-        console.log("TIPS SCREEN FOCUSED - RELOADING TIPS");
         getTips();
         lastFocusTime.current = now;
       }
@@ -131,7 +130,7 @@ const Tips = () => {
     setRefreshing(true);
     isRefreshing.current = true;
     await getTips();
-    console.log("onRefresh");
+
     setRefreshing(false);
     //Desactivamos la referencia después de un breve retraso para evitar llamada del useFocusEffect
     setTimeout(() => {
@@ -143,10 +142,6 @@ const Tips = () => {
   // Función para confirmar la eliminación de los tips que han sido seleccionados
   const confirmDeletion = async () => {
     if (selectedTips.length > 0) {
-      console.log(
-        "Eliminando lo siguientes tips: " +
-          selectedTips.map((tip) => tip.title).join(", ") //Enseñamos los title de los tips que han sido eliminados separados mediante comas
-      );
       //llamamos al endpoint de eliminar tips pasandole un array que contiene solo los ids de los tips que se han seleccionado y están en el estado
       await deleteTips(selectedTips.map((tip) => tip.id));
       setSelectedTips([]); //Limpiamos los tips seleccionados
@@ -381,7 +376,6 @@ const Tips = () => {
             onEndReached={async () => {
               if (!loadingMore && !loading && currentPage + 1 < totalPages) {
                 setLoadingMore(true);
-                console.log("LLAMANDO A LA FUNCIÓN loadNextPage");
                 await loadNextPage();
                 setLoadingMore(false);
               }
