@@ -121,21 +121,42 @@ const WeeklySleepChart = ({ sleepLogsDuration }) => {
               <>
                 <View className="flex-row justify-between items-center mb-4">
                   <Text className="text-lg font-bold color-[#6366ff]">
-                    Detalles del sueño
+                    {selectedPoint.hours === 0 && selectedPoint.minutes === 0
+                      ? "Sin registro"
+                      : "Detalles del sueño"}
                   </Text>
                   <TouchableOpacity onPress={() => setModalVisible(false)}>
                     <Icon name="times" size={20} color="#fff" />
                   </TouchableOpacity>
                 </View>
-                <View className="gap-2">
-                  <Text className="text-base color-white">
-                    Día: {selectedPoint.entireDay}
-                  </Text>
-                  <Text className="text-base color-white">
-                    Tiempo dormido: {selectedPoint.hours}h{" "}
-                    {selectedPoint.minutes}min
-                  </Text>
-                </View>
+
+                {selectedPoint.hours === 0 && selectedPoint.minutes === 0 ? (
+                  <View className="gap-3 items-center py-2">
+                    <Icon name="calendar-times-o" size={32} color="#6366ff" />
+                    <Text className="text-base text-center color-white">
+                      Día: {selectedPoint.entireDay}
+                    </Text>
+                    <Text className="text-sm color-[#a0b0c7] text-center leading-5">
+                      No se registró actividad de sueño para este día.
+                    </Text>
+                    <View className="bg-[#323d4f] p-3 rounded-lg mt-2">
+                      <Text className="text-xs color-[#fbbf24] text-center">
+                        💡 Recuerda registrar tu sueño diariamente para un mejor
+                        seguimiento
+                      </Text>
+                    </View>
+                  </View>
+                ) : (
+                  <View className="gap-2">
+                    <Text className="text-base color-white">
+                      Día: {selectedPoint.entireDay}
+                    </Text>
+                    <Text className="text-base color-white">
+                      Tiempo dormido: {selectedPoint.hours}h{" "}
+                      {selectedPoint.minutes}min
+                    </Text>
+                  </View>
+                )}
               </>
             )}
           </View>

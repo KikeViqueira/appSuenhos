@@ -89,9 +89,17 @@ const useTips = () => {
       }
       //llamamos a la función para guardar la bandera de tip en el AsyncStorage
       await setDailyTipFlag();
+      return true;
     } catch (error) {
-      setError(error);
-      console.error("Error al generar el tip: ", error);
+      if (error.response) {
+        if (error.response.status !== 403) {
+          setError(error);
+          console.error("Error al generar el tip: ", error);
+        } else {
+          setError(error);
+        }
+        return false;
+      }
     } finally {
       setLoading(false);
     }

@@ -18,12 +18,11 @@ import useTips from "../hooks/useTips";
 import { getDailyTipFlag } from "../hooks/useTips";
 import { LinearGradient } from "expo-linear-gradient";
 import useNotifications from "../hooks/useNotifications";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import APIErrorModal from "../components/APIErrorModal";
 
 const DrmReport = () => {
   const { getDrmToday, drmToday } = useDRM();
-  const { generateTip, error } = useTips();
+  const { generateTip } = useTips();
   const [tipButtonState, setTipButtonState] = useState("default"); //Controla el estado del botón a la hora de generar el tip
   const [showScrollIndicator, setShowScrollIndicator] = useState(true);
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -81,9 +80,9 @@ const DrmReport = () => {
 
     setTipButtonState("generating");
     try {
-      await generateTip();
+      const result = await generateTip();
       //Tenemos que comprobar si se ha producido un error al generar el tip, si es asi volvemos al estado inicial dando feedback al user de que está pasando, si no da se crea correctamente el tip
-      if (!error) {
+      if (result) {
         setTipButtonState("generated");
 
         // Cancelar la notificación de recordatorio ya que el usuario generó el tip

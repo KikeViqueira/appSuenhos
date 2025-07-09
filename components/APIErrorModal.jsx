@@ -1,12 +1,12 @@
 import React from "react";
 import { View, Text, Modal, TouchableOpacity } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { Feather, Entypo } from "@expo/vector-icons";
 
 const APIErrorModal = ({ visible, onClose, errorType, customMessage }) => {
   // Configuraciones para diferentes tipos de errores de API
   const errorConfig = {
     generateTip: {
-      icon: "lightbulb",
+      icon: "light-bulb",
       iconColor: "#ff4757",
       title: "Error al generar tip",
       message:
@@ -62,7 +62,15 @@ const APIErrorModal = ({ visible, onClose, errorType, customMessage }) => {
               className="justify-center items-center w-16 h-16 rounded-full"
               style={{ backgroundColor: `${config.iconColor}20` }}
             >
-              <Feather name={config.icon} size={28} color={config.iconColor} />
+              {config.icon === "light-bulb" ? (
+                <Entypo name={config.icon} size={28} color={config.iconColor} />
+              ) : (
+                <Feather
+                  name={config.icon}
+                  size={28}
+                  color={config.iconColor}
+                />
+              )}
             </View>
           </View>
 

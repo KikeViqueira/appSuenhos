@@ -100,7 +100,7 @@ const UserSleepVsRecommended = ({ sleepLogsDuration, userAge }) => {
   );
 
   return (
-    <View className="flex-col self-center gap-4">
+    <View className="flex-col gap-4 self-center">
       <LineChart
         data={{
           labels: formattedSleepData.map((data) => data.day),
@@ -175,7 +175,7 @@ const UserSleepVsRecommended = ({ sleepLogsDuration, userAge }) => {
       />
 
       <View className="bg-[#0e172a] p-4 w-[80%] rounded-xl flex-col self-center gap-2 border border-[#6366ff]">
-        <View className="flex-col justify-start gap-4">
+        <View className="flex-col gap-4 justify-start">
           <Text className="text-base font-bold color-[#6366ff]">
             Parámetros de sueño recomendados
           </Text>
@@ -225,12 +225,12 @@ const UserSleepVsRecommended = ({ sleepLogsDuration, userAge }) => {
           </View>
         </View>
 
-        <View className="flex-col justify-start gap-4">
+        <View className="flex-col gap-4 justify-start">
           <Text className="text-base font-bold color-white">
             Tu calidad de sueño
           </Text>
 
-          <View className="flex-row justify-between gap-4">
+          <View className="flex-row gap-4 justify-between">
             <View className="flex-row items-center">
               <View
                 style={{
@@ -285,56 +285,79 @@ const UserSleepVsRecommended = ({ sleepLogsDuration, userAge }) => {
         onRequestClose={() => setModalVisible(false)}
       >
         <TouchableOpacity
-          className="items-center justify-center flex-1 bg-black/50"
+          className="flex-1 justify-center items-center bg-black/50"
           activeOpacity={1}
           onPress={() => setModalVisible(false)}
         >
           <View className="bg-[#1e2a47] p-6 rounded-xl w-[80%] max-w-[300px]">
             {selectedPoint && (
               <>
-                <View className="flex-row items-center justify-between mb-4">
+                <View className="flex-row justify-between items-center mb-4">
                   <Text className="text-lg font-bold color-[#6366ff]">
-                    Detalles del sueño
+                    {selectedPoint.hours === 0 && selectedPoint.minutes === 0
+                      ? "Sin registro"
+                      : "Detalles del sueño"}
                   </Text>
                   <TouchableOpacity onPress={() => setModalVisible(false)}>
                     <Icon name="times" size={20} color="#fff" />
                   </TouchableOpacity>
                 </View>
-                <View className="gap-2">
-                  <Text className="text-base color-white">
-                    Día: {selectedPoint.entireDay}
-                  </Text>
-                  <Text className="text-base color-white">
-                    Tiempo dormido: {selectedPoint.hoursRaw}h{" "}
-                    {selectedPoint.minutes}min
-                  </Text>
-                  <View className="flex-row items-center mt-1">
-                    <View
-                      style={{
-                        width: 10,
-                        height: 10,
-                        backgroundColor:
-                          selectedPoint.hours >= recommendation.ideal
-                            ? "#15db44"
-                            : selectedPoint.hours >= recommendation.min
-                            ? "#fbbf24"
-                            : "#ff4757",
-                        borderRadius: 5,
-                        marginRight: 6,
-                      }}
-                    />
-                    <Text className="color-[#a0b0c7] text-sm">
-                      Estado: {selectedPoint.status}
+
+                {selectedPoint.hours === 0 && selectedPoint.minutes === 0 ? (
+                  <View className="gap-3 items-center py-2">
+                    <Icon name="calendar-times-o" size={32} color="#6366ff" />
+                    <Text className="text-base text-center color-white">
+                      Día: {selectedPoint.entireDay}
                     </Text>
+                    <Text className="text-sm color-[#a0b0c7] text-center leading-5">
+                      No se registró actividad de sueño para este día.
+                    </Text>
+                    <View className="bg-[#323d4f] p-3 rounded-lg mt-2">
+                      <Text className="text-xs color-[#fbbf24] text-center">
+                        💡 Recuerda registrar tu sueño diariamente para un mejor
+                        seguimiento
+                      </Text>
+                    </View>
                   </View>
-                </View>
-                <View className="mt-4 pt-3 border-t border-[#323d4f]">
-                  <Text className="text-xs color-[#a0b0c7]">
-                    Recomendado para tu edad ({userAge} años):{" "}
-                    {recommendation.min}-{recommendation.max}h (Ideal:{" "}
-                    {recommendation.ideal}h)
-                  </Text>
-                </View>
+                ) : (
+                  <>
+                    <View className="gap-2">
+                      <Text className="text-base color-white">
+                        Día: {selectedPoint.entireDay}
+                      </Text>
+                      <Text className="text-base color-white">
+                        Tiempo dormido: {selectedPoint.hoursRaw}h{" "}
+                        {selectedPoint.minutes}min
+                      </Text>
+                      <View className="flex-row items-center mt-1">
+                        <View
+                          style={{
+                            width: 10,
+                            height: 10,
+                            backgroundColor:
+                              selectedPoint.hours >= recommendation.ideal
+                                ? "#15db44"
+                                : selectedPoint.hours >= recommendation.min
+                                ? "#fbbf24"
+                                : "#ff4757",
+                            borderRadius: 5,
+                            marginRight: 6,
+                          }}
+                        />
+                        <Text className="color-[#a0b0c7] text-sm">
+                          Estado: {selectedPoint.status}
+                        </Text>
+                      </View>
+                    </View>
+                    <View className="mt-4 pt-3 border-t border-[#323d4f]">
+                      <Text className="text-xs color-[#a0b0c7]">
+                        Recomendado para tu edad ({userAge} años):{" "}
+                        {recommendation.min}-{recommendation.max}h (Ideal:{" "}
+                        {recommendation.ideal}h)
+                      </Text>
+                    </View>
+                  </>
+                )}
               </>
             )}
           </View>
