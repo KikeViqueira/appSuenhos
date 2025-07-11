@@ -22,9 +22,8 @@ import {
 } from "../services/TokenService";
 import { apiClient } from "../services/apiClient";
 import { router } from "expo-router";
-import { hasCompletedOnboarding } from "../services/onboardingService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import useFitbit from "../hooks/useFitbit";
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -48,6 +47,8 @@ export const AuthProvider = ({ children }) => {
   const [userInfo, setUserInfo] = useState(null); // Estado que guarda la info del user más actualizada que hay en la BD
   const [isAuthLoading, setIsAuthLoading] = useState(true); // Estado para controlar si la autenticación está en curso
   const [isFlagsLoading, setIsFlagsLoading] = useState(false); // Estado para controlar si la sincronización de flags está en curso
+
+  const { loginFitbit } = useFitbit();
 
   //Función para actualizar el estado del onboarding
   const updateOnboardingStatus = (status) => {
@@ -79,6 +80,7 @@ export const AuthProvider = ({ children }) => {
         "current_chat_id",
         "preferredTimerDuration",
         "notifications",
+        "fitbitAccessToken",
       ];
 
       // Combinar todas las banderas a eliminar
@@ -223,6 +225,7 @@ export const AuthProvider = ({ children }) => {
     if (userId && accessToken) {
       syncFlags();
     }
+
     /**
      * El primer getUser que se llamará será cuando el user se haya logueado y haya completado el onboarding
      * a partir de ahí, cada vez que se actualice el token de acceso (ya sea debido al inicio de sesión o por el refresco del propio token), se llamará a getUser para recuperar la info del user
@@ -340,7 +343,8 @@ export const AuthProvider = ({ children }) => {
       //tenemos que guardar también el id del user que se ha creado en la BD en el secureStorage y en el estado para las futuras peticiones
       await SecureStore.setItemAsync("userId", response.data.userId.toString());
       setUserId(response.data.userId.toString());
-      //El useEffect se encargará de llamar a getUserFlags() cuando userId y accessToken estén establecidos
+      //Simulamos ya desde el login el acceso a la cuenta de fitbit
+      await loginFitbit(response.data.userId);
     } catch (error) {
       if (error.response) {
         if (error.response.status !== 403) {

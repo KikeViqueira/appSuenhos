@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { apiClient } from "../services/apiClient";
 import { useAuthContext } from "../context/AuthContext";
+import * as SecureStore from "expo-secure-store";
 
 const useFitbit = () => {
   const [loading, setLoading] = useState(false);
@@ -8,32 +9,32 @@ const useFitbit = () => {
   const [sleepTodayFitbitData, setSleepTodayFitbitData] = useState(null); //Guarda la info del sueño del user del día de hoy
   const [foodFitbitData, setFoodFitbitData] = useState(null); //Guarda la info semanal de la comida del user
   const [sleepWeeklyFitbitData, setSleepWeeklyFitbitData] = useState(null); //Guarda la info semanal de sueño del user
-  const [fitbitToken, setFitbitToken] = useState(null); //Guarda el token de fitbit del user
-
-  const { accessToken, userId } = useAuthContext();
 
   /*
    * ENDPOINT CORRESPONDIENTE AL LOGIN DEL USER DE NUESTRA APP EN FITBIT
    */
 
-  const loginFitbit = async () => {
+  const loginFitbit = async (userId) => {
     setError(null);
     setLoading(true);
 
     try {
-      const response = await apiClient.get(
+      const response = await apiClient.post(
         `/fitbitAuth/login`,
-        {
-          userId,
-        },
+        parseInt(userId), // Enviamos directamente el número, NO un objeto
         {
           headers: {
-            Authorization: accessToken,
             "Content-Type": "application/json",
           },
         }
       );
-      if (response && response.status === 200) setFitbitToken(response.data);
+      if (response && response.status === 200) {
+        //Guardamos el token de acceso a fitbit en el SecureStore
+        await SecureStore.setItemAsync(
+          "fitbitAccessToken",
+          response.data.accessToken
+        );
+      }
     } catch (error) {
       setError(error);
     } finally {
@@ -50,9 +51,12 @@ const useFitbit = () => {
     setLoading(true);
 
     try {
+      // Recuperamos el token de Fitbit del SecureStore
+      const fitbitToken = await SecureStore.getItemAsync("fitbitAccessToken");
+
       const response = await apiClient.get(`/fitbit/sleep`, {
         headers: {
-          Authorization: "ACCESS_TOKEN_VALUE",
+          Authorization: `${fitbitToken}`,
           "Content-Type": "application/json",
         },
       });
@@ -70,9 +74,12 @@ const useFitbit = () => {
     setLoading(true);
 
     try {
+      // Recuperamos el token de Fitbit del SecureStore
+      const fitbitToken = await SecureStore.getItemAsync("fitbitAccessToken");
+
       const response = await apiClient.get(`/fitbit/food`, {
         headers: {
-          Authorization: "ACCESS_TOKEN_VALUE",
+          Authorization: `${fitbitToken}`,
           "Content-Type": "application/json",
         },
       });
@@ -89,9 +96,12 @@ const useFitbit = () => {
     setLoading(true);
 
     try {
+      // Recuperamos el token de Fitbit del SecureStore
+      const fitbitToken = await SecureStore.getItemAsync("fitbitAccessToken");
+
       const response = await apiClient.get(`/fitbit/sleepWeekly`, {
         headers: {
-          Authorization: "ACCESS_TOKEN_VALUE",
+          Authorization: `${fitbitToken}`,
           "Content-Type": "application/json",
         },
       });
@@ -110,6 +120,7 @@ const useFitbit = () => {
     sleepTodayFitbitData,
     foodFitbitData,
     sleepWeeklyFitbitData,
+    loginFitbit,
     getSleepTodayFitbitData,
     getFoodFitbitData,
     getSleepWeeklyFitbitData,
